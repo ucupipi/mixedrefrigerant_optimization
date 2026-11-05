@@ -100,6 +100,8 @@ def system_status() -> Dict[str, Any]:
             **info,
         }
     except Exception as exc:
+        import traceback
+        print(f"[ERROR] system_status failed:\n{traceback.format_exc()}", flush=True)
         return {
             "status": "ERROR",
             "model_loaded": False,
@@ -153,7 +155,14 @@ def get_model_schema() -> Dict[str, Any]:
 @router.post("/prediction", response_model=PredictResponse)
 def predict_scenario(request: PredictRequest) -> PredictResponse:
     """Predict total C3MR shaft power from operator scenario with safety & domain audits."""
-    model = load_surrogate_model()
+    try:
+        model = load_surrogate_model()
+    except Exception as exc:
+        import traceback
+        tb = traceback.format_exc()
+        print(f"[ERROR] predict_scenario load_surrogate_model failed:\n{tb}", flush=True)
+        raise HTTPException(status_code=500, detail=f"Model loading error: {exc}")
+
     req_dict = request.model_dump(exclude_unset=True)
 
     # 1. Feature construction (20 features)
