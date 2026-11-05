@@ -35,6 +35,18 @@ from scipy.optimize import minimize
 
 warnings.filterwarnings("ignore")
 
+# Scikit-learn Cython loss compatibility shim
+if "_loss" not in sys.modules:
+    try:
+        import sklearn._loss._loss as _sklearn_subloss
+        sys.modules["_loss"] = _sklearn_subloss
+    except (ImportError, AttributeError):
+        try:
+            import sklearn._loss as _sklearn_loss
+            sys.modules["_loss"] = _sklearn_loss
+        except (ImportError, AttributeError):
+            pass
+
 # ── Paths & Root Resolution ──────────────────────────────────────────
 _ROOT = Path(__file__).resolve().parents[3]
 if str(_ROOT) not in sys.path:

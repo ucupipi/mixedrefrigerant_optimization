@@ -18,6 +18,18 @@ for _d in [_BACKEND_DIR, _SRC_DIR]:
     if _d_str not in sys.path:
         sys.path.insert(0, _d_str)
 
+# Scikit-learn Cython loss compatibility shim across Python/sklearn versions
+if "_loss" not in sys.modules:
+    try:
+        import sklearn._loss._loss as _sklearn_subloss
+        sys.modules["_loss"] = _sklearn_subloss
+    except (ImportError, AttributeError):
+        try:
+            import sklearn._loss as _sklearn_loss
+            sys.modules["_loss"] = _sklearn_loss
+        except (ImportError, AttributeError):
+            pass
+
 # Load the actual backend main.py
 _spec = importlib.util.spec_from_file_location("backend_main", _BACKEND_DIR / "main.py")
 _backend_module = importlib.util.module_from_spec(_spec)

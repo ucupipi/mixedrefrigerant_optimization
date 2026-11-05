@@ -42,6 +42,19 @@ def ensure_rebuild_in_path() -> Path:
     rebuild_str = str(rebuild_root)
     if rebuild_str not in sys.path:
         sys.path.insert(0, rebuild_str)
+
+    # Scikit-learn Cython loss compatibility shim across Python/sklearn versions (e.g. Python 3.14/sklearn 1.9)
+    if "_loss" not in sys.modules:
+        try:
+            import sklearn._loss._loss as _sklearn_subloss
+            sys.modules["_loss"] = _sklearn_subloss
+        except (ImportError, AttributeError):
+            try:
+                import sklearn._loss as _sklearn_loss
+                sys.modules["_loss"] = _sklearn_loss
+            except (ImportError, AttributeError):
+                pass
+
     return rebuild_root
 
 
