@@ -9,6 +9,34 @@ import sys
 from pathlib import Path
 from typing import Any, Optional
 import joblib
+import joblib.numpy_pickle
+
+# Unpickling compatibility hook for HistGradientBoosting Cython loss across Python/sklearn versions
+_orig_find_class = joblib.numpy_pickle.NumpyUnpickler.find_class
+
+def _patch_unpickler_find_class(self, module: str, name: str) -> Any:
+    if module == "_loss" or module.endswith("._loss"):
+        try:
+            import sklearn._loss._loss as mod
+            if hasattr(mod, name):
+                return getattr(mod, name)
+        except Exception:
+            pass
+        try:
+            import sklearn._loss as mod
+            if hasattr(mod, name):
+                return getattr(mod, name)
+        except Exception:
+            pass
+        try:
+            import sklearn._loss.loss as mod
+            if hasattr(mod, name):
+                return getattr(mod, name)
+        except Exception:
+            pass
+    return _orig_find_class(self, module, name)
+
+joblib.numpy_pickle.NumpyUnpickler.find_class = _patch_unpickler_find_class
 
 _CACHED_MODEL: Optional[Any] = None
 _MODEL_PATH_LOADED: Optional[Path] = None
