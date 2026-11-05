@@ -18,7 +18,7 @@ This repository includes a multi-stage `Dockerfile` and `render.yaml` blueprint 
 
 1. Log in to [Render](https://render.com).
 2. Click **New +** → **Blueprint** (or **Web Service**).
-3. Connect repository `agentucupipi/mixedrefrigerant_optimization`.
+3. Connect repository `ucupipi/mixedrefrigerant_optimization`.
 4. Render will detect `render.yaml` and configure:
    - **Runtime**: Docker (multi-stage build: Node 20 frontend SPA build + Python 3.12 FastAPI backend)
    - **Port**: Automatic via `$PORT` environment variable (default: `10000`)
@@ -55,3 +55,4 @@ Visit `http://localhost:5173` in your browser.
 - **Suction TAL Interlock**: Suction drum temperature $T_{\text{suct}} \ge -45.0^\circ\text{C}$.
 - **Thermodynamic Superheat**: PR-EOS dew point margin $\ge 3.0^\circ\text{C}$.
 - **Composition Envelope**: Mahalanobis distance $D_M \le 3.0802$ ($\chi^2_{0.95, 4}$).
+
