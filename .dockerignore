@@ -1,0 +1,37 @@
+# Git & version control
+.git
+.github
+.agents
+.claude
+.vscode
+.idea
+
+# Node.js
+**/node_modules
+**/dist
+
+# Python cache & virtual environments
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+.venv
+venv
+env
+
+# Heavy raw datasets & documents (not needed for web inference)
+data/scrubcolumn.xlsx
+data/scrubcolumn_clean.csv
+data/OTSMINI.xlsx
+data/master_minute_level.parquet
+data/MASTER_DATASET_REBUILD_20261014/data/raw
+data/MASTER_DATASET_REBUILD_20261014/data/interim
+data/dataset_raw/
+data/dataset_cleaned/
+docs/
+reports/
+audit/
+workcopies/
+*.hsc
+*.pdf
+*.docx
+

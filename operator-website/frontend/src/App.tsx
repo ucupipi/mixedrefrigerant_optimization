@@ -1,0 +1,385 @@
+import { useEffect, useState } from 'react';
+import { fetchDemoSnapshot, fetchHistoricalSummary, fetchSystemStatus, optimizeForFeed, predictScenario } from './api';
+import { TabGrafik } from './components/TabGrafik';
+import { TabInputResults } from './components/TabInputResults';
+import { TabNavigation } from './components/TabNavigation';
+import { TabPanduan } from './components/TabPanduan';
+import { TopNavbar } from './components/TopNavbar';
+import type {
+  ActiveTabId,
+  ActualDcsState,
+  DemoSnapshot,
+  HistoricalPoint,
+  OptimizeResponse,
+  PredictResponse,
+  ScenarioInput,
+  UserMode,
+} from './types';
+
+/* Normalizes 5 refrigerant components to sum to exactly 100.00% */
+const normalizeComposition = <T extends { comp_N2_molpct: number; comp_C1_molpct: number; comp_C2_molpct: number; comp_C2H4_molpct: number; comp_C3_molpct: number }>(c: T): T => {
+  const sum = c.comp_N2_molpct + c.comp_C1_molpct + c.comp_C2_molpct + c.comp_C2H4_molpct + c.comp_C3_molpct;
+  if (sum <= 0) return c;
+  const factor = 100.0 / sum;
+  const n2 = Math.round(c.comp_N2_molpct * factor * 100) / 100;
+  const c2 = Math.round(c.comp_C2_molpct * factor * 100) / 100;
+  const c2h4 = Math.round(c.comp_C2H4_molpct * factor * 100) / 100;
+  const c3 = Math.round(c.comp_C3_molpct * factor * 100) / 100;
+  const c1 = Math.round((100.0 - (n2 + c2 + c2h4 + c3)) * 100) / 100;
+  return {
+    ...c,
+    comp_N2_molpct: n2,
+    comp_C1_molpct: c1,
+    comp_C2_molpct: c2,
+    comp_C2H4_molpct: c2h4,
+    comp_C3_molpct: c3,
+  };
+};
+
+const DEFAULT_ACTUAL: ActualDcsState = {
+  feed_flow_t_h: 245.8,
+  lng_flow_t_h: 232.3,
+  mcr_flow_t_h: 562.3,
+  comp_N2_molpct: 3.39,
+  comp_C1_molpct: 44.45,
+  comp_C2_molpct: 45.02,
+  comp_C2H4_molpct: 0.85,
+  comp_C3_molpct: 6.29,
+};
+
+const actualFromSnapshot = (snap: DemoSnapshot): ActualDcsState => {
+  const raw = {
+    comp_N2_molpct: snap.values.comp_N2?.value ?? DEFAULT_ACTUAL.comp_N2_molpct,
+    comp_C1_molpct: snap.values.comp_C1?.value ?? DEFAULT_ACTUAL.comp_C1_molpct,
+    comp_C2_molpct: snap.values.comp_C2?.value ?? DEFAULT_ACTUAL.comp_C2_molpct,
+    comp_C2H4_molpct: snap.values.comp_C2H4?.value ?? DEFAULT_ACTUAL.comp_C2H4_molpct,
+    comp_C3_molpct: snap.values.comp_C3?.value ?? DEFAULT_ACTUAL.comp_C3_molpct,
+  };
+  const norm = normalizeComposition(raw);
+  const feed = snap.values.H1FI012?.value ?? DEFAULT_ACTUAL.feed_flow_t_h;
+  const lng = snap.values.H5FI006A?.value ?? (feed * 0.9450);
+  return {
+    feed_flow_t_h: feed,
+    lng_flow_t_h: lng,
+    mcr_flow_t_h: snap.values.H4FI001?.value ?? DEFAULT_ACTUAL.mcr_flow_t_h,
+    ...norm,
+  };
+};
+
+const scenarioFromActual = (a: ActualDcsState, hours: number): ScenarioInput => ({ ...a, transition_hours: hours });
+
+const buildRequest = (s: ScenarioInput, a: ActualDcsState): ScenarioInput => ({
+  ...s,
+  lng_flow_t_h: s.lng_flow_t_h ?? (s.feed_flow_t_h * 0.9450),
+  actual_feed_flow_t_h: a.feed_flow_t_h,
+  actual_lng_flow_t_h: a.lng_flow_t_h ?? (a.feed_flow_t_h * 0.9450),
+  actual_mcr_flow_t_h: a.mcr_flow_t_h,
+  actual_comp_N2_molpct: a.comp_N2_molpct,
+  actual_comp_C1_molpct: a.comp_C1_molpct,
+  actual_comp_C2_molpct: a.comp_C2_molpct,
+  actual_comp_C2H4_molpct: a.comp_C2H4_molpct,
+  actual_comp_C3_molpct: a.comp_C3_molpct,
+});
+
+export function App() {
+  const [userMode, setUserMode] = useState<UserMode>('OPERATOR');
+  const [activeTab, setActiveTab] = useState<ActiveTabId>('input-results');
+  const [modelReady, setModelReady] = useState<boolean>(false);
+  const [snapshot, setSnapshot] = useState<DemoSnapshot | null>(null);
+  const [actualDcs, setActualDcs] = useState<ActualDcsState>(DEFAULT_ACTUAL);
+  const [scenario, setScenario] = useState<ScenarioInput>(scenarioFromActual(DEFAULT_ACTUAL, 2.0));
+  const [optimum, setOptimum] = useState<OptimizeResponse | null>(null);
+  const [prediction, setPrediction] = useState<PredictResponse | null>(null);
+  const [historicalPoints, setHistoricalPoints] = useState<HistoricalPoint[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const autoCalculate = true;
+
+  // Auto-recalculate whenever scenario or actual changes (debounced 250ms)
+  useEffect(() => {
+    if (!autoCalculate || !snapshot) return;
+    const timer = setTimeout(async () => {
+      try {
+        setLoading(true);
+        const res = await predictScenario(buildRequest(scenario, actualDcs));
+        setPrediction(res);
+        setErrorMsg(null);
+      } catch (err: any) {
+        console.error('Auto-calculation error:', err);
+        setErrorMsg(err.message || 'Perhitungan prediksi gagal.');
+      } finally {
+        setLoading(false);
+      }
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [scenario, actualDcs, autoCalculate, Boolean(snapshot)]);
+
+  // Initialize data on mount
+  useEffect(() => {
+    async function initApp() {
+      try {
+        setLoading(true);
+        const status = await fetchSystemStatus().catch(() => ({ model_loaded: false }));
+        setModelReady(Boolean(status?.model_loaded));
+
+        const snap = await fetchDemoSnapshot();
+        const act = actualFromSnapshot(snap);
+        setActualDcs(act);
+        setScenario(scenarioFromActual(act, 2.0));
+        setSnapshot(snap);
+
+        const hist = await fetchHistoricalSummary().catch(() => ({ points: [] }));
+        setHistoricalPoints(hist.points || []);
+      } catch (err: any) {
+        console.error('Initialization error:', err);
+        setErrorMsg(err.message || 'Gagal terhubung ke backend model.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    initApp();
+  }, []);
+
+  const handleScenarioChange = (key: keyof ScenarioInput, value: number) => {
+    setScenario((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleActualChange = (key: keyof ActualDcsState, value: number) => {
+    setActualDcs((prev) => ({ ...prev, [key]: value }));
+    // Feed is a disturbance: target feed follows actual feed
+    if (key === 'feed_flow_t_h') {
+      setScenario((prev) => ({
+        ...prev,
+        feed_flow_t_h: value,
+        lng_flow_t_h: value * 0.9450,
+      }));
+    }
+  };
+
+  const handleNormalizeScenario = () => {
+    setScenario((prev) => normalizeComposition(prev));
+  };
+
+  const handleOptimize = async () => {
+    try {
+      setLoading(true);
+      setErrorMsg(null);
+      const opt = await optimizeForFeed(actualDcs.feed_flow_t_h);
+      setOptimum(opt);
+      setScenario((prev) => ({
+        ...prev,
+        feed_flow_t_h: actualDcs.feed_flow_t_h,
+        lng_flow_t_h: actualDcs.feed_flow_t_h * 0.9450,
+        mcr_flow_t_h: opt.mcr_flow_t_h,
+        comp_N2_molpct: opt.comp_N2_molpct,
+        comp_C1_molpct: opt.comp_C1_molpct,
+        comp_C2_molpct: opt.comp_C2_molpct,
+        comp_C2H4_molpct: opt.comp_C2H4_molpct,
+        comp_C3_molpct: opt.comp_C3_molpct,
+      }));
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Perhitungan titik optimum gagal.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCalculate = async () => {
+    try {
+      setLoading(true);
+      setErrorMsg(null);
+      setPrediction(await predictScenario(buildRequest(scenario, actualDcs)));
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Perhitungan prediksi gagal.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReset = () => {
+    if (!snapshot) return;
+    const act = actualFromSnapshot(snapshot);
+    setActualDcs(act);
+    setScenario(scenarioFromActual(act, scenario.transition_hours ?? 2.0));
+    setOptimum(null);
+  };
+
+  const handleExportCsv = () => {
+    if (!snapshot || !prediction) return;
+    const rows: (string | number | undefined | null)[][] = [
+      ['Parameter', 'Tag DCS', 'Aktual DCS', 'Rekomendasi / Target', 'Satuan', 'Status'],
+      ['Laju Alir Treated Gas ke MCHE 5E-1 (massa)', 'H3FI0004 x 0.760', actualDcs.feed_flow_t_h, scenario.feed_flow_t_h, 't/h', 'INPUT_DISTURBANCE'],
+      ['Laju Alir Produksi LNG Rundown (H5FI6A)', 'H5FI6A', (actualDcs.feed_flow_t_h * 0.9450).toFixed(1), (scenario.feed_flow_t_h * 0.9450).toFixed(1), 't/h LNG', 'COUPLED_PRODUCT'],
+      ['Laju Alir Sirkulasi MCR (massa)', 'H4FI011B x 36.8', actualDcs.mcr_flow_t_h, scenario.mcr_flow_t_h, 't/h', 'DECISION_VARIABLE'],
+      ['MCR N2', 'comp_4C-8_N2', actualDcs.comp_N2_molpct, scenario.comp_N2_molpct, 'mol%', 'DECISION_VARIABLE'],
+      ['MCR CH4 (C1)', 'comp_4C-8_C1', actualDcs.comp_C1_molpct, scenario.comp_C1_molpct, 'mol%', 'DECISION_VARIABLE'],
+      ['MCR C2H6 (C2)', 'comp_4C-8_C2', actualDcs.comp_C2_molpct, scenario.comp_C2_molpct, 'mol%', 'DECISION_VARIABLE'],
+      ['MCR C2H4', 'comp_4C-8_C2H4', actualDcs.comp_C2H4_molpct, scenario.comp_C2H4_molpct, 'mol%', 'DECISION_VARIABLE'],
+      ['MCR C3H8 (C3)', 'comp_4C-8_C3', actualDcs.comp_C3_molpct, scenario.comp_C3_molpct, 'mol%', 'DECISION_VARIABLE'],
+      ['Total Daya Poros C3MR', 'OUTPUT_MODEL', prediction.actual_power_mw, prediction.prediction.total_shaft_power_mw, 'MW', 'OUTPUT_PREDICTION'],
+      ['SEC LNG (Denominator H5FI6A)', 'DERIVED_LNG', '—', prediction.prediction.sec_lng_kwh_per_t ?? prediction.prediction.sec_kwh_per_t, 'kWh/t LNG', 'OUTPUT_PREDICTION'],
+      ['Jarak Mahalanobis', 'ENVELOPE', '—', prediction.domain_check.mahalanobis_distance, 'dimensionless', prediction.domain_check.in_domain ? 'IN_DOMAIN' : 'OUT_OF_DOMAIN'],
+      ['Status Keselamatan', 'INTERLOCK', '—', prediction.safety_check.all_safe ? 'PASSED' : 'VIOLATION', 'status', 'SAFETY_AUDIT'],
+    ];
+
+    if (prediction.makeup_advisory?.items) {
+      rows.push(['---', '---', '---', '---', '---', '---']);
+      rows.push(['REKOMENDASI INJEKSI MAKE-UP', 'TAG DCS', 'AKTUAL', 'REKOMENDASI FLOW', 'SATUAN', 'STATUS']);
+      for (const item of prediction.makeup_advisory.items) {
+        rows.push([
+          `Injeksi ${item.description}`,
+          item.tag_dcs,
+          `${item.actual_molpct.toFixed(2)} mol%`,
+          `${item.recommended_flow_nm3_h.toFixed(1)} Nm³/h (${item.recommended_flow_kg_h.toFixed(1)} kg/h)`,
+          'Nm³/h',
+          item.action,
+        ]);
+      }
+    }
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + rows.map((e) => e.join(',')).join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Badak_C3MR_Skenario_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const hasConstraintViolations = Boolean(
+    prediction && (!prediction.safety_check.all_safe || scenario.mcr_flow_t_h < 480)
+  );
+
+  // Clean industrial loading splash screen
+  if (!snapshot) {
+    return (
+      <div style={{
+        height: '100vh',
+        width: '100vw',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f8fafc',
+        color: '#0f172a',
+        fontFamily: "'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif",
+      }}>
+        <div style={{
+          width: '54px',
+          height: '54px',
+          border: '4px solid #e2e8f0',
+          borderTopColor: '#0284c7',
+          borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite',
+          marginBottom: '20px',
+        }} />
+        <div style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>
+          Badak LNG Plant-3 Train H
+        </div>
+        <div style={{ fontSize: '14px', color: '#64748b', marginTop: '6px' }}>
+          Memuat data operasional DCS & inisialisasi model C3MR...
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      width: '100%',
+      margin: 0,
+      padding: 0,
+      display: 'flex',
+      flexDirection: 'column',
+      backgroundColor: '#f8fafc',
+      color: '#0f172a',
+    }}>
+      {/* Top Navbar */}
+      <TopNavbar
+        userMode={userMode}
+        onToggleUserMode={setUserMode}
+        loading={loading}
+        onReset={handleReset}
+        onExportCsv={handleExportCsv}
+        modelReady={modelReady}
+      />
+
+      {/* Tab Navigation */}
+      <TabNavigation
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        hasConstraintViolations={hasConstraintViolations}
+      />
+
+      {/* Error / Warning Alert Banner */}
+      {errorMsg && (
+        <div style={{
+          backgroundColor: '#fffbeb',
+          borderBottom: '2px solid #f59e0b',
+          padding: '10px 24px',
+          color: '#92400e',
+          fontSize: '14px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          fontFamily: "'Segoe UI', sans-serif",
+        }}>
+          <span>⚠️ <strong>PERINGATAN SISTEM:</strong> {errorMsg}</span>
+          <button
+            onClick={() => setErrorMsg(null)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#92400e',
+              cursor: 'pointer',
+              fontWeight: 700,
+              fontSize: '16px',
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* Main Tab Content Workspace */}
+      <main style={{ flex: 1, padding: '24px', maxWidth: '1600px', width: '100%', margin: '0 auto' }}>
+        {activeTab === 'input-results' && (
+          <TabInputResults
+            snapshot={snapshot}
+            scenario={scenario}
+            actualDcs={actualDcs}
+            optimum={optimum}
+            prediction={prediction}
+            userMode={userMode}
+            loading={loading}
+            onActualChange={handleActualChange}
+            onScenarioChange={handleScenarioChange}
+            onCalculate={handleCalculate}
+            onOptimize={handleOptimize}
+            onNormalizeScenario={handleNormalizeScenario}
+            onReset={handleReset}
+          />
+        )}
+
+        {activeTab === 'process-graphics' && (
+          <TabGrafik
+            snapshot={snapshot}
+            scenario={scenario}
+            prediction={prediction}
+            historicalPoints={historicalPoints}
+            userMode={userMode}
+          />
+        )}
+
+        {activeTab === 'operator-guide' && (
+          <TabPanduan
+            userMode={userMode}
+          />
+        )}
+      </main>
+    </div>
+  );
+}
+
+export default App;

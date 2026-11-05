@@ -1,0 +1,270 @@
+# Variable Registry — Operator Decision-Support Website
+# Source: MCR_ML_REBUILD feature_dictionary.md, model_card.md, assumption_register.md
+# Status legend: VERIFIED | USER_CONFIRMED | HYPOTHESIS | UNKNOWN | NOT_APPLICABLE
+
+groups:
+  - id: feed_gas
+    label_id: "Umpan Gas Alam"
+    label_en: "Feed Gas"
+    variables:
+      - id: H1FI012
+        label_id: "Laju alir massa treated gas ke MCHE 5E-1"
+        label_en: "Treated gas mass flow to MCHE 5E-1"
+        # Model feature key "H1FI012" is a legacy column name (MCR_ML_REBUILD/src/data/ingestion.py:97).
+        # Actual content: treated_gas_mass_flow_t_h = H3FI0004 [kNm3/h] x 0.760 (stage 08).
+        # H1FI0012 in CANONICAL_TAG_DICTIONARY is "FG > UTL" (fuel gas to utilities) - NOT this stream.
+        # Natural feed gas inlet is H1FI0009 ("F/G > 1C-1").
+        tag_dcs: "H3FI0004 (x 0.760 t/kNm3)"
+        unit: "t/h"
+        data_type: float64
+        source: DCS
+        role: FEATURE_ACTIVE
+        model_feature: H1FI012
+        monotonic: 1
+        range_instrument: [250.0, 950.0]
+        range_training: [130.0, 340.0]
+        scenario_editable: true
+        operator_visible: true
+        status: VERIFIED
+        description_id: "Laju alir massa treated gas dari 3C-2 menuju MCHE 5E-1 (H3FI0004 x 0.760). Umpan gas alam mentah = H1FI0009 (F/G > 1C-1)."
+
+  - id: compressor_mcr
+    label_id: "Kompresor MCR"
+    label_en: "MCR Compressor"
+    variables:
+      - id: H4FI001
+        label_id: "Laju alir sirkulasi MCR ke MCHE"
+        label_en: "MCR circulation mass flow to MCHE"
+        # Model feature key "H4FI001" is a legacy column name (MCR_ML_REBUILD/src/data/ingestion.py:112).
+        # Actual content: MCR_mass_flow_t_h = H4FI011B [k m3/h] x 36.8 kg/m3 (stage 08, PR-EOS 45 bar/128 degC).
+        # H4FI001A in CANONICAL_TAG_DICTIONARY is "4K-1 1-SUCT" (propane) - NOT this stream.
+        tag_dcs: "H4FI011B (x 36.8 kg/m3)"
+        unit: "t/h"
+        data_type: float64
+        source: DCS
+        role: FEATURE_DECISION
+        model_feature: H4FI001
+        monotonic: 1
+        range_instrument: [300.0, 750.0]
+        range_training: [400.0, 720.0]
+        scenario_editable: true
+        operator_visible: true
+        status: VERIFIED
+        description_id: "Laju alir massa refrigeran campuran ke sisi shell MCHE. Batas minimum anti-surge: 480.0 t/h."
+
+      - id: H4TI004B
+        label_id: "Suhu gas keluar suction drum 4C-8"
+        label_en: "1st Stage MCR suction drum vapor outlet temperature"
+        tag_dcs: H4TI004B
+        unit: "°C"
+        data_type: float64
+        source: DCS
+        role: SAFETY_BOUNDARY
+        model_feature: null
+        range_instrument: [-50.0, 40.0]
+        range_training: [-50.0, 40.0]
+        scenario_editable: false
+        operator_visible: true
+        status: VERIFIED
+        safety_limit: ">= -45.0"
+        description_id: "Suhu uap keluar drum suction 4C-8 kompresor 4K-2. Batas alarm bawah (TAL): -45.0°C."
+
+      - id: rp_LP_MCR
+        label_id: "Rasio tekanan tingkat LP (4K-2)"
+        label_en: "LP stage pressure ratio (4K-2)"
+        tag_dcs: "Computed: H4PI015A / H4PI014B"
+        unit: "dimensionless"
+        data_type: float64
+        source: Engineered
+        role: FEATURE_ENGINEERED
+        model_feature: rp_LP_MCR
+        monotonic: 1
+        range_training: [2.0, 8.0]
+        scenario_editable: false
+        operator_visible: false
+        status: VERIFIED
+        description_id: "Rasio tekanan LP 4K-2 dihitung otomatis dari tag tekanan suction dan discharge."
+
+      - id: rp_HP_MCR
+        label_id: "Rasio tekanan tingkat HP (4K-3)"
+        label_en: "HP stage pressure ratio (4K-3)"
+        tag_dcs: "Computed: H4PI017B / H4PI016B"
+        unit: "dimensionless"
+        data_type: float64
+        source: Engineered
+        role: FEATURE_ENGINEERED
+        model_feature: rp_HP_MCR
+        monotonic: 1
+        range_training: [2.0, 5.0]
+        scenario_editable: false
+        operator_visible: false
+        status: VERIFIED
+
+      - id: rp_MCR_total
+        label_id: "Rasio tekanan total MCR"
+        label_en: "Overall MCR pressure ratio"
+        tag_dcs: "Computed: H4PI017B / H4PI014B"
+        unit: "dimensionless"
+        data_type: float64
+        source: Engineered
+        role: FEATURE_ENGINEERED
+        model_feature: rp_MCR_total
+        monotonic: 1
+        range_training: [5.0, 25.0]
+        scenario_editable: false
+        operator_visible: false
+        status: VERIFIED
+
+  - id: mcr_composition
+    label_id: "Komposisi Refrigeran Campuran (MCR)"
+    label_en: "Mixed Refrigerant Composition"
+    variables:
+      - id: comp_N2
+        label_id: "Nitrogen (N₂)"
+        label_en: "Nitrogen (N2)"
+        tag_dcs: comp_4C-8_N2
+        unit: "mol%"
+        data_type: float64
+        source: Lab GC
+        role: FEATURE_DECISION
+        model_feature: "xi_1 (via ILR)"
+        range_instrument: [0.50, 8.50]
+        range_training: [0.50, 8.50]
+        scenario_editable: true
+        operator_visible: true
+        status: VERIFIED
+        description_id: "Fraksi mol nitrogen dalam MCR. Sumber: Kromatografi Gas (GC) laboratorium dari drum 4C-8."
+
+      - id: comp_C1
+        label_id: "Metana (CH₄)"
+        label_en: "Methane (C1)"
+        tag_dcs: comp_4C-8_C1
+        unit: "mol%"
+        data_type: float64
+        source: Lab GC
+        role: FEATURE_DECISION
+        range_instrument: [35.00, 55.00]
+        range_training: [35.00, 55.00]
+        scenario_editable: true
+        operator_visible: true
+        status: VERIFIED
+
+      - id: comp_C2
+        label_id: "Etana (C₂H₆)"
+        label_en: "Ethane (C2)"
+        tag_dcs: comp_4C-8_C2
+        unit: "mol%"
+        data_type: float64
+        source: Lab GC
+        role: FEATURE_DECISION
+        range_instrument: [30.00, 55.00]
+        range_training: [30.00, 55.00]
+        scenario_editable: true
+        operator_visible: true
+        status: VERIFIED
+
+      - id: comp_C2H4
+        label_id: "Etilena (C₂H₄)"
+        label_en: "Ethylene (C2H4)"
+        tag_dcs: comp_4C-8_C2H4
+        unit: "mol%"
+        data_type: float64
+        source: Lab GC
+        role: FEATURE_DECISION
+        range_instrument: [0.00, 45.00]
+        range_training: [0.00, 45.00]
+        scenario_editable: true
+        operator_visible: true
+        status: VERIFIED
+
+      - id: comp_C3
+        label_id: "Propana (C₃H₈)"
+        label_en: "Propane (C3)"
+        tag_dcs: comp_4C-8_C3
+        unit: "mol%"
+        data_type: float64
+        source: Lab GC
+        role: FEATURE_DECISION
+        range_instrument: [0.00, 12.00]
+        range_training: [0.00, 12.00]
+        scenario_editable: true
+        operator_visible: true
+        status: VERIFIED
+
+  - id: mche
+    label_id: "MCHE (Penukar Panas Kriogenik Utama)"
+    label_en: "Main Cryogenic Heat Exchanger"
+    variables:
+      - id: MCHE_dT_cold_bundle_approach
+        label_id: "Pendekatan suhu cold bundle MCHE"
+        label_en: "MCHE cold bundle temperature approach"
+        tag_dcs: "Computed: H5TI0026 - H5TI0021"
+        unit: "°C"
+        data_type: float64
+        source: Engineered
+        role: FEATURE_ENGINEERED
+        model_feature: MCHE_dT_cold_bundle_approach
+        scenario_editable: false
+        operator_visible: false
+        status: VERIFIED
+
+      - id: MCHE_dT_shell_span
+        label_id: "Rentang suhu shell MCHE"
+        label_en: "MCHE shell temperature span"
+        tag_dcs: "Computed: H5TI0047 - H5TI0025"
+        unit: "°C"
+        data_type: float64
+        source: Engineered
+        role: FEATURE_ENGINEERED
+        model_feature: MCHE_dT_shell_span
+        scenario_editable: false
+        operator_visible: false
+        status: VERIFIED
+
+  - id: prediction_targets
+    label_id: "Hasil Prediksi Model"
+    label_en: "Model Prediction Outputs"
+    variables:
+      - id: total_shaft_power_mw
+        label_id: "Daya poros total Train C3MR"
+        label_en: "Total C3MR train shaft power"
+        unit: "MW"
+        data_type: float64
+        source: Model Prediction
+        role: MODEL_OUTPUT
+        range_physical: [40.0, 150.0]
+        operator_visible: true
+        status: VERIFIED
+        description_id: "Prediksi total daya poros kompresor C3MR (4KT-1 + 4KT-2 + 4KT-3). Bukan instruksi untuk mengubah set point."
+
+safety_boundaries:
+  - id: antisurge_flow_floor
+    parameter: "Batas minimum aliran anti-surge"
+    value: 480.0
+    unit: "t/h"
+    tag_dcs: "H4FI011B (x 36.8 kg/m3)"
+    source: "Badak Operating Manual Book 5, pp. 78-80"
+    status: VERIFIED
+
+  - id: suction_tal
+    parameter: "Batas alarm bawah suhu suction drum (TAL)"
+    value: -45.0
+    unit: "°C"
+    tag_dcs: H4TI004B
+    source: "AGENTS.md, Manual Book"
+    status: VERIFIED
+
+  - id: mche_mita
+    parameter: "Pendekatan suhu internal minimum MCHE (MITA)"
+    value: 1.50
+    unit: "°C"
+    source: "AGENTS.md, Manual Book"
+    status: VERIFIED
+
+  - id: mahalanobis_limit
+    parameter: "Batas jarak Mahalanobis komposisi MCR"
+    value: 3.080216
+    unit: "dimensionless"
+    source: "χ²₀.₉₅,₄"
+    status: VERIFIED
+

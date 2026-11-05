@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: badak-c3mr-operator
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: singapore
+    envVars:
+      - key: PORT
+        value: 10000
+
