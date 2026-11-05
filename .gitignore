@@ -79,9 +79,11 @@ htmlcov/
 *.db
 /mlruns/
 
-# Allow frontend images/icons
+# Allow frontend images/icons & requirements
 !operator-website/**/*.svg
 !operator-website/**/*.png
+!operator-website/backend/requirements.txt
+!requirements.txt
 
 # Exclude root-level large directories (operator-website is self-contained)
 /data/
