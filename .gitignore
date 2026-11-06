@@ -82,6 +82,8 @@ htmlcov/
 # Allow frontend images/icons & requirements
 !operator-website/**/*.svg
 !operator-website/**/*.png
+!operator-website/**/*.jpg
+!operator-website/**/*.jpeg
 !operator-website/backend/requirements.txt
 !requirements.txt
 
