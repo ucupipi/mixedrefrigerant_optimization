@@ -503,7 +503,7 @@ export function App() {
       )}
 
       {/* Main Tab Content Workspace */}
-      <main style={{ flex: 1, padding: '24px', maxWidth: '1600px', width: '100%', margin: '0 auto' }}>
+      <main className="app-main-container" style={{ flex: 1, padding: '24px', maxWidth: '1600px', width: '100%', margin: '0 auto' }}>
         {activeTab === 'input-results' && (
           <TabInputResults
             snapshot={snapshot}

@@ -218,19 +218,21 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
         <div style={{
           backgroundColor: '#0f172a',
           color: '#ffffff',
-          padding: '14px 24px',
+          padding: '14px 20px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           borderBottom: '2px solid #0284c7',
+          flexWrap: 'wrap',
+          gap: '12px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '16px', fontWeight: 700 }}>
+            <span style={{ fontSize: '16px', fontWeight: 700, letterSpacing: '-0.2px' }}>
               1. Kondisi Operasi & Target MCR
             </span>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
             <button
               onClick={() => {
                 setLocalFeedGas({ ...DEFAULT_FEED_GAS, ...(feedGasComp || {}) });
@@ -287,13 +289,30 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
         </div>
 
         {/* Section Content: Comparison Table */}
-        <div style={{ padding: '20px 24px' }}>
-          <table style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-            fontSize: '14px',
-            textAlign: 'left',
-          }}>
+        <div style={{ padding: '16px 20px' }}>
+          {/* Mobile Swipe Hint */}
+          <div className="mobile-swipe-hint">
+            <span>👉 Geser tabel ke kanan untuk melihat Target AI & Satuan ↔</span>
+          </div>
+
+          <div
+            className="table-scroll-container"
+            style={{
+              width: '100%',
+              overflowX: 'auto',
+              WebkitOverflowScrolling: 'touch',
+              borderRadius: '8px',
+              border: '1px solid #e2e8f0',
+              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)',
+            }}
+          >
+            <table style={{
+              width: '100%',
+              minWidth: '720px',
+              borderCollapse: 'collapse',
+              fontSize: '14px',
+              textAlign: 'left',
+            }}>
             <thead>
               <tr style={{ backgroundColor: '#f1f5f9', color: '#475569', borderBottom: '2px solid #cbd5e1' }}>
                 <th style={{ padding: '10px 14px', fontWeight: 700, fontSize: '13px', width: '28%' }}>Parameter Operasi</th>
@@ -532,6 +551,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               </tr>
             </tbody>
           </table>
+          </div>
 
           {/* Sub-Panel: Rekomendasi Injeksi Make-Up MCR */}
           <div style={{
@@ -553,7 +573,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 </span>
               </div>
 
-              <div style={{ display: 'flex', gap: '8px', fontSize: '12px' }}>
+              <div style={{ display: 'flex', gap: '8px', fontSize: '12px', flexWrap: 'wrap' }}>
                 <span style={{ backgroundColor: '#f1f5f9', color: '#334155', padding: '4px 10px', borderRadius: '6px', fontWeight: 600, border: '1px solid #cbd5e1' }}>
                   Waktu Transisi: <strong>{makeupTransitionHours} Jam</strong>
                 </span>
@@ -566,12 +586,29 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               </div>
             </div>
 
-            <table style={{
-              width: '100%',
-              borderCollapse: 'collapse',
-              fontSize: '14px',
-              textAlign: 'left',
-            }}>
+            {/* Mobile Swipe Hint */}
+            <div className="mobile-swipe-hint">
+              <span>👉 Geser tabel ke kanan untuk melihat Laju Injeksi & Prosedur ↔</span>
+            </div>
+
+            <div
+              className="table-scroll-container"
+              style={{
+                width: '100%',
+                overflowX: 'auto',
+                WebkitOverflowScrolling: 'touch',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0',
+                boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)',
+              }}
+            >
+              <table style={{
+                width: '100%',
+                minWidth: '840px',
+                borderCollapse: 'collapse',
+                fontSize: '14px',
+                textAlign: 'left',
+              }}>
               <thead>
                 <tr style={{ backgroundColor: '#f1f5f9', color: '#475569', borderBottom: '2px solid #cbd5e1' }}>
                   <th style={{ padding: '10px 14px', fontWeight: 700, width: '16%' }}>Komponen</th>
@@ -652,7 +689,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 })}
               </tbody>
             </table>
-
+            </div>
 
           </div>
         </div>
@@ -671,14 +708,16 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
         <div style={{
           backgroundColor: '#0f172a',
           color: '#ffffff',
-          padding: '14px 24px',
+          padding: '14px 20px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           borderBottom: '2px solid #0284c7',
+          flexWrap: 'wrap',
+          gap: '10px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '16px', fontWeight: 700 }}>
+            <span style={{ fontSize: '16px', fontWeight: 700, letterSpacing: '-0.2px' }}>
               2. Pengawasan Operasi & Batas Aman
             </span>
           </div>
@@ -697,10 +736,10 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
           </div>
         </div>
 
-        <div style={{ padding: '20px 24px' }}>
+        <div style={{ padding: '16px 20px' }}>
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
             gap: '16px',
           }}>
             {/* Panel 1: Kompresor MCR 4K-2 */}
@@ -1073,7 +1112,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
             return (
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
                 gap: '16px',
               }}>
                 {/* KPI Card 1: Penghematan SEC LNG */}
@@ -1431,14 +1470,22 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               </div>
 
               {/* Composition Table */}
-              <table style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-                fontSize: '13px',
-                border: '1px solid #e2e8f0',
-                borderRadius: '6px',
-                overflow: 'hidden',
-              }}>
+              <div
+                className="table-scroll-container"
+                style={{
+                  width: '100%',
+                  overflowX: 'auto',
+                  WebkitOverflowScrolling: 'touch',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '6px',
+                }}
+              >
+                <table style={{
+                  width: '100%',
+                  minWidth: '580px',
+                  borderCollapse: 'collapse',
+                  fontSize: '13px',
+                }}>
                 <thead>
                   <tr style={{ backgroundColor: '#f8fafc', color: '#475569', borderBottom: '2px solid #cbd5e1' }}>
                     <th style={{ padding: '8px 12px', fontWeight: 700, width: '32%' }}>Komponen Feed Gas</th>
@@ -1488,6 +1535,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                   ))}
                 </tbody>
               </table>
+              </div>
 
               {/* Feed Gas Physical Properties Bar */}
               {(() => {

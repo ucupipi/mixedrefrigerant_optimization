@@ -7,6 +7,7 @@ INDEX_CSS = os.path.join(FRONTEND_DIR, 'index.css')
 TOP_NAVBAR = os.path.join(FRONTEND_DIR, 'components', 'TopNavbar.tsx')
 TAB_NAV = os.path.join(FRONTEND_DIR, 'components', 'TabNavigation.tsx')
 TAB_GRAFIK = os.path.join(FRONTEND_DIR, 'components', 'TabGrafik.tsx')
+TAB_INPUT_RESULTS = os.path.join(FRONTEND_DIR, 'components', 'TabInputResults.tsx')
 APP_TSX = os.path.join(FRONTEND_DIR, 'App.tsx')
 
 def read_file(path: str) -> str:
@@ -196,3 +197,27 @@ class TestTabGrafikViewBoxAndCryogenicTags:
             # Check click handler
             assert f"handleTagClick" in content
             assert tag in content
+
+
+class TestTabInputResultsMobileAccessibility:
+    """Empirical verification that TabInputResults is fully accessible on mobile devices.
+    Ensures horizontal table swipe, responsive grid auto-fit, and touch indicators."""
+
+    @pytest.fixture
+    def input_results_content(self):
+        return read_file(TAB_INPUT_RESULTS)
+
+    def test_tables_wrapped_in_scroll_containers_with_min_widths(self, input_results_content):
+        """Verify that comparison table and makeup schedule table are wrapped in table-scroll-container with minWidth."""
+        assert 'className="table-scroll-container"' in input_results_content, "table-scroll-container wrapper missing"
+        assert 'minWidth: \'720px\'' in input_results_content, "minWidth 720px missing on Comparison Table"
+        assert 'minWidth: \'840px\'' in input_results_content, "minWidth 840px missing on Make-Up Schedule Table"
+        assert 'mobile-swipe-hint' in input_results_content, "Mobile swipe hint helper missing"
+
+    def test_sections_grid_responsive_autofit(self, input_results_content):
+        """Verify that Section 2 and Section 3 use auto-fit minmax responsive grids instead of rigid repeat(N, 1fr)."""
+        assert "minmax(280px, 1fr)" in input_results_content, "Section 2 responsive grid minmax(280px, 1fr) missing"
+        assert "minmax(230px, 1fr)" in input_results_content, "Section 3 responsive grid minmax(230px, 1fr) missing"
+        assert "repeat(3, 1fr)" not in input_results_content, "Hardcoded rigid repeat(3, 1fr) should not be used in Section 2"
+        assert "repeat(4, 1fr)" not in input_results_content, "Hardcoded rigid repeat(4, 1fr) should not be used in Section 3"
+
