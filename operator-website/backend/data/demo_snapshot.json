@@ -13,6 +13,14 @@
       "editable": true,
       "category": "feed_gas"
     },
+    "H3FI0004": {
+      "name": "Laju Alir Treated Gas ke MCHE 5E-1 (massa)",
+      "tag": "H3FI0004",
+      "value": 245.8,
+      "unit": "t/h",
+      "editable": true,
+      "category": "feed_gas"
+    },
     "H5FI006A": {
       "name": "Laju Alir Produksi LNG Rundown ke Tangki (H5FI6A)",
       "tag": "H5FI6A",

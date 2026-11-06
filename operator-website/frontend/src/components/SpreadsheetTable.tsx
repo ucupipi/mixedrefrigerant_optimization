@@ -29,9 +29,9 @@ export const SpreadsheetTable: React.FC<SpreadsheetTableProps> = ({
     // Group 1: Feed Gas
     {
       group: 'Umpan Gas Alam',
-      name: 'Laju Alir Umpan Gas (Scrub Column Overhead)',
-      tag: 'H1FI012',
-      actual: v.H1FI012?.value ?? 245.8,
+      name: 'Laju Alir Treated Feed ke MCHE 5E-1',
+      tag: 'H3FI0004',
+      actual: v.H3FI0004?.value ?? v.H1FI012?.value ?? 245.8,
       scenarioKey: 'feed_flow_t_h' as keyof ScenarioInput,
       scenarioVal: scenario.feed_flow_t_h,
       unit: 't/h',

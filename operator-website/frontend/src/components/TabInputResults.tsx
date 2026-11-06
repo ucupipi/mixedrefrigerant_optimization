@@ -219,15 +219,15 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                   Flow Feed Gas MCHE (5E-1)
                 </td>
                 <td style={{ padding: '12px 14px', fontFamily: 'monospace', color: '#0284c7', fontSize: '13px' }}>
-                  H1FI012
+                  H3FI0004
                 </td>
                 <td style={{ padding: '8px 14px', backgroundColor: '#f8fafc' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <input
                       type="number"
                       step="0.5"
-                      min="120"
-                      max="350"
+                      min="100"
+                      max="500"
                       value={scenario.feed_flow_t_h}
                       onChange={(e) => onScenarioChange('feed_flow_t_h', parseFloat(e.target.value) || 0)}
                       style={{

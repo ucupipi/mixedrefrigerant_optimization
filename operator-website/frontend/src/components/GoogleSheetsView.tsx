@@ -26,7 +26,7 @@ export const GoogleSheetsView: React.FC<GoogleSheetsViewProps> = ({
     row: 5,
     col: 'D',
     name: 'D5',
-    formula: '=INPUT_FEED_FLOW(H1FI012)',
+    formula: '=INPUT_FEED_FLOW(H3FI0004)',
   });
 
   const [transitionHours, setTransitionHours] = useState<number>(2.0);
@@ -273,9 +273,9 @@ export const GoogleSheetsView: React.FC<GoogleSheetsViewProps> = ({
             </tr>
 
             {/* Row 5: Feed Flow */}
-            <tr onClick={() => handleCellClick(5, 'D', 'D5', '=INPUT_FEED_FLOW(H1FI012)')}>
+            <tr onClick={() => handleCellClick(5, 'D', 'D5', '=INPUT_FEED_FLOW(H3FI0004)')}>
               <td style={{ backgroundColor: '#f8f9fa', border: '1px solid #e0e0e0', textAlign: 'center', color: '#70757a', fontSize: '0.75rem' }}>5</td>
-              <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', fontFamily: 'monospace', fontWeight: 600, color: '#1a73e8' }}>H1FI012</td>
+              <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', fontFamily: 'monospace', fontWeight: 600, color: '#1a73e8' }}>H3FI0004</td>
               <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', fontWeight: 600 }}>Laju Alir Umpan Gas Alam (Feed Gas)</td>
               <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', textAlign: 'right', fontFamily: 'monospace' }}>245.8</td>
               <td style={{ border: '1px solid #e0e0e0', padding: '4px 6px', textAlign: 'right', backgroundColor: '#e8f0fe' }}>

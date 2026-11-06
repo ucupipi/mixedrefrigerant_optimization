@@ -56,7 +56,7 @@ const actualFromSnapshot = (snap: DemoSnapshot): ActualDcsState => {
     comp_C3_molpct: snap.values.comp_C3?.value ?? DEFAULT_ACTUAL.comp_C3_molpct,
   };
   const norm = normalizeComposition(raw);
-  const feed = snap.values.H1FI012?.value ?? DEFAULT_ACTUAL.feed_flow_t_h;
+  const feed = snap.values.H3FI0004?.value ?? snap.values.H1FI012?.value ?? DEFAULT_ACTUAL.feed_flow_t_h;
   const lng = snap.values.H5FI006A?.value ?? (feed * 0.9450);
   return {
     feed_flow_t_h: feed,
