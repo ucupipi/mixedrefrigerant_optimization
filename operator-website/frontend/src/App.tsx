@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchDemoSnapshot, fetchHistoricalSummary, fetchSystemStatus, optimizeForFeed, predictScenario } from './api';
-import { calculateFlashDrum5C1, getEstimatedLngFlow } from './utils/thermoFlash';
+import { calculateFlashDrum5C1, DEFAULT_FEED_GAS, getEstimatedLngFlow } from './utils/thermoFlash';
+import type { FeedGasComposition } from './utils/thermoFlash';
 import { TabGrafik } from './components/TabGrafik';
 import { TabInputResults } from './components/TabInputResults';
 import { TabNavigation } from './components/TabNavigation';
@@ -177,6 +178,7 @@ export function App() {
     transition_hours: 2.0,
   });
   const [prediction, setPrediction] = useState<PredictResponse | null>(DEFAULT_PREDICTION);
+  const [feedGasComp, setFeedGasComp] = useState<FeedGasComposition>(DEFAULT_FEED_GAS);
   const [historicalPoints, setHistoricalPoints] = useState<HistoricalPoint[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -306,6 +308,15 @@ export function App() {
     setScenario((prev) => normalizeComposition(prev));
   };
 
+  const handleFeedGasCompChange = (newComp: FeedGasComposition) => {
+    setFeedGasComp(newComp);
+    const newLng = getEstimatedLngFlow(scenario.feed_flow_t_h, -152.5, newComp);
+    setScenario((prev) => ({
+      ...prev,
+      lng_flow_t_h: newLng,
+    }));
+  };
+
   const handleOptimize = async () => {
     try {
       setLoading(true);
@@ -427,7 +438,7 @@ export function App() {
           marginBottom: '20px',
         }} />
         <div style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>
-          BADAK LNG PLANT-3 TRAIN H — C3MR OPTIMIZATION
+          MACHINE LEARNING BASED C3MR OPTIMIZATION
         </div>
         <div style={{ fontSize: '14px', color: '#64748b', marginTop: '6px' }}>
           Memuat data operasional DCS & inisialisasi model C3MR...
@@ -502,6 +513,8 @@ export function App() {
             prediction={prediction}
             userMode={userMode}
             loading={loading}
+            feedGasComp={feedGasComp}
+            onFeedGasCompChange={handleFeedGasCompChange}
             onActualChange={handleActualChange}
             onScenarioChange={handleScenarioChange}
             onCalculate={handleCalculate}

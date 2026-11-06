@@ -136,7 +136,7 @@ class TestTabGrafikViewBoxAndCryogenicTags:
         # Canvas vertical span: min_y=140, height=790 -> max_y=930
         canvas_bottom = 140 + 790 # 930
         
-        tags_to_check = ['FI4' if 'FI4' in content else 'FI12', 'PI12', 'TI23']
+        tags_to_check = ['H3FI0004' if 'H3FI0004' in content else ('FI4' if 'FI4' in content else 'FI12'), 'PI12', 'TI23']
         for tag in tags_to_check:
             # Match rect directly preceding the text containing the tag
             pattern = rf'<rect\s+x="(\d+)"\s+y="(\d+)"\s+width="(\d+)"\s+height="(\d+)"[^>]*>\s*<text[^>]*>{tag}'

@@ -20,10 +20,35 @@
  * Governance: AGENTS.md (Pasal 1, 3, 5), ORIGINAL_REQUEST.md (§R3).
  */
 
+export interface FeedGasComposition {
+  N2?: number;   // mol% (AI25A, baseline 0.0536%)
+  C1?: number;   // mol% (AI25B, baseline 94.5096%)
+  C2?: number;   // mol% (AI25C, baseline 2.7181%)
+  C3?: number;   // mol% (AI25D, baseline 1.6738%)
+  iC4?: number;  // mol% (AI25E, baseline 0.3913%)
+  nC4?: number;  // mol% (AI25F, baseline 0.5426%)
+  iC5?: number;  // mol% (AI25G, baseline 0.0002%)
+  temp_inlet_c?: number; // °C (H5TI0023, baseline -53.5°C)
+  press_inlet_kgcm2g?: number; // kg/cm²G (H5PI0012, baseline 43.15 kg/cm²G)
+}
+
+export const DEFAULT_FEED_GAS: Required<FeedGasComposition> = {
+  N2: 0.0536,
+  C1: 94.5096,
+  C2: 2.7181,
+  C3: 1.6738,
+  iC4: 0.3913,
+  nC4: 0.5426,
+  iC5: 0.0002,
+  temp_inlet_c: -53.5,
+  press_inlet_kgcm2g: 43.15,
+};
+
 export interface FlashDrumOptions {
   tMcheOutC?: number;       // Subcooled LNG temperature from MCHE (-152.0 to -153.8°C, default -152.5°C)
   pMcheOutKgcm2g?: number;  // Subcooled LNG pressure (~41.5 kg/cm²G)
   pFlashKgcm2g?: number;    // Flash drum 5C-1 operating pressure (0.25 to 0.35 kg/cm²G, default 0.30 kg/cm²G)
+  feedComp?: FeedGasComposition; // Treated feed gas composition (Overhead Scrub Column 3C-1)
 }
 
 export interface FlashDrumResult {
@@ -78,13 +103,23 @@ export function calculateFlashDrum5C1(
 
   const tMche = options.tMcheOutC ?? -152.5;
   const pFlash = options.pFlashKgcm2g ?? 0.30;
+  const comp = options.feedComp;
+
+  // Compositional impact on liquid condensation yield
+  // Heavier feed gas (more C2+) increases rundown yield; leaner feed gas flashes more off to fuel gas
+  let deltaYieldComp = 0.0;
+  if (comp) {
+    const c2Plus = ((comp.C2 ?? 2.7181) + (comp.C3 ?? 1.6738) + (comp.iC4 ?? 0.3913) + (comp.nC4 ?? 0.5426) + (comp.iC5 ?? 0.0002)) / 100.0;
+    const c2PlusBase = (2.7181 + 1.6738 + 0.3913 + 0.5426 + 0.0002) / 100.0; // 0.05326
+    deltaYieldComp = (c2Plus - c2PlusBase) * 0.12; // PR-EOS sensitivity: 12% yield shift per 100% C2+ change
+  }
 
   // PR-EOS first-principles expansion:
   // Liquid yield increases when inlet liquid is subcooled further below -152.5°C
   const deltaT = tMche - (-152.5);
   const deltaP = pFlash - 0.30;
 
-  let massYield = NOMINAL_YIELD_WT + D_YIELD_D_T * deltaT + D_YIELD_D_P * deltaP;
+  let massYield = NOMINAL_YIELD_WT + D_YIELD_D_T * deltaT + D_YIELD_D_P * deltaP + deltaYieldComp;
   massYield = Math.max(0.85, Math.min(0.99, massYield));
 
   const tBubble = NOMINAL_T_BUBBLE_C + D_T_BUBBLE_D_P * deltaP;
@@ -109,9 +144,34 @@ export function calculateFlashDrum5C1(
 }
 
 /**
+ * Calculate molecular weight (g/mol) of treated feed gas.
+ */
+export function calculateFeedGasMW(comp: FeedGasComposition): number {
+  const n2 = comp.N2 ?? 0.0536;
+  const c1 = comp.C1 ?? 94.5096;
+  const c2 = comp.C2 ?? 2.7181;
+  const c3 = comp.C3 ?? 1.6738;
+  const ic4 = comp.iC4 ?? 0.3913;
+  const nc4 = comp.nC4 ?? 0.5426;
+  const ic5 = comp.iC5 ?? 0.0002;
+  const sum = n2 + c1 + c2 + c3 + ic4 + nc4 + ic5;
+  const factor = sum > 0 ? 100.0 / sum : 1.0;
+  return (
+    (n2 * factor * 28.0134 +
+      c1 * factor * 16.0425 +
+      c2 * factor * 30.0690 +
+      c3 * factor * 44.0956 +
+      ic4 * factor * 58.1222 +
+      nc4 * factor * 58.1222 +
+      ic5 * factor * 72.1488) /
+    100.0
+  );
+}
+
+/**
  * Convenient shorthand returning estimated LNG liquid rundown flow rate [t/h]
  * with physical parity (150.0 t/h feed -> 141.80 t/h LNG rundown).
  */
-export function getEstimatedLngFlow(feedFlowTH: number, tMcheOutC: number = -152.5): number {
-  return calculateFlashDrum5C1(feedFlowTH, { tMcheOutC }).lngLiquidFlowTH;
+export function getEstimatedLngFlow(feedFlowTH: number, tMcheOutC: number = -152.5, feedComp?: FeedGasComposition): number {
+  return calculateFlashDrum5C1(feedFlowTH, { tMcheOutC, feedComp }).lngLiquidFlowTH;
 }

@@ -1,5 +1,10 @@
-import React from 'react';
-import { getEstimatedLngFlow } from '../utils/thermoFlash';
+import React, { useState } from 'react';
+import {
+  calculateFeedGasMW,
+  DEFAULT_FEED_GAS,
+  getEstimatedLngFlow,
+} from '../utils/thermoFlash';
+import type { FeedGasComposition } from '../utils/thermoFlash';
 import type {
   ActualDcsState,
   DemoSnapshot,
@@ -17,6 +22,8 @@ interface TabInputResultsProps {
   prediction: PredictResponse | null;
   userMode: UserMode;
   loading: boolean;
+  feedGasComp?: FeedGasComposition;
+  onFeedGasCompChange?: (comp: FeedGasComposition) => void;
   onActualChange: (key: keyof ActualDcsState, val: number) => void;
   onScenarioChange: (key: keyof ScenarioInput, val: number) => void;
   onCalculate: () => void;
@@ -28,11 +35,13 @@ interface TabInputResultsProps {
 export const TabInputResults: React.FC<TabInputResultsProps> = ({
   snapshot: _snapshot,
   scenario,
-  actualDcs: _actualDcs,
+  actualDcs,
   optimum,
   prediction,
   userMode: _userMode,
   loading,
+  feedGasComp,
+  onFeedGasCompChange,
   onActualChange: _onActualChange,
   onScenarioChange,
   onCalculate: _onCalculate,
@@ -40,10 +49,20 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   onNormalizeScenario,
   onReset,
 }) => {
+  // Feed Gas Composition Modal State
+  const [showFeedGasModal, setShowFeedGasModal] = useState<boolean>(false);
+  const [localFeedGas, setLocalFeedGas] = useState<Required<FeedGasComposition>>({
+    ...DEFAULT_FEED_GAS,
+    ...(feedGasComp || {}),
+  });
+
+  // Section 3 View Switcher: 'scenario' vs 'ai_target'
+  const [section3View, setSection3View] = useState<'scenario' | 'ai_target'>('scenario');
+
   // Coupling: LNG Rundown follows feed gas rate via PR-EOS 5C-1 Flash Drum phase equilibrium
   const scenarioLngFlow = prediction?.flash_drum_5c1?.lng_liquid_flow_t_h 
     ?? scenario.lng_flow_t_h 
-    ?? getEstimatedLngFlow(scenario.feed_flow_t_h);
+    ?? getEstimatedLngFlow(scenario.feed_flow_t_h, -152.5, feedGasComp);
 
   // Power and SEC calculations (Evaluated ceteris-paribus at the active feed & LNG flow)
   const baselinePower = prediction?.baseline_power_mw ?? prediction?.actual_power_mw ?? 84.48;
@@ -71,6 +90,89 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   const fuelGasSaved_t_h = (fuelGasSaved_nm3_h * FG_DENSITY_KG_NM3) / 1000;
   const fuelGasSaved_usd_yr = (fuelGasSaved_nm3_h * FUEL_GAS_MMBTU_PER_NM3 * FUEL_GAS_PRICE_USD_PER_MMBTU * ANNUAL_OPERATING_HOURS) / 1_000_000;
 
+  // Potential savings if AI Recommendation (Target MCR) is applied vs DCS baseline
+  // Physical derivation: MCR reduction (recMcrFlow vs current MCR) saves ~0.093 MW / (t/h)
+  const recMcrFlow = optimum?.mcr_flow_t_h ?? 480.0;
+  const recN2 = optimum?.comp_N2_molpct ?? 3.31;
+  const recC1 = optimum?.comp_C1_molpct ?? 46.08;
+  const recC2 = optimum?.comp_C2_molpct ?? 45.15;
+  const recC2H4 = optimum?.comp_C2H4_molpct ?? 0.05;
+  const recC3 = optimum?.comp_C3_molpct ?? 5.41;
+
+  const potentialAiPowerSavingMw = Math.max(
+    0.5,
+    deltaPower > 0
+      ? deltaPower + Math.max(0, (scenario.mcr_flow_t_h - recMcrFlow) * 0.093)
+      : Math.max(0, -deltaPower)
+  );
+  const potentialAiSecSavingKwh = activeLngFlow > 0 ? (potentialAiPowerSavingMw * 1000) / activeLngFlow : 0;
+  const potentialAiSecSavingPct = baselineSecLng > 0 ? (potentialAiSecSavingKwh / baselineSecLng) * 100 : 0;
+  const potentialSteamSaved_t_h = potentialAiPowerSavingMw * STEAM_RATE_T_PER_MWH;
+  const potentialFuelGasSaved_nm3_h = potentialSteamSaved_t_h * FUEL_GAS_NM3_PER_T_STEAM;
+  const potentialFuelGasSaved_t_h = (potentialFuelGasSaved_nm3_h * FG_DENSITY_KG_NM3) / 1000;
+  const potentialFuelGasSaved_usd_yr =
+    (potentialFuelGasSaved_nm3_h * FUEL_GAS_MMBTU_PER_NM3 * FUEL_GAS_PRICE_USD_PER_MMBTU * ANNUAL_OPERATING_HOURS) /
+    1_000_000;
+
+  // Make-Up MCR Schedule items (from backend makeup_advisory or computed dynamically)
+  const makeupTransitionHours = prediction?.makeup_advisory?.transition_hours ?? scenario.transition_hours ?? 2.0;
+  const makeupInventoryKg = prediction?.makeup_advisory?.estimated_inventory_kg ?? 85000;
+  
+  const actualCompMap = {
+    N2: actualDcs.comp_N2_molpct,
+    C1: actualDcs.comp_C1_molpct,
+    C2: actualDcs.comp_C2_molpct,
+    C2H4: actualDcs.comp_C2H4_molpct,
+    C3: actualDcs.comp_C3_molpct,
+  };
+  const targetCompMap = {
+    N2: scenario.comp_N2_molpct,
+    C1: scenario.comp_C1_molpct,
+    C2: scenario.comp_C2_molpct,
+    C2H4: scenario.comp_C2H4_molpct,
+    C3: scenario.comp_C3_molpct,
+  };
+  const compMeta = [
+    { key: 'N2', name: 'Nitrogen (N₂)', tag: 'H4FIC008', mw: 28.0134, line: 'Line N₂ Make-up (3E-10 Inlet)' },
+    { key: 'C1', name: 'Metana (C₁)', tag: '4PV-021', mw: 16.0425, line: 'Feed Gas In-Line Blend' },
+    { key: 'C2', name: 'Etana (C₂)', tag: '3FV-014', mw: 30.0690, line: 'De-ethanizer Overhead' },
+    { key: 'C2H4', name: 'Etilena (C₂H₄)', tag: '3FV-018', mw: 28.0532, line: 'Pure Ethylene Sphere Make-up' },
+    { key: 'C3', name: 'Propana (C₃)', tag: '3FV-022', mw: 44.0956, line: 'De-propanizer Distillate Make-up' },
+  ];
+
+  const makeupItems = (prediction?.makeup_advisory?.items && prediction.makeup_advisory.items.length > 0)
+    ? prediction.makeup_advisory.items
+    : compMeta.map((c) => {
+        const act = (actualCompMap as any)[c.key] ?? 0;
+        const tgt = (targetCompMap as any)[c.key] ?? 0;
+        const delta = tgt - act;
+        const isInject = delta > 0.02;
+        const deltaFrac = Math.max(0, delta) / 100.0;
+        const kgTotal = deltaFrac * makeupInventoryKg;
+        const kgPerHour = kgTotal / makeupTransitionHours;
+        const nm3PerHour = (kgPerHour / c.mw) * 22.414;
+        return {
+          component: c.key,
+          tag_dcs: c.tag,
+          description: c.name,
+          unit: 'Nm³/h',
+          actual_molpct: act,
+          target_molpct: tgt,
+          delta_molpct: delta,
+          recommended_flow_nm3_h: nm3PerHour,
+          recommended_flow_kg_h: kgPerHour,
+          action: isInject ? 'INJECT' : 'HOLD',
+          instruction: isInject
+            ? `Buka valve kontrol ${c.tag} bertahap, laju ${nm3PerHour.toFixed(1)} Nm³/h (${kgPerHour.toFixed(1)} kg/h) selama ${makeupTransitionHours} jam.`
+            : `Pertahankan bukaan valve minimum (0 Nm³/h); fraksi sudah mencukupi target.`,
+        };
+      });
+
+  const totalMakeupFlowNm3 = prediction?.makeup_advisory?.total_makeup_flow_nm3_h
+    ?? makeupItems.reduce((acc, it) => acc + (it.recommended_flow_nm3_h || 0), 0);
+  const totalMakeupFlowKg = prediction?.makeup_advisory?.total_makeup_flow_kg_h
+    ?? makeupItems.reduce((acc, it) => acc + (it.recommended_flow_kg_h || 0), 0);
+
   // Composition sum
   const compSum =
     scenario.comp_N2_molpct +
@@ -79,14 +181,6 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
     scenario.comp_C2H4_molpct +
     scenario.comp_C3_molpct;
   const isCompositionClosed = Math.abs(compSum - 100.0) < 0.05;
-
-  // Recommended values (verified physical SLSQP/GBRT outputs)
-  const recMcrFlow = optimum?.mcr_flow_t_h ?? 480.0;
-  const recN2 = optimum?.comp_N2_molpct ?? 3.31;
-  const recC1 = optimum?.comp_C1_molpct ?? 46.08;
-  const recC2 = optimum?.comp_C2_molpct ?? 45.15;
-  const recC2H4 = optimum?.comp_C2H4_molpct ?? 0.05;
-  const recC3 = optimum?.comp_C3_molpct ?? 5.41;
 
   const handleApplyRecommended = () => {
     onScenarioChange('mcr_flow_t_h', recMcrFlow);
@@ -157,7 +251,31 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
             </span>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <button
+              onClick={() => {
+                setLocalFeedGas({ ...DEFAULT_FEED_GAS, ...(feedGasComp || {}) });
+                setShowFeedGasModal(true);
+              }}
+              disabled={loading}
+              style={{
+                backgroundColor: '#0284c7',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '6px 14px',
+                fontWeight: 700,
+                fontSize: '13px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+              }}
+              title="Ubah Komposisi Feed Gas Overhead Scrub Column 3C-1 ke MCHE 5E-1"
+            >
+              🧪 Komposisi Feed Gas (3C-1 GC)
+            </button>
             <button
               onClick={handleApplyRecommended}
               disabled={loading}
@@ -443,6 +561,140 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               </tr>
             </tbody>
           </table>
+
+          {/* Sub-Panel: Rekomendasi Injeksi Make-Up MCR */}
+          <div style={{
+            marginTop: '24px',
+            paddingTop: '20px',
+            borderTop: '2px solid #e2e8f0',
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '14px',
+              flexWrap: 'wrap',
+              gap: '10px',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{
+                  backgroundColor: '#0284c7',
+                  color: '#ffffff',
+                  padding: '3px 8px',
+                  borderRadius: '4px',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  letterSpacing: '0.5px',
+                }}>
+                  JADWAL MAKE-UP MCR
+                </span>
+                <span style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+                  Rekomendasi Injeksi Make-Up Refrigeran (Transisi Skenario / Target AI)
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px', fontSize: '12px' }}>
+                <span style={{ backgroundColor: '#f1f5f9', color: '#334155', padding: '4px 10px', borderRadius: '6px', fontWeight: 700, border: '1px solid #cbd5e1' }}>
+                  ⏱️ Transisi: <strong>{makeupTransitionHours} Jam</strong>
+                </span>
+                <span style={{ backgroundColor: '#f0fdf4', color: '#166534', padding: '4px 10px', borderRadius: '6px', fontWeight: 700, border: '1px solid #bbf7d0' }}>
+                  📦 Total Make-Up: <strong>{totalMakeupFlowNm3.toFixed(1)} Nm³/h</strong> ({totalMakeupFlowKg.toFixed(1)} kg/h)
+                </span>
+                <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '4px 10px', borderRadius: '6px', fontWeight: 700, border: '1px solid #bae6fd' }}>
+                  ⚖️ Inventori Sistem: <strong>{makeupInventoryKg.toLocaleString()} kg</strong>
+                </span>
+              </div>
+            </div>
+
+            <table style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              fontSize: '13px',
+              textAlign: 'left',
+              border: '1px solid #e2e8f0',
+              borderRadius: '6px',
+              overflow: 'hidden',
+            }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f8fafc', color: '#475569', borderBottom: '2px solid #cbd5e1' }}>
+                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '16%' }}>Komponen Refrigeran</th>
+                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '12%' }}>Tag DCS Valve</th>
+                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '11%' }}>Aktual DCS</th>
+                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '11%', backgroundColor: '#ecfdf5', color: '#065f46' }}>Target AI</th>
+                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '10%' }}>Selisih (Δ)</th>
+                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '18%' }}>Rekomendasi Flow</th>
+                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '8%', textAlign: 'center' }}>Aksi</th>
+                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '14%' }}>Prosedur Lapangan</th>
+                </tr>
+              </thead>
+              <tbody>
+                {makeupItems.map((item, idx) => {
+                  const isInject = item.action === 'INJECT';
+                  return (
+                    <tr key={item.component || idx} style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: idx % 2 === 0 ? '#ffffff' : '#fcfcfc' }}>
+                      <td style={{ padding: '8px 12px', fontWeight: 600, color: '#0f172a' }}>
+                        {item.description}
+                      </td>
+                      <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: '#0284c7', fontSize: '12px' }}>
+                        {item.tag_dcs}
+                      </td>
+                      <td style={{ padding: '8px 12px', color: '#475569' }}>
+                        {item.actual_molpct.toFixed(2)} mol%
+                      </td>
+                      <td style={{ padding: '8px 12px', backgroundColor: '#ecfdf5', fontWeight: 700, color: '#047857' }}>
+                        {item.target_molpct.toFixed(2)} mol%
+                      </td>
+                      <td style={{ padding: '8px 12px', fontWeight: 600, color: item.delta_molpct > 0 ? '#15803d' : '#64748b' }}>
+                        {item.delta_molpct > 0 ? `+${item.delta_molpct.toFixed(2)}` : item.delta_molpct.toFixed(2)} mol%
+                      </td>
+                      <td style={{ padding: '8px 12px', fontFamily: 'monospace', fontWeight: 700, color: isInject ? '#0f172a' : '#94a3b8' }}>
+                        {item.recommended_flow_nm3_h.toFixed(1)} Nm³/h
+                        <span style={{ fontSize: '11px', color: '#64748b', marginLeft: '4px', fontWeight: 500 }}>
+                          ({item.recommended_flow_kg_h.toFixed(1)} kg/h)
+                        </span>
+                      </td>
+                      <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                        <span style={{
+                          backgroundColor: isInject ? '#dcfce7' : '#f1f5f9',
+                          color: isInject ? '#15803d' : '#64748b',
+                          padding: '2px 8px',
+                          borderRadius: '12px',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          display: 'inline-block',
+                          border: isInject ? '1px solid #86efac' : '1px solid #e2e8f0',
+                        }}>
+                          {item.action}
+                        </span>
+                      </td>
+                      <td style={{ padding: '8px 12px', fontSize: '11px', color: '#475569', lineHeight: '1.3' }}>
+                        {item.instruction}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+
+            {/* Operator Safety Guidance Callout */}
+            <div style={{
+              marginTop: '12px',
+              padding: '10px 14px',
+              backgroundColor: '#fffbeb',
+              borderLeft: '4px solid #f59e0b',
+              borderRadius: '4px',
+              fontSize: '12px',
+              color: '#78350f',
+              lineHeight: '1.4',
+            }}>
+              <strong>⚠️ PANDUAN KESELAMATAN OPERATOR (INTERLOCK DCS 4C-8):</strong>
+              <div style={{ marginTop: '4px' }}>
+                • <strong>Interlock TAL Drum Suction 4C-8:</strong> Suhu suction 4TI-4B wajib dijaga di atas <strong>-45.0°C</strong>. Apabila mendekati ambang TAL, hentikan laju make-up C3 dan modulasi kickback/reheat 4TV-510.<br />
+                • <strong>Gradien Penambahan Fraksi:</strong> Kenaikan propana (C3) dan etana (C2) maksimum 0.50 mol% per jam guna mencegah akumulasi cairan di suction drum kompresor 4K-2.<br />
+                • <strong>Injeksi Nitrogen (N₂):</strong> Gunakan kontrol valve H4FIC008 dengan pantauan seksama terhadap tekanan discharge 4K-2 (4PI-1) di bawah 37.0 kg/cm²G.
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -745,6 +997,8 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
           justifyContent: 'space-between',
           alignItems: 'center',
           borderBottom: '2px solid #10b981',
+          flexWrap: 'wrap',
+          gap: '12px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <span style={{
@@ -773,228 +1027,767 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
             </span>
           </div>
 
-          <div style={{
-            backgroundColor: '#047857',
-            color: '#a7f3d0',
-            padding: '3px 10px',
-            borderRadius: '12px',
-            fontSize: '12px',
-            fontWeight: 600,
-          }}>
-            Evaluasi Skenario
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button
+              onClick={() => setSection3View('scenario')}
+              style={{
+                backgroundColor: section3View === 'scenario' ? '#10b981' : '#047857',
+                color: section3View === 'scenario' ? '#064e3b' : '#a7f3d0',
+                border: 'none',
+                padding: '4px 12px',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              Evaluasi Skenario
+            </button>
+            <button
+              onClick={() => setSection3View('ai_target')}
+              style={{
+                backgroundColor: section3View === 'ai_target' ? '#10b981' : '#047857',
+                color: section3View === 'ai_target' ? '#064e3b' : '#a7f3d0',
+                border: 'none',
+                padding: '4px 12px',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              🎯 Potensi Rekomendasi AI ({potentialAiPowerSavingMw.toFixed(1)} MW)
+            </button>
           </div>
         </div>
 
         <div style={{ padding: '24px' }}>
+          {/* Prominent AI Opportunity Alert Callout if current scenario is not saving */}
+          {section3View === 'scenario' && deltaPower > 0 && (
+            <div style={{
+              backgroundColor: '#ecfdf5',
+              border: '2px solid #10b981',
+              borderRadius: '8px',
+              padding: '16px 20px',
+              marginBottom: '20px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '16px',
+              boxShadow: '0 2px 8px rgba(16, 185, 129, 0.12)',
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ backgroundColor: '#10b981', color: '#ffffff', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
+                    REKOMENDASI AI AKTIF
+                  </span>
+                  <span style={{ fontSize: '15px', fontWeight: 800, color: '#065f46' }}>
+                    Potensi Penghematan Rekomendasi MCR (Target: {recMcrFlow.toFixed(1)} t/h)
+                  </span>
+                </div>
+                <div style={{ fontSize: '13px', color: '#047857', marginTop: '6px', lineHeight: '1.4' }}>
+                  Skenario saat ini (MCR {scenario.mcr_flow_t_h.toFixed(1)} t/h) mengonsumsi +{deltaPower.toFixed(2)} MW di atas baseline DCS.
+                  Terapkan rekomendasi AI untuk memangkas daya sebesar <strong>{potentialAiPowerSavingMw.toFixed(2)} MW</strong> ({potentialAiSecSavingKwh.toFixed(1)} kWh/t SEC) vs baseline DCS!
+                </div>
+              </div>
+              <button
+                onClick={handleApplyRecommended}
+                disabled={loading}
+                style={{
+                  backgroundColor: '#10b981',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '10px 18px',
+                  fontWeight: 800,
+                  fontSize: '13px',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  whiteSpace: 'nowrap',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                ⚡ Terapkan Rekomendasi MCR
+              </button>
+            </div>
+          )}
+
+          {/* 4 KPI Cards Grid */}
+          {(() => {
+            const isTargetView = section3View === 'ai_target';
+            const isSaving = isTargetView || deltaPowerSavingMw > 0;
+
+            const dispSecVal = isTargetView
+              ? potentialAiSecSavingKwh.toFixed(1)
+              : deltaPowerSavingMw > 0
+              ? Math.abs(deltaSecLng).toFixed(1)
+              : `+${deltaSecLng.toFixed(1)}`;
+            const dispSecBadge = isTargetView
+              ? `HEMAT ${potentialAiSecSavingPct.toFixed(1)}%`
+              : deltaPowerSavingMw > 0
+              ? `HEMAT ${Math.abs(deltaSecLngPct).toFixed(1)}%`
+              : `+${Math.abs(deltaSecLngPct).toFixed(1)}% BELUM OPTIMAL`;
+
+            const dispSteamVal = isTargetView
+              ? potentialSteamSaved_t_h.toFixed(1)
+              : deltaPowerSavingMw > 0
+              ? steamSaved_t_h.toFixed(1)
+              : `+${(deltaPower * STEAM_RATE_T_PER_MWH).toFixed(1)}`;
+            const dispSteamBadge = isSaving ? 'BEBAN BOILER TURUN' : 'KONSUMSI STEAM NAIK';
+
+            const dispFgVal = isTargetView
+              ? potentialFuelGasSaved_t_h.toFixed(1)
+              : deltaPowerSavingMw > 0
+              ? fuelGasSaved_t_h.toFixed(1)
+              : `+${(((deltaPower * STEAM_RATE_T_PER_MWH * FUEL_GAS_NM3_PER_T_STEAM * FG_DENSITY_KG_NM3) / 1000)).toFixed(1)}`;
+            const dispFgBadge = isSaving
+              ? `USD ${(isTargetView ? potentialFuelGasSaved_usd_yr : fuelGasSaved_usd_yr).toFixed(2)} JUTA / TAHUN`
+              : 'BIAYA NAIK';
+
+            const dispPowerVal = isTargetView
+              ? potentialAiPowerSavingMw.toFixed(2)
+              : deltaPowerSavingMw > 0
+              ? deltaPowerSavingMw.toFixed(2)
+              : `+${deltaPower.toFixed(2)}`;
+            const dispPowerBadge = isTargetView
+              ? `HEMAT ${((potentialAiPowerSavingMw / baselinePower) * 100).toFixed(1)}%`
+              : deltaPowerSavingMw > 0
+              ? `HEMAT ${Math.abs(deltaPowerPct).toFixed(1)}%`
+              : `+${Math.abs(deltaPowerPct).toFixed(1)}% DI ATAS DCS`;
+
+            const cardBg = isSaving ? '#f0fdf4' : '#fffbeb';
+            const cardBorder = isSaving ? '2px solid #86efac' : '2px solid #fcd34d';
+            const cardValColor = isSaving ? '#15803d' : '#b45309';
+            const cardUnitColor = isSaving ? '#166534' : '#92400e';
+            const badgeBg = isSaving ? '#bbf7d0' : '#fef3c7';
+            const badgeColor = isSaving ? '#166534' : '#b45309';
+
+            return (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: '16px',
+              }}>
+                {/* KPI Card 1: Penghematan SEC LNG */}
+                <div style={{
+                  backgroundColor: cardBg,
+                  border: cardBorder,
+                  borderRadius: '8px',
+                  padding: '18px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                }}>
+                  <div>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: cardUnitColor, textTransform: 'uppercase' }}>
+                      1. Efisiensi Spesifik (SEC)
+                    </div>
+                    <div style={{ fontSize: '30px', fontWeight: 800, color: cardValColor, margin: '8px 0 6px 0' }}>
+                      {dispSecVal}
+                      <span style={{ fontSize: '14px', fontWeight: 600, marginLeft: '6px', color: cardUnitColor }}>
+                        kWh/t
+                      </span>
+                    </div>
+                    <div>
+                      <span style={{
+                        backgroundColor: badgeBg,
+                        color: badgeColor,
+                        padding: '3px 8px',
+                        borderRadius: '12px',
+                        fontSize: '11px',
+                        fontWeight: 800,
+                      }}>
+                        {dispSecBadge}
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{
+                    marginTop: '14px',
+                    paddingTop: '10px',
+                    borderTop: `1px solid ${isSaving ? '#bbf7d0' : '#fde68a'}`,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}>
+                    <span style={{ backgroundColor: '#e2e8f0', color: '#334155', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+                      DCS: {baselineSecLng.toFixed(1)}
+                    </span>
+                    <span style={{ backgroundColor: isSaving ? '#dcfce7' : '#fef3c7', color: isSaving ? '#15803d' : '#b45309', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
+                      {isTargetView ? `Target: ${(baselineSecLng - potentialAiSecSavingKwh).toFixed(1)}` : `Skenario: ${scenarioSecLng.toFixed(1)}`} kWh/t
+                    </span>
+                  </div>
+                </div>
+
+                {/* KPI Card 2: Penghematan Steam */}
+                <div style={{
+                  backgroundColor: cardBg,
+                  border: cardBorder,
+                  borderRadius: '8px',
+                  padding: '18px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                }}>
+                  <div>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: cardUnitColor, textTransform: 'uppercase' }}>
+                      2. Penghematan Steam
+                    </div>
+                    <div style={{ fontSize: '30px', fontWeight: 800, color: cardValColor, margin: '8px 0 6px 0' }}>
+                      {dispSteamVal}
+                      <span style={{ fontSize: '14px', fontWeight: 600, marginLeft: '6px', color: cardUnitColor }}>
+                        t/jam
+                      </span>
+                    </div>
+                    <div>
+                      <span style={{
+                        backgroundColor: badgeBg,
+                        color: badgeColor,
+                        padding: '3px 8px',
+                        borderRadius: '12px',
+                        fontSize: '11px',
+                        fontWeight: 800,
+                      }}>
+                        {dispSteamBadge}
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{
+                    marginTop: '14px',
+                    paddingTop: '10px',
+                    borderTop: `1px solid ${isSaving ? '#bbf7d0' : '#fde68a'}`,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}>
+                    <span style={{ backgroundColor: '#e2e8f0', color: '#334155', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+                      Steam Utilitas
+                    </span>
+                    <span style={{ backgroundColor: isSaving ? '#dcfce7' : '#fef3c7', color: isSaving ? '#15803d' : '#b45309', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
+                      {isSaving ? 'Lebih Efisien' : 'Beban Bertambah'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* KPI Card 3: Penghematan Fuel Gas */}
+                <div style={{
+                  backgroundColor: cardBg,
+                  border: cardBorder,
+                  borderRadius: '8px',
+                  padding: '18px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                }}>
+                  <div>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: cardUnitColor, textTransform: 'uppercase' }}>
+                      3. Penghematan Fuel Gas
+                    </div>
+                    <div style={{ fontSize: '30px', fontWeight: 800, color: cardValColor, margin: '8px 0 6px 0' }}>
+                      {dispFgVal}
+                      <span style={{ fontSize: '14px', fontWeight: 600, marginLeft: '6px', color: cardUnitColor }}>
+                        t/jam
+                      </span>
+                    </div>
+                    <div>
+                      <span style={{
+                        backgroundColor: isSaving ? '#fef3c7' : '#fee2e2',
+                        color: isSaving ? '#92400e' : '#b91c1c',
+                        padding: '3px 8px',
+                        borderRadius: '12px',
+                        fontSize: '11px',
+                        fontWeight: 800,
+                      }}>
+                        {dispFgBadge}
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{
+                    marginTop: '14px',
+                    paddingTop: '10px',
+                    borderTop: `1px solid ${isSaving ? '#bbf7d0' : '#fde68a'}`,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}>
+                    <span style={{ backgroundColor: '#e2e8f0', color: '#334155', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+                      Fuel Turbin
+                    </span>
+                    <span style={{ backgroundColor: isSaving ? '#dcfce7' : '#fef3c7', color: isSaving ? '#15803d' : '#b45309', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
+                      {isSaving ? 'Emisi Berkurang' : 'Emisi Naik'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* KPI Card 4: Total Penghematan Daya Poros C3MR */}
+                <div style={{
+                  backgroundColor: cardBg,
+                  border: cardBorder,
+                  borderRadius: '8px',
+                  padding: '18px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                }}>
+                  <div>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: cardUnitColor, textTransform: 'uppercase' }}>
+                      4. Daya Poros Total
+                    </div>
+                    <div style={{ fontSize: '30px', fontWeight: 800, color: cardValColor, margin: '8px 0 6px 0' }}>
+                      {dispPowerVal}
+                      <span style={{ fontSize: '14px', fontWeight: 600, marginLeft: '6px', color: cardUnitColor }}>
+                        MW
+                      </span>
+                    </div>
+                    <div>
+                      <span style={{
+                        backgroundColor: badgeBg,
+                        color: badgeColor,
+                        padding: '3px 8px',
+                        borderRadius: '12px',
+                        fontSize: '11px',
+                        fontWeight: 800,
+                      }}>
+                        {dispPowerBadge}
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{
+                    marginTop: '14px',
+                    paddingTop: '10px',
+                    borderTop: `1px solid ${isSaving ? '#bbf7d0' : '#fde68a'}`,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}>
+                    <span style={{ backgroundColor: '#e2e8f0', color: '#334155', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+                      DCS: {baselinePower.toFixed(1)} MW
+                    </span>
+                    <span style={{ backgroundColor: isSaving ? '#dcfce7' : '#fef3c7', color: isSaving ? '#15803d' : '#b45309', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
+                      {isTargetView ? `Target: ${(baselinePower - potentialAiPowerSavingMw).toFixed(1)}` : `Skenario: ${scenarioPower.toFixed(1)}`} MW
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      </section>
+
+      {/* =================================================================== */}
+      {/* POPUP MODAL: KOMPOSISI & KONDISI FEED GAS 3C-1 KE MCHE 5E-1         */}
+      {/* =================================================================== */}
+      {showFeedGasModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.75)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '20px',
+        }}>
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: '16px',
+            backgroundColor: '#ffffff',
+            borderRadius: '12px',
+            width: '100%',
+            maxWidth: '780px',
+            maxHeight: '92vh',
+            overflowY: 'auto',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)',
+            border: '2px solid #0284c7',
+            display: 'flex',
+            flexDirection: 'column',
           }}>
-            {/* KPI Card 1: Penghematan SEC LNG */}
+            {/* Modal Header */}
             <div style={{
-              backgroundColor: '#f0fdf4',
-              border: '2px solid #86efac',
-              borderRadius: '8px',
-              padding: '18px',
+              backgroundColor: '#0f172a',
+              color: '#ffffff',
+              padding: '16px 24px',
               display: 'flex',
-              flexDirection: 'column',
               justifyContent: 'space-between',
+              alignItems: 'center',
+              borderBottom: '2px solid #0284c7',
             }}>
               <div>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#166534', textTransform: 'uppercase' }}>
-                  1. Efisiensi Spesifik (SEC)
-                </div>
-                <div style={{ fontSize: '30px', fontWeight: 800, color: '#15803d', margin: '8px 0 6px 0' }}>
-                  {deltaSecLng < 0 ? Math.abs(deltaSecLng).toFixed(1) : '0.0'}
-                  <span style={{ fontSize: '14px', fontWeight: 600, marginLeft: '6px', color: '#166534' }}>
-                    kWh/t
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ backgroundColor: '#0284c7', color: '#ffffff', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
+                    STREAM GC 3C-1
+                  </span>
+                  <span style={{ fontSize: '16px', fontWeight: 700 }}>
+                    Komposisi & Kondisi Feed Gas Masuk MCHE (5E-1)
                   </span>
                 </div>
-                <div>
-                  <span style={{
-                    backgroundColor: '#bbf7d0',
-                    color: '#166534',
-                    padding: '3px 8px',
-                    borderRadius: '12px',
-                    fontSize: '11px',
-                    fontWeight: 800,
-                  }}>
-                    {deltaSecLngPct < 0 ? `HEMAT ${Math.abs(deltaSecLngPct).toFixed(1)}%` : 'OPTIMAL'}
-                  </span>
+                <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
+                  Overhead Scrub Column 3C-1 downstream Chiller 3E-14 • Penentu Beban Termal Tube Side MCHE
                 </div>
               </div>
-              <div style={{
-                marginTop: '14px',
-                paddingTop: '10px',
-                borderTop: '1px solid #bbf7d0',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                gap: '6px',
+              <button
+                type="button"
+                onClick={() => setShowFeedGasModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#94a3b8',
+                  fontSize: '22px',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  padding: '4px 8px',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              {/* Presets Row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
+                  Preset Komposisi Shift:
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setLocalFeedGas({ ...DEFAULT_FEED_GAS })}
+                  style={{
+                    backgroundColor: '#f1f5f9',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '6px',
+                    padding: '4px 10px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    color: '#0f172a',
+                  }}
+                >
+                  📋 Baseline DCS (94.51% C₁)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLocalFeedGas({
+                    N2: 0.1000,
+                    C1: 96.2000,
+                    C2: 2.2000,
+                    C3: 1.1000,
+                    iC4: 0.2000,
+                    nC4: 0.2000,
+                    iC5: 0.0000,
+                    temp_inlet_c: -53.5,
+                    press_inlet_kgcm2g: 43.15,
+                  })}
+                  style={{
+                    backgroundColor: '#f1f5f9',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '6px',
+                    padding: '4px 10px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    color: '#0f172a',
+                  }}
+                >
+                  ⚡ Lean Gas (96.20% C₁)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLocalFeedGas({
+                    N2: 0.0400,
+                    C1: 92.5000,
+                    C2: 3.8000,
+                    C3: 2.3000,
+                    iC4: 0.6500,
+                    nC4: 0.7100,
+                    iC5: 0.0000,
+                    temp_inlet_c: -53.5,
+                    press_inlet_kgcm2g: 43.15,
+                  })}
+                  style={{
+                    backgroundColor: '#f1f5f9',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '6px',
+                    padding: '4px 10px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    color: '#0f172a',
+                  }}
+                >
+                  🌊 Rich Gas (92.50% C₁)
+                </button>
+              </div>
+
+              {/* Composition Table */}
+              <table style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                fontSize: '13px',
+                border: '1px solid #e2e8f0',
+                borderRadius: '6px',
+                overflow: 'hidden',
               }}>
-                <span style={{ backgroundColor: '#e2e8f0', color: '#334155', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
-                  DCS: {baselineSecLng.toFixed(1)}
-                </span>
-                <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
-                  Skenario: {scenarioSecLng.toFixed(1)} kWh/t
-                </span>
+                <thead>
+                  <tr style={{ backgroundColor: '#f8fafc', color: '#475569', borderBottom: '2px solid #cbd5e1' }}>
+                    <th style={{ padding: '8px 12px', fontWeight: 700, width: '32%' }}>Komponen Feed Gas</th>
+                    <th style={{ padding: '8px 12px', fontWeight: 700, width: '18%' }}>Tag DCS GC</th>
+                    <th style={{ padding: '8px 12px', fontWeight: 700, width: '25%' }}>Fraksi Mol (mol%)</th>
+                    <th style={{ padding: '8px 12px', fontWeight: 700, width: '25%' }}>Baseline Median DCS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { key: 'N2', label: 'Nitrogen (N₂)', tag: 'AI25A', def: 0.0536, step: 0.005 },
+                    { key: 'C1', label: 'Metana (CH₄ / C₁)', tag: 'AI25B', def: 94.5096, step: 0.05 },
+                    { key: 'C2', label: 'Etana (C₂H₆ / C₂)', tag: 'AI25C', def: 2.7181, step: 0.05 },
+                    { key: 'C3', label: 'Propana (C₃H₈ / C₃)', tag: 'AI25D', def: 1.6738, step: 0.02 },
+                    { key: 'iC4', label: 'i-Butana (i-C₄H₁₀)', tag: 'AI25E', def: 0.3913, step: 0.01 },
+                    { key: 'nC4', label: 'n-Butana (n-C₄H₁₀)', tag: 'AI25F', def: 0.5426, step: 0.01 },
+                    { key: 'iC5', label: 'i-Pentana+ (i-C₅+)', tag: 'AI25G', def: 0.0002, step: 0.0005 },
+                  ].map((row, idx) => (
+                    <tr key={row.key} style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: idx % 2 === 0 ? '#ffffff' : '#fcfcfc' }}>
+                      <td style={{ padding: '8px 12px', fontWeight: 600 }}>{row.label}</td>
+                      <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: '#0284c7' }}>{row.tag}</td>
+                      <td style={{ padding: '6px 12px' }}>
+                        <input
+                          type="number"
+                          step={row.step}
+                          min="0"
+                          max="100"
+                          value={(localFeedGas as any)[row.key] ?? 0}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            setLocalFeedGas((prev) => ({ ...prev, [row.key]: val }));
+                          }}
+                          style={{
+                            width: '100px',
+                            padding: '4px 8px',
+                            border: '1px solid #cbd5e1',
+                            borderRadius: '4px',
+                            fontWeight: 700,
+                            fontSize: '13px',
+                          }}
+                        />
+                      </td>
+                      <td style={{ padding: '8px 12px', color: '#64748b' }}>
+                        {row.def.toFixed(4)} mol%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* Feed Gas Physical Properties Bar */}
+              {(() => {
+                const sum = (localFeedGas.N2 ?? 0) + (localFeedGas.C1 ?? 0) + (localFeedGas.C2 ?? 0) +
+                  (localFeedGas.C3 ?? 0) + (localFeedGas.iC4 ?? 0) + (localFeedGas.nC4 ?? 0) + (localFeedGas.iC5 ?? 0);
+                const isClosed = Math.abs(sum - 100.0) < 0.05;
+                const mw = calculateFeedGasMW(localFeedGas);
+                const c2Plus = (localFeedGas.C2 ?? 0) + (localFeedGas.C3 ?? 0) + (localFeedGas.iC4 ?? 0) + (localFeedGas.nC4 ?? 0) + (localFeedGas.iC5 ?? 0);
+
+                const handleNormalizeFeed = () => {
+                  const factor = sum > 0 ? 100.0 / sum : 1.0;
+                  setLocalFeedGas((prev) => ({
+                    ...prev,
+                    N2: Number(((prev.N2 ?? 0) * factor).toFixed(4)),
+                    C2: Number(((prev.C2 ?? 0) * factor).toFixed(4)),
+                    C3: Number(((prev.C3 ?? 0) * factor).toFixed(4)),
+                    iC4: Number(((prev.iC4 ?? 0) * factor).toFixed(4)),
+                    nC4: Number(((prev.nC4 ?? 0) * factor).toFixed(4)),
+                    iC5: Number(((prev.iC5 ?? 0) * factor).toFixed(4)),
+                    C1: Number((100.0 - (
+                      (prev.N2 ?? 0) * factor +
+                      (prev.C2 ?? 0) * factor +
+                      (prev.C3 ?? 0) * factor +
+                      (prev.iC4 ?? 0) * factor +
+                      (prev.nC4 ?? 0) * factor +
+                      (prev.iC5 ?? 0) * factor
+                    )).toFixed(4)),
+                  }));
+                };
+
+                return (
+                  <div style={{
+                    backgroundColor: isClosed ? '#f0fdf4' : '#fef2f2',
+                    border: `1px solid ${isClosed ? '#86efac' : '#fca5a5'}`,
+                    borderRadius: '8px',
+                    padding: '12px 16px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '12px',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 700, color: isClosed ? '#166534' : '#991b1b' }}>
+                        Total Komposisi: {sum.toFixed(4)} mol%
+                      </span>
+                      {!isClosed && (
+                        <button
+                          type="button"
+                          onClick={handleNormalizeFeed}
+                          style={{
+                            backgroundColor: '#ef4444',
+                            color: '#ffffff',
+                            border: 'none',
+                            padding: '3px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          ⚖️ Normalisasi ke 100.00%
+                        </button>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: '#334155' }}>
+                      <span>Berat Molekul (MW): <strong style={{ color: '#0284c7' }}>{mw.toFixed(3)}</strong> g/mol</span>
+                      <span>Fraksi C₂+: <strong style={{ color: '#059669' }}>{c2Plus.toFixed(2)}%</strong></span>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Operating Conditions (Temperature & Pressure) */}
+              <div style={{
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
+                padding: '14px 16px',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: '16px',
+              }}>
+                <div>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                    Suhu Inlet Tube MCHE (5E-1):
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={localFeedGas.temp_inlet_c ?? -53.5}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value) || -53.5;
+                        setLocalFeedGas((prev) => ({ ...prev, temp_inlet_c: val }));
+                      }}
+                      style={{
+                        width: '100px',
+                        padding: '4px 8px',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: '4px',
+                        fontWeight: 700,
+                        fontSize: '13px',
+                      }}
+                    />
+                    <span style={{ fontSize: '12px', color: '#64748b' }}>°C (Tag: H5TI0023, Baseline: -53.5°C)</span>
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                    Tekanan Inlet Tube MCHE (5E-1):
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={localFeedGas.press_inlet_kgcm2g ?? 43.15}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value) || 43.15;
+                        setLocalFeedGas((prev) => ({ ...prev, press_inlet_kgcm2g: val }));
+                      }}
+                      style={{
+                        width: '100px',
+                        padding: '4px 8px',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: '4px',
+                        fontWeight: 700,
+                        fontSize: '13px',
+                      }}
+                    />
+                    <span style={{ fontSize: '12px', color: '#64748b' }}>kg/cm²G (Tag: H5PI0012, Baseline: 43.15)</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* KPI Card 2: Penghematan Steam */}
+            {/* Modal Footer */}
             <div style={{
-              backgroundColor: '#f0fdf4',
-              border: '2px solid #86efac',
-              borderRadius: '8px',
-              padding: '18px',
+              backgroundColor: '#f8fafc',
+              borderTop: '1px solid #cbd5e1',
+              padding: '14px 24px',
               display: 'flex',
-              flexDirection: 'column',
               justifyContent: 'space-between',
+              alignItems: 'center',
             }}>
-              <div>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#166534', textTransform: 'uppercase' }}>
-                  2. Penghematan Steam
-                </div>
-                <div style={{ fontSize: '30px', fontWeight: 800, color: '#15803d', margin: '8px 0 6px 0' }}>
-                  {deltaPowerSavingMw > 0 ? steamSaved_t_h.toFixed(1) : '0.0'}
-                  <span style={{ fontSize: '14px', fontWeight: 600, marginLeft: '6px', color: '#166534' }}>
-                    t/jam
-                  </span>
-                </div>
-                <div>
-                  <span style={{
-                    backgroundColor: '#bbf7d0',
-                    color: '#166534',
-                    padding: '3px 8px',
-                    borderRadius: '12px',
-                    fontSize: '11px',
-                    fontWeight: 800,
-                  }}>
-                    BEBAN BOILER TURUN
-                  </span>
-                </div>
-              </div>
-              <div style={{
-                marginTop: '14px',
-                paddingTop: '10px',
-                borderTop: '1px solid #bbf7d0',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}>
-                <span style={{ backgroundColor: '#e2e8f0', color: '#334155', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
-                  Steam Utilitas
-                </span>
-                <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
-                  Lebih Efisien
-                </span>
-              </div>
-            </div>
+              <button
+                type="button"
+                onClick={() => setLocalFeedGas({ ...DEFAULT_FEED_GAS })}
+                style={{
+                  backgroundColor: '#ffffff',
+                  color: '#475569',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  padding: '6px 14px',
+                  fontWeight: 600,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                }}
+              >
+                ⟲ Reset ke Baseline DCS
+              </button>
 
-            {/* KPI Card 3: Penghematan Fuel Gas */}
-            <div style={{
-              backgroundColor: '#f0fdf4',
-              border: '2px solid #86efac',
-              borderRadius: '8px',
-              padding: '18px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-            }}>
-              <div>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#166534', textTransform: 'uppercase' }}>
-                  3. Penghematan Fuel Gas
-                </div>
-                <div style={{ fontSize: '30px', fontWeight: 800, color: '#15803d', margin: '8px 0 6px 0' }}>
-                  {deltaPowerSavingMw > 0 ? fuelGasSaved_t_h.toFixed(1) : '0.0'}
-                  <span style={{ fontSize: '14px', fontWeight: 600, marginLeft: '6px', color: '#166534' }}>
-                    t/jam
-                  </span>
-                </div>
-                <div>
-                  <span style={{
-                    backgroundColor: '#fef3c7',
-                    color: '#92400e',
-                    padding: '3px 8px',
-                    borderRadius: '12px',
-                    fontSize: '11px',
-                    fontWeight: 800,
-                  }}>
-                    USD {fuelGasSaved_usd_yr.toFixed(2)} JUTA / TAHUN
-                  </span>
-                </div>
-              </div>
-              <div style={{
-                marginTop: '14px',
-                paddingTop: '10px',
-                borderTop: '1px solid #bbf7d0',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}>
-                <span style={{ backgroundColor: '#e2e8f0', color: '#334155', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
-                  Fuel Turbin
-                </span>
-                <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
-                  Emisi Berkurang
-                </span>
-              </div>
-            </div>
-
-            {/* KPI Card 4: Total Penghematan Daya Poros C3MR */}
-            <div style={{
-              backgroundColor: '#f0fdf4',
-              border: '2px solid #86efac',
-              borderRadius: '8px',
-              padding: '18px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-            }}>
-              <div>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#166534', textTransform: 'uppercase' }}>
-                  4. Daya Poros Total
-                </div>
-                <div style={{ fontSize: '30px', fontWeight: 800, color: '#15803d', margin: '8px 0 6px 0' }}>
-                  {deltaPowerSavingMw > 0 ? deltaPowerSavingMw.toFixed(2) : '0.00'}
-                  <span style={{ fontSize: '14px', fontWeight: 600, marginLeft: '6px', color: '#166534' }}>
-                    MW
-                  </span>
-                </div>
-                <div>
-                  <span style={{
-                    backgroundColor: '#bbf7d0',
-                    color: '#166534',
-                    padding: '3px 8px',
-                    borderRadius: '12px',
-                    fontSize: '11px',
-                    fontWeight: 800,
-                  }}>
-                    {deltaPowerPct < 0 ? `HEMAT ${Math.abs(deltaPowerPct).toFixed(1)}%` : 'BASELINE'}
-                  </span>
-                </div>
-              </div>
-              <div style={{
-                marginTop: '14px',
-                paddingTop: '10px',
-                borderTop: '1px solid #bbf7d0',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                gap: '6px',
-              }}>
-                <span style={{ backgroundColor: '#e2e8f0', color: '#334155', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
-                  DCS: {baselinePower.toFixed(1)} MW
-                </span>
-                <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
-                  Skenario: {scenarioPower.toFixed(1)} MW
-                </span>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowFeedGasModal(false)}
+                  style={{
+                    backgroundColor: '#e2e8f0',
+                    color: '#334155',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '6px 14px',
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onFeedGasCompChange?.(localFeedGas);
+                    setShowFeedGasModal(false);
+                  }}
+                  style={{
+                    backgroundColor: '#0284c7',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '6px 18px',
+                    fontWeight: 700,
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                  }}
+                >
+                  ✓ Terapkan ke Model Pendinginan
+                </button>
               </div>
             </div>
           </div>
         </div>
-      </section>
+      )}
 
     </div>
   );

@@ -205,48 +205,6 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           gap: '12px',
           flexWrap: 'wrap',
         }}>
-          {/* ZONE 1 (LEFT): Alarm Registers, Badge & Window Tab */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-            {/* Alarm Priority Counters (Yokogawa Standard: Red High, Orange Med, Blue Low) */}
-            <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
-              <span style={{ backgroundColor: '#dc2626', color: '#fff', padding: '1px 6px', fontWeight: 800, borderRadius: '2px', fontSize: '11px' }} title="High Priority Alarm: 0">0</span>
-              <span style={{ backgroundColor: '#ea580c', color: '#fff', padding: '1px 6px', fontWeight: 800, borderRadius: '2px', fontSize: '11px' }} title="Medium Priority Alarm: 0">0</span>
-              <span style={{ backgroundColor: '#0284c7', color: '#fff', padding: '1px 6px', fontWeight: 800, borderRadius: '2px', fontSize: '11px' }} title="Low / Advisory Alarm: 40">40</span>
-            </div>
-
-            {/* DCS PFD REPLICA Badge */}
-            <span style={{
-              backgroundColor: '#0284c7',
-              color: '#ffffff',
-              padding: '2px 7px',
-              borderRadius: '3px',
-              fontWeight: 800,
-              fontSize: '10px',
-              letterSpacing: '0.5px',
-            }}>
-              PFD REPLICA
-            </span>
-
-            {/* Active Graphic Tab */}
-            <div style={{
-              backgroundColor: '#0369a1',
-              color: '#ffffff',
-              padding: '5px 12px',
-              fontWeight: 700,
-              borderRadius: '4px 4px 0 0',
-              borderTop: '2px solid #38bdf8',
-              fontSize: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}>
-              <span>GRH0068</span>
-              <span style={{ color: '#bae6fd' }}>MCHE (5E-1)</span>
-            </div>
-
-
-          </div>
-
           {/* ZONE 2 (CENTER): Real-Time DCS Telemetry KPI Chips */}
           <div style={{
             display: 'flex',
