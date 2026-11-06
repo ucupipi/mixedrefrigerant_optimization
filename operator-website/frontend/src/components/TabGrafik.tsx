@@ -306,7 +306,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
 
         {/* SVG Centum Graphic Area (Native DCS Coordinate System: 1920 x 790 matching image56.png) */}
         <svg
-          viewBox="0 140 1920 790"
+          viewBox="0 140 1920 800"
           style={{
             width: '100%',
             height: 'auto',
@@ -486,10 +486,10 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           {/* =============================================================== */}
           {/* STREAM 4: MR LIQUID INLET (ORANGE LINE y=812)                   */}
           {/* =============================================================== */}
-          <text x="430" y="805" fill="#e69138" fontSize="14" fontWeight="bold">MR LIQ</text>
-          <line x1="380" y1="812" x2="755" y2="812" stroke="#e69138" strokeWidth="2.5" markerEnd="url(#arrow-orange)" />
+          <text x="210" y="805" fill="#e69138" fontSize="14" fontWeight="bold">MR LIQ</text>
+          <line x1="210" y1="812" x2="755" y2="812" stroke="#e69138" strokeWidth="2.5" markerEnd="url(#arrow-orange)" />
 
-          {/* TI50 (MR Liquid Inlet Temperature) */}
+          {/* TI50 (MR Liquid Inlet Temperature - PR-EOS & DCS H4TI0214) */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'H5TI0050',
             name: 'Suhu MR Liquid ke MCHE 5E-1 (Warm Bundle Inlet)',
@@ -497,12 +497,12 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             valDcs: ti50Dcs.toFixed(1),
             valAi: ti50Ai.toFixed(1)
           })}>
-            <rect x="470" y="742" width="105" height="38" fill="#0f172a" stroke="#e69138" strokeWidth="1" rx="4" />
-            <text x="522" y="757" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">TI50 (MRL)</text>
-            <text x="522" y="774" fill={fmt('TI50', ti50Dcs, ti50Ai, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
+            <rect x="270" y="746" width="120" height="42" fill="#0f172a" stroke="#e69138" strokeWidth="1" rx="4" />
+            <text x="330" y="763" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">TI50 (MR Liq)</text>
+            <text x="330" y="781" fill={fmt('TI50', ti50Dcs, ti50Ai, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
               {fmt('TI50', ti50Dcs, ti50Ai, 1).display} <tspan fill="#00ffff" fontSize="10">°C</tspan>
             </text>
-            <line x1="522" y1="780" x2="522" y2="812" stroke="#e69138" strokeWidth="1.5" strokeDasharray="3 3" />
+            <line x1="330" y1="788" x2="330" y2="812" stroke="#e69138" strokeWidth="1.5" strokeDasharray="3 3" />
           </g>
 
           {/* =============================================================== */}

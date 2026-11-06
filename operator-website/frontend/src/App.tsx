@@ -210,8 +210,8 @@ export function App() {
         const act = actualFromSnapshot(snap);
         setActualDcs(act);
 
-        // Fetch AI recommendation for actual feed
-        const opt = await optimizeForFeed(act.feed_flow_t_h).catch(() => DEFAULT_RECOMMENDED);
+        // Fetch AI recommendation for actual feed with proximity trim
+        const opt = await optimizeForFeed(act.feed_flow_t_h, act);
         setOptimum(opt);
 
         // Synchronize scenario input with AI recommendation
@@ -241,19 +241,19 @@ export function App() {
     initApp();
   }, []);
 
-  // Auto-optimize AI target recommendation whenever scenario feed flow changes
+  // Auto-optimize AI target recommendation whenever scenario feed flow or actual DCS changes
   useEffect(() => {
     if (!scenario.feed_flow_t_h || scenario.feed_flow_t_h <= 0) return;
     const timer = setTimeout(async () => {
       try {
-        const opt = await optimizeForFeed(scenario.feed_flow_t_h);
+        const opt = await optimizeForFeed(scenario.feed_flow_t_h, actualDcs);
         setOptimum(opt);
       } catch (err) {
         console.warn('Auto-optimize for feed failed:', err);
       }
-    }, 300);
+    }, 200);
     return () => clearTimeout(timer);
-  }, [scenario.feed_flow_t_h]);
+  }, [scenario.feed_flow_t_h, actualDcs]);
 
   const handleScenarioChange = (key: keyof ScenarioInput, value: number) => {
     if (key === 'feed_flow_t_h') {
@@ -273,13 +273,10 @@ export function App() {
     // Feed is a disturbance: target feed follows actual feed
     if (key === 'feed_flow_t_h') {
       const lng = value * 0.9450;
-      setActualDcs((prev) => ({
-        ...prev,
-        feed_flow_t_h: value,
-        lng_flow_t_h: lng,
-      }));
+      const updatedActual = { ...actualDcs, [key]: value, lng_flow_t_h: lng };
+      setActualDcs(updatedActual);
       try {
-        const opt = await optimizeForFeed(value);
+        const opt = await optimizeForFeed(value, updatedActual);
         setOptimum(opt);
         setScenario((prev) => ({
           ...prev,
@@ -311,7 +308,7 @@ export function App() {
       setLoading(true);
       setErrorMsg(null);
       const targetFeed = scenario.feed_flow_t_h;
-      const opt = await optimizeForFeed(targetFeed);
+      const opt = await optimizeForFeed(targetFeed, actualDcs);
       setOptimum(opt);
       setScenario((prev) => ({
         ...prev,

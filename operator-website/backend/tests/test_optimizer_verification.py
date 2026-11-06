@@ -245,6 +245,37 @@ class TestApiRouteAliasesAndIntegration(unittest.TestCase):
         self.assertIn("constraint_residuals", data)
         self.assertGreaterEqual(data["constraint_residuals"]["suction_tal_margin_c"], 0.0)
 
+    def test_proximity_trimming_recommendation(self):
+        """Verify that providing actual DCS composition yields closest feasible composition."""
+        actual_comp = {
+            "feed_flow_t_h": 300.0,
+            "actual_mcr_flow_t_h": 680.0,
+            "actual_comp_N2_molpct": 3.39,
+            "actual_comp_C1_molpct": 44.45,
+            "actual_comp_C2_molpct": 45.02,
+            "actual_comp_C2H4_molpct": 0.85,
+            "actual_comp_C3_molpct": 6.29,
+            "alpha_trim": 0.30,
+        }
+        resp = self.client.post("/api/v1/optimize", json=actual_comp)
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+
+        # MCR flow must scale with feed load (300 t/h -> ~577-617 t/h, NOT stuck at 480 t/h)
+        self.assertGreater(data["mcr_flow_t_h"], 550.0)
+        self.assertLess(data["mcr_flow_t_h"], 650.0)
+
+        # Composition must be close to current DCS point (within 1.5 mol%)
+        self.assertAlmostEqual(data["comp_N2_molpct"], 3.39, delta=1.5)
+        self.assertAlmostEqual(data["comp_C1_molpct"], 44.45, delta=1.5)
+        self.assertAlmostEqual(data["comp_C2_molpct"], 45.02, delta=1.5)
+        self.assertAlmostEqual(data["comp_C3_molpct"], 6.29, delta=1.5)
+
+        # Exact 100.00% closure and Mahalanobis safety
+        comp_sum = sum([data[f"comp_{k}_molpct"] for k in ("N2", "C1", "C2", "C2H4", "C3")])
+        self.assertAlmostEqual(comp_sum, 100.00, delta=0.05)
+        self.assertLessEqual(data["mahalanobis_distance"], 3.0802)
+
     def test_invalid_optimization_payload_returns_422(self):
         """Verify invalid optimization inputs (negative feed or invalid types) return HTTP 422."""
         # Out-of-schema negative feed

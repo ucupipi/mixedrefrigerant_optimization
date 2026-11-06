@@ -139,8 +139,15 @@ class PredictResponse(BaseModel):
 
 
 class OptimizeRequest(BaseModel):
-    """Actual DCS state entered by operator; optimum is searched for this feed rate."""
+    """Actual DCS state entered by operator; optimum is searched for this feed rate with proximity trimming."""
     feed_flow_t_h: float = Field(..., ge=50.0, le=1000.0, description="Treated gas aktual (t/h)")
+    actual_mcr_flow_t_h: Optional[float] = Field(default=None, description="Laju alir MCR aktual DCS (t/h)")
+    actual_comp_N2_molpct: Optional[float] = Field(default=None, description="Aktual N2 mol% dari GC")
+    actual_comp_C1_molpct: Optional[float] = Field(default=None, description="Aktual CH4 mol% dari GC")
+    actual_comp_C2_molpct: Optional[float] = Field(default=None, description="Aktual C2H6 mol% dari GC")
+    actual_comp_C2H4_molpct: Optional[float] = Field(default=None, description="Aktual C2H4 mol% dari GC")
+    actual_comp_C3_molpct: Optional[float] = Field(default=None, description="Aktual C3H8 mol% dari GC")
+    alpha_trim: Optional[float] = Field(default=0.30, ge=0.05, le=1.0, description="Faktor langkah transisi mendekati komposisi aktual")
 
 
 class OptimizeResponse(BaseModel):

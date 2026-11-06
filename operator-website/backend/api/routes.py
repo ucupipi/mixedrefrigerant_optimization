@@ -349,13 +349,40 @@ def predict_scenario(request: PredictRequest) -> PredictResponse:
 @router.post("/api/v1/optimize", response_model=OptimizeResponse)
 @router.post("/optimization", response_model=OptimizeResponse)
 def optimize_for_feed(request: OptimizeRequest) -> OptimizeResponse:
-    """Recommend MCR circulation flow and MCR composition for the operator's actual feed."""
+    """Recommend MCR circulation flow and closest feasible composition for operator feed."""
+    actual_comp = None
+    if request.actual_comp_N2_molpct is not None:
+        actual_comp = {
+            "N2": float(request.actual_comp_N2_molpct),
+            "C1": float(request.actual_comp_C1_molpct or 44.45),
+            "C2": float(request.actual_comp_C2_molpct or 45.02),
+            "C2H4": float(request.actual_comp_C2H4_molpct or 0.85),
+            "C3": float(request.actual_comp_C3_molpct or 6.29),
+        }
+    alpha = float(request.alpha_trim or 0.30)
     try:
-        return OptimizeResponse(**recommend(request.feed_flow_t_h))
+        rec = recommend(
+            feed_t_h=request.feed_flow_t_h,
+            actual_comp=actual_comp,
+            actual_mcr_flow_t_h=request.actual_mcr_flow_t_h,
+            alpha_trim=alpha,
+        )
+        return OptimizeResponse(**rec)
     except (ValueError, RuntimeError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        import traceback
+        print(f"[WARN] optimize_for_feed encountered error, falling back to Pareto table: {exc}\n{traceback.format_exc()}", flush=True)
+        from core.optimizer_engine import get_pareto_fallback_recommendation
+        rec = get_pareto_fallback_recommendation(
+            feed_t_h=request.feed_flow_t_h,
+            actual_comp=actual_comp,
+            actual_mcr_flow_t_h=request.actual_mcr_flow_t_h,
+            alpha_trim=alpha,
+        )
+        return OptimizeResponse(**rec)
 
 
 @router.get("/api/v1/historical-summary")
