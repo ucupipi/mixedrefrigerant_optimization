@@ -293,9 +293,21 @@ def predict_scenario(request: PredictRequest) -> PredictResponse:
         actual_power_mw = float(np.clip(float(model.predict(actual_vec)[0]), 40.0, 150.0))
 
         # 9b. Compute ceteris-paribus baseline at the SAME feed flow as the scenario (feed_flow)
-        #     using unoptimized DCS baseline composition & baseline MCR flow
+        #     using unoptimized DCS baseline composition & DCS operational practice MCR flow at that feed
         base_same_feed_req = dict(actual_req)
         base_same_feed_req["feed_flow_t_h"] = feed_flow
+
+        # DCS baseline operating curve (feed_t_h -> mcr_flow_t_h) from Plant-3 baseline_definitive_complete.csv
+        # Quantiles: P10 (141.2 -> 480.0), P25 (171.8 -> 502.2), P40 (201.6 -> 538.9),
+        # P50 (225.8 -> 562.3), P60 (250.4 -> 601.2), P75 (290.2 -> 665.4), P90 (308.3 -> 705.8)
+        FEED_BASELINE_PTS = np.array([141.2, 171.8, 201.6, 225.8, 250.4, 290.2, 308.3])
+        MCR_BASELINE_PTS = np.array([480.0, 502.2, 538.9, 562.3, 601.2, 665.4, 705.8])
+        if abs(feed_flow - float(actual_feed)) < 0.5:
+            base_mcr = float(req_dict["actual_mcr_flow_t_h"])
+        else:
+            base_mcr = float(np.interp(feed_flow, FEED_BASELINE_PTS, MCR_BASELINE_PTS))
+        base_same_feed_req["mcr_flow_t_h"] = base_mcr
+
         base_same_feed_vec, _ = build_feature_vector(base_same_feed_req)
         baseline_total_mw = float(np.clip(float(model.predict(base_same_feed_vec)[0]), 40.0, 150.0))
         baseline_feed = feed_flow
@@ -374,6 +386,8 @@ def predict_scenario(request: PredictRequest) -> PredictResponse:
         makeup_advisory=makeup_summary,
         features_computed={k: round(float(v), 4) for k, v in feature_dict.items()},
         actual_power_mw=round(actual_power_mw, 2) if actual_power_mw is not None else None,
+        baseline_power_mw=round(baseline_total_mw, 2),
+        baseline_sec_lng=round(baseline_sec_lng, 2) if baseline_sec_lng else None,
         flash_drum_5c1=flash_summary,
     )
 

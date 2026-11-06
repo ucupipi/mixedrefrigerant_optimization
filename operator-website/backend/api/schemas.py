@@ -149,6 +149,8 @@ class PredictResponse(BaseModel):
     makeup_advisory: MakeupAdvisorySummary
     features_computed: Dict[str, float]
     actual_power_mw: Optional[float] = Field(None, description="Prediksi model pada kondisi Aktual DCS (MW)")
+    baseline_power_mw: Optional[float] = Field(None, description="Daya poros baseline (komposisi DCS) pada feed skenario (MW)")
+    baseline_sec_lng: Optional[float] = Field(None, description="SEC baseline (komposisi DCS) pada feed skenario (kWh/t LNG)")
     flash_drum_5c1: Optional[FlashDrumSummary] = Field(None, description="Detail termodinamika PR-EOS Flash Drum 5C-1")
 
 

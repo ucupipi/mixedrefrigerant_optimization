@@ -152,10 +152,10 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
 
   /* Derived values — baseline = same surrogate evaluated at the operator's Aktual DCS state */
   const snapshotPower = snapshot.baseline_model_output?.total_shaft_power_mw ?? 84.48;
-  const baselinePower = prediction?.actual_power_mw ?? snapshotPower;
+  const baselinePower = prediction?.baseline_power_mw ?? prediction?.actual_power_mw ?? snapshotPower;
   const currentPower = prediction ? prediction.prediction.total_shaft_power_mw : baselinePower;
-  const deltaPower = currentPower - baselinePower;
-  const deltaPct = baselinePower > 0 ? (deltaPower / baselinePower) * 100 : 0;
+  const deltaPower = prediction?.prediction?.delta_power_mw ?? (currentPower - baselinePower);
+  const deltaPct = prediction?.prediction?.delta_power_pct ?? (baselinePower > 0 ? (deltaPower / baselinePower) * 100 : 0);
 
   // LNG Production Rundown (H5FI6A)
   // Authoritative mass balance: PR-EOS 5C-1 Flash Drum thermodynamic phase split (~94.53 wt% liquid yield)
@@ -168,8 +168,8 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
 
   // SEC LNG: kWh per tonne of LNG (Basis: Meter Fiskal H5FI6A)
   const secLng = prediction?.prediction.sec_lng_kwh_per_t ?? (currentPower * 1000 / Math.max(scenarioLngFlow, 1));
-  const baselineSecLng = baselinePower * 1000 / Math.max(actualLngFlow, 1);
-  const deltaSecLng = secLng - baselineSecLng;
+  const baselineSecLng = prediction?.baseline_sec_lng ?? (baselinePower * 1000 / Math.max(scenarioLngFlow, 1));
+  const deltaSecLng = prediction?.prediction?.delta_sec_kwh_per_t ?? (secLng - baselineSecLng);
 
   // Specific Shaft Power per Treated Feed: kWh per tonne of treated feed (H3FI0004)
   const specPowerFeed = prediction?.prediction.specific_shaft_power_feed_kwh_per_t ?? (currentPower * 1000 / Math.max(scenario.feed_flow_t_h, 1));

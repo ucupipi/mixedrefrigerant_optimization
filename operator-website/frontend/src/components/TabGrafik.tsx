@@ -131,8 +131,12 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
   const pdiWarmAi = _snapshot?.values?.dp_mche_warm_kgcm2?.value ?? 0.215;
 
   // Total power & SEC
-  const totalPower = prediction ? prediction.prediction.total_shaft_power_mw : 84.48;
-  const secLng = prediction?.prediction?.sec_lng_kwh_per_t ?? (totalPower * 1000 / lngFlow);
+  const totalPower = displayMode === 'DCS_ACTUAL'
+    ? (prediction?.baseline_power_mw ?? prediction?.actual_power_mw ?? 84.48)
+    : (prediction ? prediction.prediction.total_shaft_power_mw : 84.48);
+  const secLng = displayMode === 'DCS_ACTUAL'
+    ? (prediction?.baseline_sec_lng ?? (totalPower * 1000 / lngFlow))
+    : (prediction?.prediction?.sec_lng_kwh_per_t ?? (totalPower * 1000 / lngFlow));
 
   // Helper to format values and compute active color according to active mode
   const fmt = (

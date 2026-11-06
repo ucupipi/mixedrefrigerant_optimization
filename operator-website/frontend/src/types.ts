@@ -164,6 +164,8 @@ export interface PredictResponse {
   makeup_advisory: MakeupAdvisory;
   features_computed: Record<string, number>;
   actual_power_mw?: number | null;
+  baseline_power_mw?: number | null;
+  baseline_sec_lng?: number | null;
   flash_drum_5c1?: FlashDrumSummary | null;
 }
 

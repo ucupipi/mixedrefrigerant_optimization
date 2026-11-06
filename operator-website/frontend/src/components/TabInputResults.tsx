@@ -46,13 +46,13 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
     ?? getEstimatedLngFlow(scenario.feed_flow_t_h);
 
   // Power and SEC calculations (Evaluated ceteris-paribus at the active feed & LNG flow)
-  const baselinePower = prediction?.actual_power_mw ?? 84.48;
+  const baselinePower = prediction?.baseline_power_mw ?? prediction?.actual_power_mw ?? 84.48;
   const scenarioPower = prediction?.prediction?.total_shaft_power_mw ?? baselinePower;
   const deltaPower = prediction?.prediction?.delta_power_mw ?? (scenarioPower - baselinePower);
   const deltaPowerPct = prediction?.prediction?.delta_power_pct ?? (baselinePower > 0 ? (deltaPower / baselinePower) * 100 : 0);
 
   const activeLngFlow = Math.max(scenarioLngFlow, 10.0);
-  const baselineSecLng = (baselinePower * 1000) / activeLngFlow;
+  const baselineSecLng = prediction?.baseline_sec_lng ?? ((baselinePower * 1000) / activeLngFlow);
   const scenarioSecLng = prediction?.prediction?.sec_lng_kwh_per_t ?? ((scenarioPower * 1000) / activeLngFlow);
   const deltaSecLng = prediction?.prediction?.delta_sec_kwh_per_t ?? (scenarioSecLng - baselineSecLng);
   const deltaSecLngPct = baselineSecLng > 0 ? (deltaSecLng / baselineSecLng) * 100 : 0;

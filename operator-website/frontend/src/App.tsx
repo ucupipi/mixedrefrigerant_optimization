@@ -146,6 +146,8 @@ const DEFAULT_PREDICTION: PredictResponse = {
     regime_warning: null,
   },
   actual_power_mw: 84.48,
+  baseline_power_mw: 84.48,
+  baseline_sec_lng: 363.7,
   features_computed: {},
   makeup_advisory: {
     transition_hours: 2.0,
