@@ -220,8 +220,9 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 99999,
-            padding: '16px',
+            padding: '20px',
             boxSizing: 'border-box',
+            overflowY: 'auto',
           }}
           onClick={() => setShowContactModal(false)}
         >
@@ -231,7 +232,8 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
               borderRadius: '20px',
               width: '100%',
               maxWidth: '580px',
-              maxHeight: 'min(90vh, 660px)',
+              maxHeight: 'min(88vh, 620px)',
+              margin: 'auto',
               display: 'flex',
               flexDirection: 'column',
               boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.3), 0 0 0 1px rgba(226, 232, 240, 0.9)',

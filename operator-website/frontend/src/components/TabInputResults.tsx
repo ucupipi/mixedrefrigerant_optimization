@@ -56,9 +56,6 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
     ...(feedGasComp || {}),
   });
 
-  // Section 3 View Switcher: 'scenario' vs 'ai_target'
-  const [section3View, setSection3View] = useState<'scenario' | 'ai_target'>('scenario');
-
   // Mobile View Switcher: 'card' vs 'table'
   const [mobileMode, setMobileMode] = useState<'card' | 'table'>('card');
 
@@ -120,13 +117,6 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
       : Math.max(0, -deltaPower)
   );
   const potentialAiSecSavingKwh = activeLngFlow > 0 ? (potentialAiPowerSavingMw * 1000) / activeLngFlow : 0;
-  const potentialAiSecSavingPct = baselineSecLng > 0 ? (potentialAiSecSavingKwh / baselineSecLng) * 100 : 0;
-  const potentialSteamSaved_t_h = potentialAiPowerSavingMw * STEAM_RATE_T_PER_MWH;
-  const potentialFuelGasSaved_nm3_h = potentialSteamSaved_t_h * FUEL_GAS_NM3_PER_T_STEAM;
-  const potentialFuelGasSaved_t_h = (potentialFuelGasSaved_nm3_h * FG_DENSITY_KG_NM3) / 1000;
-  const potentialFuelGasSaved_usd_yr =
-    (potentialFuelGasSaved_nm3_h * FUEL_GAS_MMBTU_PER_NM3 * FUEL_GAS_PRICE_USD_PER_MMBTU * ANNUAL_OPERATING_HOURS) /
-    1_000_000;
 
   // Make-Up MCR Schedule items (from backend makeup_advisory or computed dynamically)
   const makeupTransitionHours = prediction?.makeup_advisory?.transition_hours ?? scenario.transition_hours ?? 2.0;
@@ -1344,48 +1334,11 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               Estimasi Penghematan Energi & Dekarbonisasi
             </span>
           </div>
-
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <button
-              onClick={() => setSection3View('scenario')}
-              style={{
-                backgroundColor: section3View === 'scenario' ? '#0284c7' : 'rgba(241, 245, 249, 0.8)',
-                color: section3View === 'scenario' ? '#ffffff' : '#64748b',
-                border: section3View === 'scenario' ? '1px solid #0284c7' : '1px solid rgba(203, 213, 225, 0.8)',
-                padding: '6px 14px',
-                borderRadius: '8px',
-                fontSize: '12px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                boxShadow: section3View === 'scenario' ? '0 2px 6px rgba(2, 132, 199, 0.25)' : 'none',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              Kondisi Input
-            </button>
-            <button
-              onClick={() => setSection3View('ai_target')}
-              style={{
-                backgroundColor: section3View === 'ai_target' ? '#059669' : 'rgba(241, 245, 249, 0.8)',
-                color: section3View === 'ai_target' ? '#ffffff' : '#64748b',
-                border: section3View === 'ai_target' ? '1px solid #059669' : '1px solid rgba(203, 213, 225, 0.8)',
-                padding: '6px 14px',
-                borderRadius: '8px',
-                fontSize: '12px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                boxShadow: section3View === 'ai_target' ? '0 2px 6px rgba(5, 150, 105, 0.25)' : 'none',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              Target AI ({potentialAiPowerSavingMw.toFixed(1)} MW)
-            </button>
-          </div>
         </div>
 
         <div style={{ padding: '24px' }}>
           {/* Prominent AI Opportunity Alert Callout if current scenario is not saving */}
-          {section3View === 'scenario' && deltaPower > 0 && (
+          {deltaPower > 0 && (
             <div style={{
               backgroundColor: '#ecfdf5',
               border: '1px solid #86efac',
@@ -1427,46 +1380,33 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
 
           {/* 4 KPI Cards Grid */}
           {(() => {
-            const isTargetView = section3View === 'ai_target';
-            const isSaving = isTargetView || deltaPowerSavingMw > 0;
+            const isSaving = deltaPowerSavingMw > 0;
 
-            const dispSecVal = isTargetView
-              ? potentialAiSecSavingKwh.toFixed(1)
-              : deltaPowerSavingMw > 0
-                ? Math.abs(deltaSecLng).toFixed(1)
-                : `+${deltaSecLng.toFixed(1)}`;
-            const dispSecBadge = isTargetView
-              ? `Hemat ${potentialAiSecSavingPct.toFixed(1)}%`
-              : deltaPowerSavingMw > 0
-                ? `Hemat ${Math.abs(deltaSecLngPct).toFixed(1)}%`
-                : `+${Math.abs(deltaSecLngPct).toFixed(1)}% di atas baseline`;
+            const dispSecVal = deltaPowerSavingMw > 0
+              ? Math.abs(deltaSecLng).toFixed(1)
+              : `+${deltaSecLng.toFixed(1)}`;
+            const dispSecBadge = deltaPowerSavingMw > 0
+              ? `Hemat ${Math.abs(deltaSecLngPct).toFixed(1)}%`
+              : `+${Math.abs(deltaSecLngPct).toFixed(1)}% di atas baseline`;
 
-            const dispSteamVal = isTargetView
-              ? potentialSteamSaved_t_h.toFixed(1)
-              : deltaPowerSavingMw > 0
-                ? steamSaved_t_h.toFixed(1)
-                : `+${(deltaPower * STEAM_RATE_T_PER_MWH).toFixed(1)}`;
+            const dispSteamVal = deltaPowerSavingMw > 0
+              ? steamSaved_t_h.toFixed(1)
+              : `+${(deltaPower * STEAM_RATE_T_PER_MWH).toFixed(1)}`;
             const dispSteamBadge = isSaving ? 'Beban Turun' : 'Beban Naik';
 
-            const dispFgVal = isTargetView
-              ? potentialFuelGasSaved_t_h.toFixed(1)
-              : deltaPowerSavingMw > 0
-                ? fuelGasSaved_t_h.toFixed(1)
-                : `+${(((deltaPower * STEAM_RATE_T_PER_MWH * FUEL_GAS_NM3_PER_T_STEAM * FG_DENSITY_KG_NM3) / 1000)).toFixed(1)}`;
+            const dispFgVal = deltaPowerSavingMw > 0
+              ? fuelGasSaved_t_h.toFixed(1)
+              : `+${(((deltaPower * STEAM_RATE_T_PER_MWH * FUEL_GAS_NM3_PER_T_STEAM * FG_DENSITY_KG_NM3) / 1000)).toFixed(1)}`;
             const dispFgBadge = isSaving
-              ? `Hemat USD ${(isTargetView ? potentialFuelGasSaved_usd_yr : fuelGasSaved_usd_yr).toFixed(2)} Jt/Thn`
+              ? `Hemat USD ${fuelGasSaved_usd_yr.toFixed(2)} Jt/Thn`
               : 'Biaya Naik';
 
-            const dispPowerVal = isTargetView
-              ? potentialAiPowerSavingMw.toFixed(2)
-              : deltaPowerSavingMw > 0
-                ? deltaPowerSavingMw.toFixed(2)
-                : `+${deltaPower.toFixed(2)}`;
-            const dispPowerBadge = isTargetView
-              ? `Hemat ${((potentialAiPowerSavingMw / baselinePower) * 100).toFixed(1)}%`
-              : deltaPowerSavingMw > 0
-                ? `Hemat ${Math.abs(deltaPowerPct).toFixed(1)}%`
-                : `+${Math.abs(deltaPowerPct).toFixed(1)}% di atas baseline`;
+            const dispPowerVal = deltaPowerSavingMw > 0
+              ? deltaPowerSavingMw.toFixed(2)
+              : `+${deltaPower.toFixed(2)}`;
+            const dispPowerBadge = deltaPowerSavingMw > 0
+              ? `Hemat ${Math.abs(deltaPowerPct).toFixed(1)}%`
+              : `+${Math.abs(deltaPowerPct).toFixed(1)}% di atas baseline`;
 
             const cardBg = isSaving ? '#f0fdf4' : '#fffbeb';
             const cardBorder = isSaving ? '2px solid #86efac' : '2px solid #fcd34d';
@@ -1527,7 +1467,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       DCS: {baselineSecLng.toFixed(1)}
                     </span>
                     <span style={{ backgroundColor: isSaving ? '#dcfce7' : '#fef3c7', color: isSaving ? '#15803d' : '#b45309', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
-                      {isTargetView ? `Target: ${(baselineSecLng - potentialAiSecSavingKwh).toFixed(1)}` : `Skenario: ${scenarioSecLng.toFixed(1)}`} kWh/t
+                      Skenario: {scenarioSecLng.toFixed(1)} kWh/t
                     </span>
                   </div>
                 </div>
@@ -1678,7 +1618,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       DCS: {baselinePower.toFixed(1)} MW
                     </span>
                     <span style={{ backgroundColor: isSaving ? '#dcfce7' : '#fef3c7', color: isSaving ? '#15803d' : '#b45309', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
-                      {isTargetView ? `Target: ${(baselinePower - potentialAiPowerSavingMw).toFixed(1)}` : `Skenario: ${scenarioPower.toFixed(1)}`} MW
+                      Skenario: {scenarioPower.toFixed(1)} MW
                     </span>
                   </div>
                 </div>
