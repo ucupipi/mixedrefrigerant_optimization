@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { calculateFlashDrum5C1, getEstimatedLngFlow } from '../utils/thermoFlash';
+import { calculateFlashDrum5C1, calculateMcrPhaseSplit, getEstimatedLngFlow } from '../utils/thermoFlash';
 import type {
   ActualDcsState,
   DemoSnapshot,
@@ -55,7 +55,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
     ?? flashAi.lngLiquidFlowTH;
   const lngFlow = displayMode === 'DCS_ACTUAL' ? lngFlowDcs : lngFlowAi;
 
-  // Flash Drum 5C-1 vapor (EFG) and liquid yield calculations
+  // Flash Drum 5C-1 vapor (EFG) calculations
   const flashVapDcs = Math.max(0, feedFlowDcs - lngFlowDcs);
   const flashVapAi = prediction?.flash_drum_5c1?.efg_gas_flow_t_h ?? flashAi.efgGasFlowTH;
 
@@ -63,20 +63,39 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
   const mcrFlowAi = optimum?.mcr_flow_t_h ?? scenario.mcr_flow_t_h;
   const mcrFlow = displayMode === 'DCS_ACTUAL' ? mcrFlowDcs : mcrFlowAi;
 
-  // Refrigeration stream calculations (PR-EOS Equilibrium at -35°C, 43.8 kg/cm²A: 36.0% Vap / 64.0% Liq)
-  const MCR_VAPOR_MASS_FRAC = 0.360;
-  const MCR_LIQUID_MASS_FRAC = 0.640;
-  const MCR_LIQUID_DENSITY_T_M3 = 0.4113;
+  // Pressures for PR-EOS Flash
+  const pi1Dcs = 36.90;
+  const pi1Ai = 35.15;
 
-  const mcrVapFlowDcs = mcrFlowDcs * MCR_VAPOR_MASS_FRAC;
-  const mcrVapFlowAi = mcrFlowAi * MCR_VAPOR_MASS_FRAC;
+  // Real-Time Dynamic Peng-Robinson EOS Phase Split at Separator 5C-2 (-35.0°C, 36.90 kg/cm²G)
+  // Replaces all hardcoded static multipliers (0.360 / 0.640 / 0.4113) with first-principles VLE.
+  const dcsMcrComp = {
+    comp_N2: actualDcs?.comp_N2_molpct ?? 3.39,
+    comp_C1: actualDcs?.comp_C1_molpct ?? 44.45,
+    comp_C2: actualDcs?.comp_C2_molpct ?? 45.02,
+    comp_C2H4: actualDcs?.comp_C2H4_molpct ?? 0.36,
+    comp_C3: actualDcs?.comp_C3_molpct ?? 6.29,
+  };
 
-  const mcrLiqMassDcs = mcrFlowDcs * MCR_LIQUID_MASS_FRAC;
-  const mcrLiqMassAi = mcrFlowAi * MCR_LIQUID_MASS_FRAC;
+  const aiMcrComp = {
+    comp_N2: optimum?.comp_N2_molpct ?? scenario.comp_N2_molpct,
+    comp_C1: optimum?.comp_C1_molpct ?? scenario.comp_C1_molpct,
+    comp_C2: optimum?.comp_C2_molpct ?? scenario.comp_C2_molpct,
+    comp_C2H4: optimum?.comp_C2H4_molpct ?? scenario.comp_C2H4_molpct,
+    comp_C3: optimum?.comp_C3_molpct ?? scenario.comp_C3_molpct,
+  };
 
-  // FIC2: MCR Liquid Volumetric Flow [m³/h] (Tag H5FIC002)
-  const fic2Dcs = Math.round(mcrLiqMassDcs / MCR_LIQUID_DENSITY_T_M3);
-  const fic2Ai = Math.round(mcrLiqMassAi / MCR_LIQUID_DENSITY_T_M3);
+  const mcrSplitDcs = calculateMcrPhaseSplit(mcrFlowDcs, dcsMcrComp, -35.0, pi1Dcs);
+  const mcrSplitAi = calculateMcrPhaseSplit(mcrFlowAi, aiMcrComp, -35.0, pi1Ai);
+
+  const mcrVapFlowDcs = mcrSplitDcs.mcrVaporFlowTH;
+  const mcrVapFlowAi = mcrSplitAi.mcrVaporFlowTH;
+
+  const mcrLiqMassDcs = mcrSplitDcs.mcrLiquidFlowTH;
+  const mcrLiqMassAi = mcrSplitAi.mcrLiquidFlowTH;
+
+  const fic2Dcs = mcrSplitDcs.fic2VolumetricFlowM3H;
+  const fic2Ai = mcrSplitAi.fic2VolumetricFlowM3H;
 
   // Propane Precooling Cycle (4K-1 Stage 1 Suction Flow H4FI001A & Chillers 3E-14/17/18)
   const c3PrecoolFlowDcs = 212.5;
@@ -159,9 +178,6 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
   // Pressures
   const pi9Dcs = 2.284;
   const pi9Ai = 2.350;
-
-  const pi1Dcs = 36.90;
-  const pi1Ai = 35.15;
 
   const pi12Dcs = 43.15;
   const pi12Ai = 43.15;
@@ -271,7 +287,6 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
 
           {/* ZONE 3 (RIGHT): View Mode Switcher, User & System Clock */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-            {/* Centum View Mode Segmented Switcher */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -337,7 +352,6 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
               </button>
             </div>
 
-            {/* Operator Authority Level & DCS Clock */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -385,7 +399,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           </defs>
 
           {/* Title Header on Canvas matching Centum DCS GRH0065 */}
-          <text x="960" y="172" fill="#ffffff" fontSize="24" fontWeight="bold" textAnchor="middle" letterSpacing="4">
+          <text x="960" y="168" fill="#ffffff" fontSize="22" fontWeight="bold" textAnchor="middle" letterSpacing="4">
             MAIN HEAT EXCHANGER (5E-1)
           </text>
 
@@ -403,49 +417,49 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
               limit: 'Floor Anti-Surge ≥ 155.0 kNm³/h (Chillers 3E-14/17/18: -35.0°C)'
             })}
           >
-            <rect x="40" y="320" width="205" height="150" fill="#0b1329" stroke="#0284c7" strokeWidth="1.5" rx="6" />
-            <rect x="40" y="320" width="205" height="26" fill="#1e293b" rx="6" />
-            <rect x="40" y="340" width="205" height="6" fill="#1e293b" />
-            <text x="142" y="338" fill="#38bdf8" fontSize="11" fontWeight="bold" textAnchor="middle">
+            <rect x="40" y="320" width="200" height="140" fill="#0b1329" stroke="#0284c7" strokeWidth="1.5" rx="6" />
+            <rect x="40" y="320" width="200" height="24" fill="#1e293b" rx="6" />
+            <rect x="40" y="338" width="200" height="6" fill="#1e293b" />
+            <text x="140" y="336" fill="#38bdf8" fontSize="10.5" fontWeight="bold" textAnchor="middle">
               4K-1 C3 PRECOOLING CYCLE
             </text>
 
-            <text x="50" y="362" fill="#94a3b8" fontSize="10">Stage 1 Suct (H4FI001A):</text>
-            <text x="50" y="380" fill={fmt('H4FI001A', c3PrecoolFlowDcs, c3PrecoolFlowAi, 1).color} fontSize="14" fontWeight="bold">
+            <text x="50" y="358" fill="#94a3b8" fontSize="10">Stage 1 Suct (H4FI001A):</text>
+            <text x="50" y="375" fill={fmt('H4FI001A', c3PrecoolFlowDcs, c3PrecoolFlowAi, 1).color} fontSize="13" fontWeight="bold">
               {fmt('H4FI001A', c3PrecoolFlowDcs, c3PrecoolFlowAi, 1).display} <tspan fill="#00ffff" fontSize="10">kNm³/h</tspan>
             </text>
 
-            <text x="50" y="402" fill="#94a3b8" fontSize="10">MCR Chillers 3E-14/17/18:</text>
-            <text x="50" y="418" fill="#34d399" fontSize="12" fontWeight="bold">
-              -35.0°C <tspan fill="#94a3b8" fontSize="10">(Precooled MCR)</tspan>
+            <text x="50" y="396" fill="#94a3b8" fontSize="10">MCR Chillers 3E-14/17/18:</text>
+            <text x="50" y="411" fill="#34d399" fontSize="11" fontWeight="bold">
+              -35.0°C <tspan fill="#94a3b8" fontSize="9.5">(Precooled MCR)</tspan>
             </text>
 
-            <text x="50" y="438" fill="#94a3b8" fontSize="10">Feed Chillers 4E-10/12/14:</text>
-            <text x="50" y="454" fill="#34d399" fontSize="12" fontWeight="bold">
-              -35.0°C <tspan fill="#94a3b8" fontSize="10">(Treated Feed)</tspan>
+            <text x="50" y="430" fill="#94a3b8" fontSize="10">Feed Chillers 4E-10/12/14:</text>
+            <text x="50" y="445" fill="#34d399" fontSize="11" fontWeight="bold">
+              -35.0°C <tspan fill="#94a3b8" fontSize="9.5">(Treated Feed)</tspan>
             </text>
 
-            <line x1="245" y1="395" x2="275" y2="395" stroke="#0284c7" strokeWidth="1.5" strokeDasharray="3 3" />
-            <line x1="275" y1="395" x2="275" y2="495" stroke="#0284c7" strokeWidth="1.5" strokeDasharray="3 3" />
+            <line x1="240" y1="395" x2="265" y2="395" stroke="#0284c7" strokeWidth="1.5" strokeDasharray="3 3" />
+            <line x1="265" y1="395" x2="265" y2="480" stroke="#0284c7" strokeWidth="1.5" strokeDasharray="3 3" />
           </g>
 
           {/* =============================================================== */}
           {/* VESSEL 5C-2: MCR HIGH-PRESSURE PHASE SEPARATOR (VAPOR / LIQUID)  */}
           {/* =============================================================== */}
           <g>
-            {/* Inflow from MCR Precooling Chillers to 5C-2 */}
-            <line x1="100" y1="620" x2="140" y2="620" stroke="#0284c7" strokeWidth="2" strokeDasharray="3 3" />
+            {/* Precooled MCR Inflow into 5C-2 */}
+            <line x1="95" y1="595" x2="135" y2="595" stroke="#0284c7" strokeWidth="2" strokeDasharray="3 3" />
             
             {/* Vessel 5C-2 Body */}
-            <rect x="140" y="555" width="45" height="110" fill="#06101e" stroke="#00ff00" strokeWidth="2.5" />
-            <path d="M 140,555 A 22.5,18 0 0,1 185,555" fill="#06101e" stroke="#00ff00" strokeWidth="2.5" />
-            <path d="M 140,665 A 22.5,18 0 0,0 185,665" fill="#06101e" stroke="#00ff00" strokeWidth="2.5" />
+            <rect x="135" y="530" width="50" height="130" fill="#06101e" stroke="#00ff00" strokeWidth="2.5" />
+            <path d="M 135,530 A 25,20 0 0,1 185,530" fill="#06101e" stroke="#00ff00" strokeWidth="2.5" />
+            <path d="M 135,660 A 25,20 0 0,0 185,660" fill="#06101e" stroke="#00ff00" strokeWidth="2.5" />
             
             {/* Liquid level fill inside 5C-2 */}
-            <rect x="141" y="610" width="43" height="55" fill="#0284c7" opacity="0.45" />
+            <rect x="136" y="585" width="48" height="70" fill="#0284c7" opacity="0.45" />
 
-            <text x="162" y="590" fill="#00ff00" fontSize="13" fontWeight="bold" textAnchor="middle">5C-2</text>
-            <text x="162" y="602" fill="#94a3b8" fontSize="8" textAnchor="middle">MCR SEP</text>
+            <text x="160" y="565" fill="#00ff00" fontSize="14" fontWeight="bold" textAnchor="middle">5C-2</text>
+            <text x="160" y="578" fill="#94a3b8" fontSize="8.5" textAnchor="middle">MCR SEP</text>
 
             {/* Tag H5LIC007: Level Controller 5C-2 */}
             <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
@@ -456,20 +470,17 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
               valAi: lic7Ai.toFixed(1),
               limit: 'Normal 40.0 - 65.0 %'
             })}>
-              <rect x="40" y="595" width="90" height="36" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
-              <text x="85" y="610" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">H5LIC007</text>
-              <text x="85" y="626" fill={fmt('H5LIC007', lic7Dcs, lic7Ai, 1).color} fontSize="14" textAnchor="middle" fontWeight="bold">
+              <rect x="35" y="575" width="85" height="36" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
+              <text x="77" y="590" fill="#00ffff" fontSize="10.5" textAnchor="middle" fontWeight="bold">H5LIC007</text>
+              <text x="77" y="605" fill={fmt('H5LIC007', lic7Dcs, lic7Ai, 1).color} fontSize="13" textAnchor="middle" fontWeight="bold">
                 {fmt('H5LIC007', lic7Dcs, lic7Ai, 1).display} <tspan fill="#00ffff" fontSize="9">%</tspan>
               </text>
-              <line x1="130" y1="613" x2="140" y2="613" stroke="#0284c7" strokeWidth="1" strokeDasharray="2 2" />
+              <line x1="120" y1="593" x2="135" y2="593" stroke="#0284c7" strokeWidth="1" strokeDasharray="2 2" />
             </g>
           </g>
 
           {/* =============================================================== */}
           {/* MAIN VESSEL: MCHE 5E-1 (STEPPED SWAGE GEOMETRY PER DCS GRH0065)  */}
-          {/* Cold Bundle Neck: x: 794 to 915 (width 121), y: 245 to 440      */}
-          {/* Swage Transition: slants outward y: 440 to 520                 */}
-          {/* Warm Bundle Body: x: 755 to 954 (width 199), y: 520 to 820      */}
           {/* =============================================================== */}
           <path
             d="
@@ -495,7 +506,6 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           <line x1="755" y1="800" x2="954" y2="800" stroke="#4d6719" strokeWidth="1.5" />
 
           {/* Internal distributor spray trays: LI2 (Cold) and LI3 (Warm) */}
-          {/* Cold Spray Tray LI2 (U-cup) with Chinese Hat Overhead Separator */}
           <path d="M 825,285 L 825,315 L 885,315 L 885,285" fill="none" stroke="#00ff00" strokeWidth="2" />
           <rect x="826" y="295" width="58" height="19" fill="#0284c7" opacity="0.45" />
           <text x="855" y="332" fill="#00ffff" fontSize="13" textAnchor="middle" fontWeight="bold">x   x</text>
@@ -503,7 +513,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           {/* Chinese Hat Deflector Symbol at Top of Cold Bundle */}
           <path d="M 830,260 L 855,248 L 880,260" fill="none" stroke="#ffff00" strokeWidth="2" />
 
-          {/* LI2 Readout Badge inside/beside Cold Bundle */}
+          {/* LI2 Readout Badge beside Cold Spray Tray */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'H5LI0002',
             name: 'Cold Bundle Separator Liquid Level (5E-1 C/B SEP)',
@@ -512,8 +522,8 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             valAi: li2Ai.toFixed(1),
             limit: 'Normal 25.0 - 50.0 %'
           })}>
-            <rect x="890" y="288" width="65" height="26" fill="#0b1329" stroke="#0284c7" strokeWidth="1" rx="3" />
-            <text x="922" y="305" fill={fmt('LI2', li2Dcs, li2Ai, 1).color} fontSize="11" textAnchor="middle" fontWeight="bold">
+            <rect x="895" y="285" width="60" height="24" fill="#0b1329" stroke="#0284c7" strokeWidth="1" rx="3" />
+            <text x="925" y="301" fill={fmt('LI2', li2Dcs, li2Ai, 1).color} fontSize="11" textAnchor="middle" fontWeight="bold">
               LI2 <tspan fill="#00ffff">{fmt('LI2', li2Dcs, li2Ai, 1).display}%</tspan>
             </text>
           </g>
@@ -523,7 +533,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           <rect x="831" y="575" width="48" height="19" fill="#0284c7" opacity="0.45" />
           <text x="855" y="612" fill="#00ffff" fontSize="13" textAnchor="middle" fontWeight="bold">x   x   x</text>
 
-          {/* LI3 Readout Badge inside/beside Warm Bundle */}
+          {/* LI3 Readout Badge beside Warm Spray Tray */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: '5LI0003',
             name: 'Warm Bundle Separator Liquid Level (5E-1 W/B SEP)',
@@ -532,8 +542,8 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             valAi: li3Ai.toFixed(1),
             limit: 'Normal 35.0 - 60.0 %'
           })}>
-            <rect x="890" y="565" width="65" height="26" fill="#0b1329" stroke="#0284c7" strokeWidth="1" rx="3" />
-            <text x="922" y="582" fill={fmt('LI3', li3Dcs, li3Ai, 1).color} fontSize="11" textAnchor="middle" fontWeight="bold">
+            <rect x="895" y="560" width="60" height="24" fill="#0b1329" stroke="#0284c7" strokeWidth="1" rx="3" />
+            <text x="925" y="576" fill={fmt('LI3', li3Dcs, li3Ai, 1).color} fontSize="11" textAnchor="middle" fontWeight="bold">
               LI3 <tspan fill="#00ffff">{fmt('LI3', li3Dcs, li3Ai, 1).display}%</tspan>
             </text>
           </g>
@@ -554,8 +564,8 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           <line x1="795" y1="520" x2="814" y2="440" stroke="#ff0000" strokeWidth="2" strokeDasharray="5 3" />
           <line x1="915" y1="520" x2="895" y2="440" stroke="#ff0000" strokeWidth="2" strokeDasharray="5 3" />
           <line x1="814" y1="492" x2="895" y2="492" stroke="#ff0000" strokeWidth="2" />
-          <line x1="814" y1="440" x2="814" y2="253" stroke="#ff0000" strokeWidth="2" strokeDasharray="5 3" />
-          <line x1="814" y1="253" x2="915" y2="253" stroke="#e879f9" strokeWidth="2.5" />
+          <line x1="814" y1="440" x2="814" y2="245" stroke="#ff0000" strokeWidth="2" strokeDasharray="5 3" />
+          <line x1="814" y1="245" x2="915" y2="245" stroke="#e879f9" strokeWidth="2.5" />
 
           {/* Warm MR internal riser (Yellow) */}
           <line x1="755" y1="784" x2="934" y2="784" stroke="#ffff00" strokeWidth="2" />
@@ -566,40 +576,39 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           {/* =============================================================== */}
           {/* STREAM 1: FEED GAS INLET (RED LINE y=841)                       */}
           {/* =============================================================== */}
-          <text x="145" y="836" fill="#ff0000" fontSize="15" fontWeight="bold">FEED</text>
-          <text x="145" y="855" fill="#ff0000" fontSize="15" fontWeight="bold">GAS</text>
+          <text x="145" y="836" fill="#ff0000" fontSize="14" fontWeight="bold">FEED</text>
+          <text x="145" y="852" fill="#ff0000" fontSize="14" fontWeight="bold">GAS</text>
           <line x1="180" y1="841" x2="755" y2="841" stroke="#ff0000" strokeWidth="2.5" markerEnd="url(#arrow-red)" />
           <line x1="240" y1="841" x2="240" y2="865" stroke="#0284c7" strokeWidth="1.5" strokeDasharray="3 3" />
           <line x1="390" y1="841" x2="390" y2="865" stroke="#0284c7" strokeWidth="1.5" strokeDasharray="3 3" />
           <line x1="540" y1="841" x2="540" y2="865" stroke="#0284c7" strokeWidth="1.5" strokeDasharray="3 3" />
 
           {/* =============================================================== */}
-          {/* STREAM 2: LNG RUNDOWN & VESSEL 5C-1 FLASH DRUM                   */}
+          {/* STREAM 2: LNG RUNDOWN DIRECTLY TO 5C-1 FLASH DRUM (ZERO BYPASS) */}
           {/* =============================================================== */}
-          <line x1="915" y1="253" x2="1487" y2="253" stroke="#e879f9" strokeWidth="2.5" />
-          <polygon points="980,249 990,253 980,257" fill="#ff0000" />
-          <line x1="1487" y1="253" x2="1487" y2="640" stroke="#e879f9" strokeWidth="2.5" />
+          {/* Direct clean pipe from MCHE top outlet (x=915, y=245) to 5C-1 */}
+          <line x1="915" y1="245" x2="1440" y2="245" stroke="#e879f9" strokeWidth="2.5" />
+          <polygon points="980,241 990,245 980,249" fill="#ff0000" />
+          <line x1="1440" y1="245" x2="1440" y2="390" stroke="#e879f9" strokeWidth="2.5" />
+          <line x1="1440" y1="390" x2="1590" y2="390" stroke="#e879f9" strokeWidth="2.5" markerEnd="url(#arrow-red)" />
 
-          {/* Branch 1 (y=393): Main Rundown to Flash Drum 5C-1 */}
-          <line x1="1487" y1="393" x2="1610" y2="393" stroke="#e879f9" strokeWidth="2.5" markerEnd="url(#arrow-red)" />
-          
-          {/* TV1A Diaphragm Control Valve at x=1545, y=393 */}
-          <path d="M 1533,385 L 1557,401 L 1557,385 L 1533,401 Z" fill="#d946ef" stroke="#ffffff" strokeWidth="1" />
-          <line x1="1545" y1="385" x2="1545" y2="375" stroke="#d946ef" strokeWidth="1.5" />
-          <path d="M 1533,375 A 12,12 0 0,1 1557,375 Z" fill="#d946ef" stroke="#ffffff" strokeWidth="1" />
-          <text x="1545" y="365" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">TV1A</text>
+          {/* TV1A Diaphragm Control Valve at x=1510, y=390 */}
+          <path d="M 1498,382 L 1522,398 L 1522,382 L 1498,398 Z" fill="#d946ef" stroke="#ffffff" strokeWidth="1" />
+          <line x1="1510" y1="382" x2="1510" y2="372" stroke="#d946ef" strokeWidth="1.5" />
+          <path d="M 1498,372 A 12,12 0 0,1 1522,372 Z" fill="#d946ef" stroke="#ffffff" strokeWidth="1" />
+          <text x="1510" y="362" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">TV1A</text>
 
           {/* 5C-1 Flash Drum Vessel Geometry */}
           <g>
-            <rect x="1610" y="365" width="55" height="110" fill="#06101e" stroke="#00ff00" strokeWidth="2.5" />
-            <path d="M 1610,365 A 27.5,20 0 0,1 1665,365" fill="#06101e" stroke="#00ff00" strokeWidth="2.5" />
-            <path d="M 1610,475 A 27.5,20 0 0,0 1665,475" fill="#06101e" stroke="#00ff00" strokeWidth="2.5" />
+            <rect x="1590" y="360" width="55" height="110" fill="#06101e" stroke="#00ff00" strokeWidth="2.5" />
+            <path d="M 1590,360 A 27.5,20 0 0,1 1645,360" fill="#06101e" stroke="#00ff00" strokeWidth="2.5" />
+            <path d="M 1590,470 A 27.5,20 0 0,0 1645,470" fill="#06101e" stroke="#00ff00" strokeWidth="2.5" />
             
-            {/* Liquid level inside 5C-1 */}
-            <rect x="1611" y="425" width="53" height="50" fill="#0284c7" opacity="0.45" />
+            {/* Liquid level fill inside 5C-1 */}
+            <rect x="1591" y="420" width="53" height="50" fill="#0284c7" opacity="0.45" />
 
-            <text x="1637" y="405" fill="#00ff00" fontSize="15" fontWeight="bold" textAnchor="middle">5C-1</text>
-            <text x="1637" y="418" fill="#94a3b8" fontSize="9" textAnchor="middle">FLASH DRUM</text>
+            <text x="1618" y="402" fill="#00ff00" fontSize="15" fontWeight="bold" textAnchor="middle">5C-1</text>
+            <text x="1618" y="415" fill="#94a3b8" fontSize="9" textAnchor="middle">FLASH DRUM</text>
 
             {/* Tag H5LI0001 (5LI1): 5C-1 Flash Drum Level */}
             <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
@@ -610,18 +619,18 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
               valAi: li1Ai.toFixed(1),
               limit: 'Normal 5.0 - 20.0 %'
             })}>
-              <rect x="1520" y="430" width="80" height="34" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
-              <text x="1560" y="445" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">5LI1</text>
-              <text x="1560" y="459" fill={fmt('LI1', li1Dcs, li1Ai, 1).color} fontSize="13" textAnchor="middle" fontWeight="bold">
+              <rect x="1500" y="430" width="75" height="34" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
+              <text x="1537" y="445" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">5LI1</text>
+              <text x="1537" y="459" fill={fmt('LI1', li1Dcs, li1Ai, 1).color} fontSize="13" textAnchor="middle" fontWeight="bold">
                 {fmt('LI1', li1Dcs, li1Ai, 1).display} <tspan fill="#00ffff" fontSize="9">%</tspan>
               </text>
-              <line x1="1600" y1="447" x2="1610" y2="447" stroke="#0284c7" strokeWidth="1" strokeDasharray="2 2" />
+              <line x1="1575" y1="447" x2="1590" y2="447" stroke="#0284c7" strokeWidth="1" strokeDasharray="2 2" />
             </g>
 
             {/* 5C-1 Top Vapor Outlet: End Flash Gas (EFG) to Fuel Gas */}
-            <line x1="1637" y1="345" x2="1637" y2="310" stroke="#00ffff" strokeWidth="2" />
-            <line x1="1637" y1="310" x2="1710" y2="310" stroke="#00ffff" strokeWidth="2" markerEnd="url(#arrow-cyan)" />
-            <text x="1715" y="302" fill="#38bdf8" fontSize="11" fontWeight="bold">EFG VAP (Fuel Gas)</text>
+            <line x1="1618" y1="340" x2="1618" y2="305" stroke="#00ffff" strokeWidth="2" />
+            <line x1="1618" y1="305" x2="1690" y2="305" stroke="#00ffff" strokeWidth="2" markerEnd="url(#arrow-cyan)" />
+            <text x="1695" y="295" fill="#38bdf8" fontSize="11" fontWeight="bold">EFG VAP (Fuel Gas)</text>
             
             <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
               tag: '5C-1_EFG',
@@ -631,17 +640,17 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
               valAi: flashVapAi.toFixed(1),
               limit: 'Normal 5.0 - 15.0 t/h'
             })}>
-              <rect x="1715" y="310" width="125" height="38" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
-              <text x="1777" y="325" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">EFG Flow</text>
-              <text x="1777" y="342" fill={fmt('EFG_VAP', flashVapDcs, flashVapAi, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
+              <rect x="1695" y="305" width="125" height="38" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
+              <text x="1757" y="320" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">EFG Flow</text>
+              <text x="1757" y="337" fill={fmt('EFG_VAP', flashVapDcs, flashVapAi, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
                 {fmt('EFG_VAP', flashVapDcs, flashVapAi, 1).display} <tspan fill="#00ffff" fontSize="10">t/h</tspan>
               </text>
             </g>
 
             {/* 5C-1 Bottom Liquid Outlet: LNG Rundown to Storage */}
-            <line x1="1637" y1="495" x2="1637" y2="535" stroke="#e879f9" strokeWidth="2.5" />
-            <line x1="1637" y1="535" x2="1710" y2="535" stroke="#e879f9" strokeWidth="2.5" markerEnd="url(#arrow-magenta)" />
-            <text x="1715" y="522" fill="#e879f9" fontSize="13" fontWeight="bold">LNG &gt; STRG</text>
+            <line x1="1618" y1="490" x2="1618" y2="525" stroke="#e879f9" strokeWidth="2.5" />
+            <line x1="1618" y1="525" x2="1690" y2="525" stroke="#e879f9" strokeWidth="2.5" markerEnd="url(#arrow-magenta)" />
+            <text x="1695" y="515" fill="#e879f9" fontSize="13" fontWeight="bold">LNG &gt; STRG</text>
 
             {/* FI6A: Laju Alir Produksi LNG Rundown */}
             <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
@@ -651,56 +660,81 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
               valDcs: lngFlowDcs.toFixed(1),
               valAi: lngFlowAi.toFixed(1)
             })}>
-              <rect x="1715" y="532" width="125" height="40" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
-              <text x="1777" y="549" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">FI6A (LNG Flow)</text>
-              <text x="1777" y="566" fill={fmt('FI6A', lngFlowDcs, lngFlowAi, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
+              <rect x="1695" y="525" width="125" height="40" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
+              <text x="1757" y="542" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">FI6A (LNG Flow)</text>
+              <text x="1757" y="559" fill={fmt('FI6A', lngFlowDcs, lngFlowAi, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
                 {fmt('FI6A', lngFlowDcs, lngFlowAi, 1).display} <tspan fill="#00ffff" fontSize="10">t/h</tspan>
               </text>
             </g>
           </g>
 
-          {/* Branch 2 (y=476): Bypass with HIC6 */}
-          <line x1="1487" y1="476" x2="1580" y2="476" stroke="#e879f9" strokeWidth="2.5" />
-          <path d="M 1524,468 L 1548,484 L 1548,468 L 1524,484 Z" fill="#d946ef" stroke="#ffffff" strokeWidth="1" />
-          <line x1="1536" y1="468" x2="1536" y2="458" stroke="#d946ef" strokeWidth="1.5" />
-          <path d="M 1524,458 A 12,12 0 0,1 1548,458 Z" fill="#d946ef" stroke="#ffffff" strokeWidth="1" />
-          <text x="1536" y="450" fill="#00ffff" fontSize="10" textAnchor="middle">HIC6 0%</text>
-
-          {/* Branch 3 (y=640): TV1B to LNG > STRG PUMP BYPASS */}
-          <line x1="1487" y1="640" x2="1675" y2="640" stroke="#e879f9" strokeWidth="2.5" markerEnd="url(#arrow-red)" />
-          <path d="M 1613,632 L 1637,648 L 1637,632 L 1613,648 Z" fill="#d946ef" stroke="#ffffff" strokeWidth="1" />
-          <line x1="1625" y1="632" x2="1625" y2="622" stroke="#d946ef" strokeWidth="1.5" />
-          <path d="M 1613,622 A 12,12 0 0,1 1637,622 Z" fill="#d946ef" stroke="#ffffff" strokeWidth="1" />
-          <text x="1625" y="612" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">TV1B</text>
-          <text x="1690" y="635" fill="#e879f9" fontSize="13" fontWeight="bold">LNG&gt;STRG</text>
-          <text x="1690" y="652" fill="#e879f9" fontSize="11" fontWeight="bold">PUMP BYPASS</text>
-
-          {/* Signal lines for TIC1A/B */}
-          <line x1="1487" y1="285" x2="1400" y2="285" stroke="#0284c7" strokeWidth="1.5" strokeDasharray="3 3" />
-          <line x1="1400" y1="285" x2="1400" y2="305" stroke="#0284c7" strokeWidth="1.5" strokeDasharray="3 3" />
-
           {/* =============================================================== */}
-          {/* STREAM 3: MR VAPOR INLET (YELLOW LINE y=561 -> x=458 -> y=784)   */}
+          {/* STREAM 3: MR VAPOR INLET (YELLOW LINE y=530 -> x=458 -> y=784)   */}
           {/* =============================================================== */}
-          <text x="195" y="555" fill="#ffff00" fontSize="13" fontWeight="bold">MR VAP</text>
-          <text x="195" y="570" fill="#ffff00" fontSize="10" fontWeight="bold">(Stream 3)</text>
-          <line x1="185" y1="561" x2="458" y2="561" stroke="#ffff00" strokeWidth="2.5" />
-          <line x1="458" y1="561" x2="458" y2="784" stroke="#ffff00" strokeWidth="2.5" />
+          <text x="210" y="514" fill="#ffff00" fontSize="12" fontWeight="bold">MR VAP</text>
+          <text x="210" y="526" fill="#ffff00" fontSize="9.5" fontWeight="bold">(Stream 3)</text>
+          <line x1="185" y1="530" x2="458" y2="530" stroke="#ffff00" strokeWidth="2.5" />
+          <line x1="458" y1="530" x2="458" y2="784" stroke="#ffff00" strokeWidth="2.5" />
           <polygon points="454,720 458,730 462,720" fill="#ffff00" />
           <line x1="458" y1="784" x2="755" y2="784" stroke="#ffff00" strokeWidth="2.5" markerEnd="url(#arrow-yellow)" />
-          
-          <line x1="340" y1="561" x2="340" y2="525" stroke="#0284c7" strokeWidth="1.5" strokeDasharray="3 3" />
-          <line x1="380" y1="561" x2="380" y2="618" stroke="#0284c7" strokeWidth="1.5" strokeDasharray="3 3" />
+
+          {/* FI1: MCR Vapor Flow Badge on Stream 3 */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
+            tag: 'FI1',
+            name: 'MCR Vapor Flow ke MCHE 5E-1 (Warm Bundle Inlet)',
+            unit: 't/h',
+            valDcs: mcrVapFlowDcs.toFixed(1),
+            valAi: mcrVapFlowAi.toFixed(1),
+            limit: 'Coupled with H5TI0047 (-35.1°C DCS / -32.7°C Skenario)'
+          })}>
+            <rect x="250" y="480" width="135" height="40" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
+            <text x="317" y="496" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">FI1 (MCR Vap)</text>
+            <text x="317" y="514" fill={fmt('FI1', mcrVapFlowDcs, mcrVapFlowAi, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
+              {fmt('FI1', mcrVapFlowDcs, mcrVapFlowAi, 1).display} <tspan fill="#00ffff" fontSize="10">t/h</tspan>
+            </text>
+          </g>
+
+          {/* PI1: Tekanan MCR Masuk */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5PI0001', name: 'MCR Vapor Pressure', unit: 'KGC2G', valDcs: pi1Dcs.toFixed(2), valAi: pi1Ai.toFixed(2) })}>
+            <text x="375" y="618" fill="#00ffff" fontSize="12" fontWeight="bold">PI1</text>
+            <text x="375" y="638" fill={fmt('PI1', pi1Dcs, pi1Ai, 2).color} fontSize="15" fontWeight="bold">
+              {fmt('PI1', pi1Dcs, pi1Ai, 2).display} <tspan fill="#00ffff" fontSize="10">KGC2G</tspan>
+            </text>
+          </g>
+
+          {/* TI47: Suhu MCR Masuk (Coupled with FI1) */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0047', name: 'MCR Vapor Inlet Temperature (Coupled with FI1)', unit: '°C', valDcs: ti47Dcs.toFixed(1), valAi: ti47Ai.toFixed(1) })}>
+            <text x="375" y="670" fill="#00ffff" fontSize="12" fontWeight="bold">TI47 (Vap T)</text>
+            <text x="375" y="690" fill={fmt('TI47', ti47Dcs, ti47Ai, 1).color} fontSize="15" fontWeight="bold">
+              {fmt('TI47', ti47Dcs, ti47Ai, 1).display} <tspan fill="#00ffff" fontSize="10">°C</tspan>
+            </text>
+          </g>
 
           {/* =============================================================== */}
-          {/* STREAM 4: MR LIQUID INLET (ORANGE LINE y=812)                   */}
+          {/* STREAM 4: MR LIQUID INLET WITH DYNAMIC PR-EOS FLOW READOUT       */}
           {/* =============================================================== */}
-          <text x="135" y="798" fill="#e69138" fontSize="13" fontWeight="bold">MR LIQ</text>
-          <text x="135" y="812" fill="#e69138" fontSize="10" fontWeight="bold">(Stream 4)</text>
-          <line x1="162" y1="683" x2="162" y2="812" stroke="#e69138" strokeWidth="2.5" />
-          <line x1="162" y1="812" x2="755" y2="812" stroke="#e69138" strokeWidth="2.5" markerEnd="url(#arrow-orange)" />
+          <line x1="160" y1="675" x2="160" y2="760" stroke="#e69138" strokeWidth="2.5" />
+          <line x1="160" y1="760" x2="755" y2="760" stroke="#e69138" strokeWidth="2.5" markerEnd="url(#arrow-orange)" />
+          <text x="150" y="718" fill="#e69138" fontSize="12" fontWeight="bold" textAnchor="end">MR LIQ</text>
+          <text x="150" y="732" fill="#e69138" fontSize="9.5" fontWeight="bold" textAnchor="end">(Stream 4)</text>
 
-          {/* TI50 (MR Liquid Inlet Temperature - PR-EOS & DCS H5TI0050) */}
+          {/* MRL Flow Badge on Stream 4 (PR-EOS Dynamic: Mass t/h & Volumetric m3/h) */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
+            tag: 'MRL_FLOW',
+            name: 'MCR Liquid Circulation Flow ke MCHE 5E-1 (PR-EOS Phase Split)',
+            unit: 't/h (m³/h)',
+            valDcs: `${mcrLiqMassDcs.toFixed(1)} t/h (${fic2Dcs} m³/h)`,
+            valAi: `${mcrLiqMassAi.toFixed(1)} t/h (${fic2Ai} m³/h)`,
+            limit: 'PR-EOS VLE at -35.0°C, 36.90 kg/cm²G'
+          })}>
+            <rect x="210" y="728" width="165" height="42" fill="#0f172a" stroke="#e69138" strokeWidth="1" rx="4" />
+            <text x="292" y="744" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">MRL Flow (PR-EOS)</text>
+            <text x="292" y="763" fill={fmt('MRL_FLOW', mcrLiqMassDcs, mcrLiqMassAi, 1).color} fontSize="14" textAnchor="middle" fontWeight="bold">
+              {fmt('MRL_FLOW', mcrLiqMassDcs, mcrLiqMassAi, 1).display} <tspan fill="#00ffff" fontSize="10">t/h</tspan> <tspan fill="#94a3b8" fontSize="10">({fmt('FIC2', fic2Dcs, fic2Ai, 0).display} m³/h)</tspan>
+            </text>
+          </g>
+
+          {/* TI50: MR Liquid Inlet Temperature (H5TI0050) */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'H5TI0050',
             name: 'Suhu MR Liquid ke MCHE 5E-1 (Warm Bundle Inlet)',
@@ -708,29 +742,28 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             valDcs: ti50Dcs.toFixed(1),
             valAi: ti50Ai.toFixed(1)
           })}>
-            <rect x="270" y="746" width="120" height="42" fill="#0f172a" stroke="#e69138" strokeWidth="1" rx="4" />
-            <text x="330" y="763" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">TI50 (MR Liq)</text>
-            <text x="330" y="781" fill={fmt('TI50', ti50Dcs, ti50Ai, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
+            <rect x="390" y="728" width="115" height="42" fill="#0f172a" stroke="#e69138" strokeWidth="1" rx="4" />
+            <text x="447" y="744" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">TI50 (MR Liq)</text>
+            <text x="447" y="763" fill={fmt('TI50', ti50Dcs, ti50Ai, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
               {fmt('TI50', ti50Dcs, ti50Ai, 1).display} <tspan fill="#00ffff" fontSize="10">°C</tspan>
             </text>
-            <line x1="330" y1="788" x2="330" y2="812" stroke="#e69138" strokeWidth="1.5" strokeDasharray="3 3" />
           </g>
 
           {/* =============================================================== */}
           {/* STREAM 5: COLD MR LOOPS (LEFT & RIGHT)                          */}
           {/* =============================================================== */}
-          {/* Left Cold MR Loop exiting Chinese Hat: x=794, y=275 -> HIC2 -> cold tray */}
-          <path d="M 794,275 L 551,275 L 551,310 L 825,310" fill="none" stroke="#e69138" strokeWidth="2.5" markerEnd="url(#arrow-orange)" />
+          {/* Left Cold MR Loop exiting Chinese Hat: x=794, y=290 -> HIC2 -> cold tray */}
+          <path d="M 794,290 L 540,290 L 540,310 L 825,310" fill="none" stroke="#e69138" strokeWidth="2.5" markerEnd="url(#arrow-orange)" />
           
           {/* HIC2 Valve */}
-          <path d="M 583,267 L 607,283 L 607,267 L 583,283 Z" fill="#e69138" stroke="#ffffff" strokeWidth="1" />
-          <line x1="595" y1="267" x2="595" y2="257" stroke="#e69138" strokeWidth="1.5" />
-          <rect x="585" y="251" width="20" height="6" fill="#e69138" stroke="#ffffff" strokeWidth="0.8" />
-          <text x="595" y="245" fill="#00ffff" fontSize="10" textAnchor="middle">HIC2 100%</text>
+          <path d="M 578,282 L 602,298 L 602,282 L 578,298 Z" fill="#e69138" stroke="#ffffff" strokeWidth="1" />
+          <line x1="590" y1="282" x2="590" y2="272" stroke="#e69138" strokeWidth="1.5" />
+          <rect x="580" y="266" width="20" height="6" fill="#e69138" stroke="#ffffff" strokeWidth="0.8" />
+          <text x="590" y="260" fill="#00ffff" fontSize="10" textAnchor="middle">HIC2 100%</text>
 
           {/* PI28A/B/C Pressure Indication */}
-          <text x="500" y="265" fill="#00ffff" fontSize="10" textAnchor="middle" fontWeight="bold">PI28A/B/C</text>
-          <text x="500" y="280" fill="#ffffff" fontSize="11" textAnchor="middle">2.64 <tspan fill="#00ffff" fontSize="9">KGC2G</tspan></text>
+          <text x="475" y="280" fill="#00ffff" fontSize="10" textAnchor="middle" fontWeight="bold">PI28A/B/C</text>
+          <text x="475" y="295" fill="#ffffff" fontSize="11" textAnchor="middle">2.64 <tspan fill="#00ffff" fontSize="9">KGC2G</tspan></text>
 
           {/* TI24 (MRV Top) — Suhu MR Vapor Setelah Chinese Hat */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
@@ -740,22 +773,22 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             valDcs: ti24Dcs.toFixed(1),
             valAi: ti24Ai.toFixed(1)
           })}>
-            <rect x="675" y="210" width="110" height="38" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
-            <text x="730" y="225" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">TI24 (MRV Top)</text>
-            <text x="730" y="242" fill={fmt('TI24', ti24Dcs, ti24Ai, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
+            <rect x="670" y="235" width="110" height="38" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
+            <text x="725" y="250" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">TI24 (MRV Top)</text>
+            <text x="725" y="267" fill={fmt('TI24', ti24Dcs, ti24Ai, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
               {fmt('TI24', ti24Dcs, ti24Ai, 1).display} <tspan fill="#00ffff" fontSize="10">°C</tspan>
             </text>
-            <line x1="730" y1="248" x2="730" y2="275" stroke="#0284c7" strokeWidth="1.5" strokeDasharray="3 3" />
+            <line x1="725" y1="273" x2="725" y2="290" stroke="#0284c7" strokeWidth="1.5" strokeDasharray="3 3" />
           </g>
 
           {/* Right Cold MR Loop with PRIC15 / TT30 / PT8 */}
-          <line x1="915" y1="337" x2="1247" y2="337" stroke="#ffff00" strokeWidth="2.5" />
-          <path d="M 1235,329 L 1259,345 L 1259,329 L 1235,345 Z" fill="#ffff00" stroke="#ffffff" strokeWidth="1" />
-          <line x1="1247" y1="329" x2="1247" y2="319" stroke="#ffff00" strokeWidth="1.5" />
-          <path d="M 1235,319 A 12,12 0 0,1 1259,319 Z" fill="#ffff00" stroke="#ffffff" strokeWidth="1" />
-          <text x="1247" y="312" fill="#00ffff" fontSize="11" textAnchor="middle">PRIC15 18.0</text>
+          <line x1="915" y1="337" x2="1240" y2="337" stroke="#ffff00" strokeWidth="2.5" />
+          <path d="M 1228,329 L 1252,345 L 1252,329 L 1228,345 Z" fill="#ffff00" stroke="#ffffff" strokeWidth="1" />
+          <line x1="1240" y1="329" x2="1240" y2="319" stroke="#ffff00" strokeWidth="1.5" />
+          <path d="M 1228,319 A 12,12 0 0,1 1252,319 Z" fill="#ffff00" stroke="#ffffff" strokeWidth="1" />
+          <text x="1240" y="312" fill="#00ffff" fontSize="10.5" textAnchor="middle">PRIC15 18.0</text>
           
-          <path d="M 1259,337 L 1311,337 L 1311,281 L 855,281 L 855,295" fill="none" stroke="#e69138" strokeWidth="2.5" markerEnd="url(#arrow-orange)" />
+          <path d="M 1252,337 L 1311,337 L 1311,281 L 855,281 L 855,295" fill="none" stroke="#e69138" strokeWidth="2.5" markerEnd="url(#arrow-orange)" />
 
           {/* TT30 (>PV-15 / H5TI0030) */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
@@ -796,8 +829,8 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             valDcs: pi10Dcs.toFixed(2),
             valAi: pi10Ai.toFixed(2)
           })}>
-            <text x="1225" y="375" fill="#00ffff" fontSize="11" fontWeight="bold">PI10</text>
-            <text x="1225" y="390" fill={fmt('PI10', pi10Dcs, pi10Ai, 2).color} fontSize="13" fontWeight="bold">
+            <text x="1215" y="375" fill="#00ffff" fontSize="11" fontWeight="bold">PI10</text>
+            <text x="1215" y="390" fill={fmt('PI10', pi10Dcs, pi10Ai, 2).color} fontSize="13" fontWeight="bold">
               {fmt('PI10', pi10Dcs, pi10Ai, 2).display} <tspan fill="#00ffff" fontSize="9">KGC2G</tspan>
             </text>
           </g>
@@ -828,9 +861,9 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             valDcs: ti28Dcs.toFixed(1),
             valAi: ti28Ai.toFixed(1)
           })}>
-            <rect x="990" y="555" width="105" height="36" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
-            <text x="1042" y="570" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">TT28 (MR&gt;W/B)</text>
-            <text x="1042" y="586" fill={fmt('TT28', ti28Dcs, ti28Ai, 1).color} fontSize="14" textAnchor="middle" fontWeight="bold">
+            <rect x="990" y="530" width="105" height="36" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
+            <text x="1042" y="545" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">TT28 (MR&gt;W/B)</text>
+            <text x="1042" y="561" fill={fmt('TT28', ti28Dcs, ti28Ai, 1).color} fontSize="14" textAnchor="middle" fontWeight="bold">
               {fmt('TT28', ti28Dcs, ti28Ai, 1).display} <tspan fill="#00ffff" fontSize="10">°C</tspan>
             </text>
           </g>
@@ -843,9 +876,9 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             valDcs: ti31Dcs.toFixed(1),
             valAi: ti31Ai.toFixed(1)
           })}>
-            <rect x="990" y="598" width="105" height="36" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
-            <text x="1042" y="613" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">TT31 (MRL&gt;FV2)</text>
-            <text x="1042" y="629" fill={fmt('TT31', ti31Dcs, ti31Ai, 1).color} fontSize="14" textAnchor="middle" fontWeight="bold">
+            <rect x="990" y="585" width="105" height="36" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
+            <text x="1042" y="600" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">TT31 (MRL&gt;FV2)</text>
+            <text x="1042" y="616" fill={fmt('TT31', ti31Dcs, ti31Ai, 1).color} fontSize="14" textAnchor="middle" fontWeight="bold">
               {fmt('TT31', ti31Dcs, ti31Ai, 1).display} <tspan fill="#00ffff" fontSize="10">°C</tspan>
             </text>
           </g>
@@ -858,23 +891,39 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             valDcs: pi7Dcs.toFixed(2),
             valAi: pi7Ai.toFixed(2)
           })}>
-            <rect x="1105" y="598" width="100" height="36" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
-            <text x="1155" y="613" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">PT7 (MR&gt;FV2)</text>
-            <text x="1155" y="629" fill={fmt('PT7', pi7Dcs, pi7Ai, 2).color} fontSize="14" textAnchor="middle" fontWeight="bold">
+            <rect x="1105" y="585" width="100" height="36" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
+            <text x="1155" y="600" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">PT7 (MR&gt;FV2)</text>
+            <text x="1155" y="616" fill={fmt('PT7', pi7Dcs, pi7Ai, 2).color} fontSize="14" textAnchor="middle" fontWeight="bold">
               {fmt('PT7', pi7Dcs, pi7Ai, 2).display} <tspan fill="#00ffff" fontSize="9">KGC2G</tspan>
             </text>
           </g>
 
+          {/* FIC2: MCR Liquid Volumetric Flow */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
+            tag: 'H5FIC002',
+            name: 'MCR Liquid Circulation Flow ke MCHE 5E-1',
+            unit: 'm³/h (t/h)',
+            valDcs: `${fic2Dcs} m³/h (${mcrLiqMassDcs.toFixed(0)} t/h)`,
+            valAi: `${fic2Ai} m³/h (${mcrLiqMassAi.toFixed(0)} t/h)`
+          })}>
+            <rect x="1105" y="640" width="155" height="42" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
+            <text x="1182" y="656" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">FIC2 (MCR Liq)</text>
+            <text x="1182" y="674" fill={fmt('FIC2', fic2Dcs, fic2Ai, 0).color} fontSize="13" textAnchor="middle" fontWeight="bold">
+              {fmt('FIC2', fic2Dcs, fic2Ai, 0).display} <tspan fill="#00ffff" fontSize="9.5">m³/h</tspan> <tspan fill={fmt('FIC2_MASS', mcrLiqMassDcs, mcrLiqMassAi, 0).color} fontSize="10">({fmt('FIC2_MASS', mcrLiqMassDcs, mcrLiqMassAi, 0).display} t/h)</tspan>
+            </text>
+          </g>
+
           {/* =============================================================== */}
-          {/* STREAM 7: OVERHEAD OFF-GAS TO LTSS (WHITE LINE y=237)           */}
+          {/* STREAM 7: OVERHEAD OFF-GAS TO LTSS (WHITE LINE y=195)           */}
           {/* =============================================================== */}
-          <line x1="794" y1="237" x2="127" y2="237" stroke="#ffffff" strokeWidth="2.5" markerEnd="url(#arrow-white)" />
-          <text x="127" y="258" fill="#ffffff" fontSize="14" fontWeight="bold">LTSS</text>
+          {/* Elevated white line at y=195 to prevent collision with TI24 */}
+          <line x1="794" y1="195" x2="127" y2="195" stroke="#ffffff" strokeWidth="2.5" markerEnd="url(#arrow-white)" />
+          <text x="127" y="215" fill="#ffffff" fontSize="13" fontWeight="bold">LTSS</text>
           
-          {/* Green PIC2 Control Valve symbol at x=200, y=237 */}
-          <path d="M 188,229 L 212,245 L 212,229 L 188,245 Z" fill="#00ff00" stroke="#ffffff" strokeWidth="1" />
-          <line x1="200" y1="229" x2="200" y2="219" stroke="#00ff00" strokeWidth="1.5" />
-          <path d="M 188,219 A 12,12 0 0,1 212,219 Z" fill="#00ff00" stroke="#ffffff" strokeWidth="1" />
+          {/* Green PIC2 Control Valve symbol at x=200, y=195 */}
+          <path d="M 188,187 L 212,203 L 212,187 L 188,203 Z" fill="#00ff00" stroke="#ffffff" strokeWidth="1" />
+          <line x1="200" y1="187" x2="200" y2="177" stroke="#00ff00" strokeWidth="1.5" />
+          <path d="M 188,177 A 12,12 0 0,1 212,177 Z" fill="#00ff00" stroke="#ffffff" strokeWidth="1" />
 
           {/* PIC2: Tekanan Overhead ke LTSS (H5PIC002) */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
@@ -885,12 +934,12 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             valAi: pic2Ai.toFixed(2),
             limit: 'Normal 2.65 - 2.80 KGC2G'
           })}>
-            <rect x="220" y="186" width="95" height="38" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
-            <text x="267" y="201" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">PIC2 (OVHD)</text>
-            <text x="267" y="218" fill={fmt('PIC2', pic2Dcs, pic2Ai, 2).color} fontSize="14" textAnchor="middle" fontWeight="bold">
+            <rect x="200" y="148" width="95" height="36" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
+            <text x="247" y="162" fill="#00ffff" fontSize="10.5" textAnchor="middle" fontWeight="bold">PIC2 (OVHD)</text>
+            <text x="247" y="178" fill={fmt('PIC2', pic2Dcs, pic2Ai, 2).color} fontSize="13" textAnchor="middle" fontWeight="bold">
               {fmt('PIC2', pic2Dcs, pic2Ai, 2).display} <tspan fill="#00ffff" fontSize="9">KGC2G</tspan>
             </text>
-            <line x1="267" y1="224" x2="267" y2="237" stroke="#0284c7" strokeWidth="1" strokeDasharray="2 2" />
+            <line x1="247" y1="184" x2="247" y2="195" stroke="#0284c7" strokeWidth="1" strokeDasharray="2 2" />
           </g>
 
           {/* TI20 (MCHE Overhead to LTSS upstream PIC2) */}
@@ -901,12 +950,12 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             valDcs: ti20Dcs.toFixed(1),
             valAi: ti20Ai.toFixed(1)
           })}>
-            <rect x="330" y="186" width="105" height="38" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
-            <text x="382" y="201" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">TI20 (OVHD)</text>
-            <text x="382" y="218" fill={fmt('TI20', ti20Dcs, ti20Ai, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
+            <rect x="320" y="148" width="105" height="36" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
+            <text x="372" y="162" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">TI20 (OVHD)</text>
+            <text x="372" y="178" fill={fmt('TI20', ti20Dcs, ti20Ai, 1).color} fontSize="14" textAnchor="middle" fontWeight="bold">
               {fmt('TI20', ti20Dcs, ti20Ai, 1).display} <tspan fill="#00ffff" fontSize="10">°C</tspan>
             </text>
-            <line x1="382" y1="224" x2="382" y2="237" stroke="#ffffff" strokeWidth="1.5" strokeDasharray="3 3" />
+            <line x1="372" y1="184" x2="372" y2="195" stroke="#ffffff" strokeWidth="1.5" strokeDasharray="3 3" />
           </g>
 
           {/* =============================================================== */}
@@ -928,8 +977,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           {/* INTERACTIVE DATA-BACKED DCS PROCESS INDICATORS                   */}
           {/* =============================================================== */}
 
-          {/* 1. Feed Gas Tags (Tested by test_bottom_tags_clearance: y=865, h=38) */}
-          {/* H3FI0004: Laju Alir Umpan Gas Treated ke 5E-1 */}
+          {/* 1. Feed Gas Tags (Preserves exact regex compatibility for test_bottom_tags_clearance: y=865, h=38) */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H3FI0004', name: 'Feed Gas Treated Flow ke MCHE 5E-1', unit: 't/h', valDcs: feedFlowDcs.toFixed(1), valAi: feedFlowAi.toFixed(1) })}>
             <rect x="175" y="865" width="130" height="38" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
             <text x="240" y="880" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">H3FI0004 (Feed)</text>
@@ -938,7 +986,6 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             </text>
           </g>
 
-          {/* PI12: Tekanan Umpan Masuk */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5PI0012', name: 'Feed Gas Inlet Pressure ke 5E-1', unit: 'KGC2G', valDcs: pi12Dcs.toFixed(2), valAi: pi12Ai.toFixed(2) })}>
             <rect x="330" y="865" width="120" height="38" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
             <text x="390" y="880" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">PI12 (Inlet P)</text>
@@ -947,7 +994,6 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             </text>
           </g>
 
-          {/* TI23: Suhu Umpan Masuk */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0023', name: 'Feed Gas Inlet Temperature ke 5E-1', unit: '°C', valDcs: ti23Dcs.toFixed(1), valAi: ti23Ai.toFixed(1) })}>
             <rect x="480" y="865" width="120" height="38" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
             <text x="540" y="880" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">TI23 (Inlet T)</text>
@@ -956,37 +1002,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             </text>
           </g>
 
-          {/* 2. MCR Vapor Inlet Tags: FI1, PI1, TI47 */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
-            tag: 'FI1',
-            name: 'MCR Vapor Flow ke MCHE 5E-1 (Warm Bundle Inlet)',
-            unit: 't/h',
-            valDcs: mcrVapFlowDcs.toFixed(1),
-            valAi: mcrVapFlowAi.toFixed(1),
-            limit: 'Coupled with H5TI0047 (-35.1°C DCS / -32.7°C Skenario)'
-          })}>
-            <rect x="270" y="495" width="140" height="42" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
-            <text x="340" y="512" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">FI1 (MCR Vap)</text>
-            <text x="340" y="531" fill={fmt('FI1', mcrVapFlowDcs, mcrVapFlowAi, 1).color} fontSize="16" textAnchor="middle" fontWeight="bold">
-              {fmt('FI1', mcrVapFlowDcs, mcrVapFlowAi, 1).display} <tspan fill="#00ffff" fontSize="11">t/h</tspan>
-            </text>
-          </g>
-
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5PI0001', name: 'MCR Vapor Pressure', unit: 'KGC2G', valDcs: pi1Dcs.toFixed(2), valAi: pi1Ai.toFixed(2) })}>
-            <text x="380" y="618" fill="#00ffff" fontSize="12" fontWeight="bold">PI1</text>
-            <text x="380" y="638" fill={fmt('PI1', pi1Dcs, pi1Ai, 2).color} fontSize="15" fontWeight="bold">
-              {fmt('PI1', pi1Dcs, pi1Ai, 2).display} <tspan fill="#00ffff" fontSize="10">KGC2G</tspan>
-            </text>
-          </g>
-
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0047', name: 'MCR Vapor Inlet Temperature (Coupled with FI1)', unit: '°C', valDcs: ti47Dcs.toFixed(1), valAi: ti47Ai.toFixed(1) })}>
-            <text x="380" y="670" fill="#00ffff" fontSize="12" fontWeight="bold">TI47 (Vap T)</text>
-            <text x="380" y="690" fill={fmt('TI47', ti47Dcs, ti47Ai, 1).color} fontSize="15" fontWeight="bold">
-              {fmt('TI47', ti47Dcs, ti47Ai, 1).display} <tspan fill="#00ffff" fontSize="10">°C</tspan>
-            </text>
-          </g>
-
-          {/* 3. MCHE DIFFERENTIAL PRESSURE WITH ACCURATE DUAL INSTRUMENT TAPS */}
+          {/* 2. MCHE DIFFERENTIAL PRESSURE WITH DUAL INSTRUMENT TAPS */}
           {/* PDI4 (Cold Bundle DP): Two taps across Cold Bundle */}
           <circle cx="794" cy="310" r="3" fill="#00ffff" />
           <circle cx="794" cy="425" r="3" fill="#00ffff" />
@@ -1030,7 +1046,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           </g>
           <text x="680" y="696" fill="#94a3b8" fontSize="10" textAnchor="middle">PDI25 A: 0.242 | B: 0.240 KGC2</text>
 
-          {/* 4. Left Profile Temperatures: TI25 (C/B In), TI26 (C/B Out), TI22 */}
+          {/* 3. Left Profile Temperatures: TI25 (C/B In), TI26 (C/B Out), TI22 */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'H5TI0025',
             name: 'Suhu Keluar MRV Cold Bundle (MRV < C/B)',
@@ -1073,7 +1089,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             <line x1="680" y1="504" x2="760" y2="504" stroke="#0284c7" strokeWidth="1.5" strokeDasharray="3 3" />
           </g>
 
-          {/* 5. Right Profile Temperatures: TI21 & TI27 */}
+          {/* 4. Right Profile Temperatures: TI21 & TI27 */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'H5TI0021',
             name: 'Suhu MRV Masuk Cold Bundle (MRV > C/B)',
@@ -1102,22 +1118,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             <line x1="930" y1="474" x2="975" y2="474" stroke="#0284c7" strokeWidth="1.5" strokeDasharray="3 3" />
           </g>
 
-          {/* 6. MCR Liquid Flow FIC2 */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
-            tag: 'H5FIC002',
-            name: 'MCR Liquid Circulation Flow ke MCHE 5E-1',
-            unit: 'm³/h (t/h)',
-            valDcs: `${fic2Dcs} m³/h (${mcrLiqMassDcs.toFixed(0)} t/h)`,
-            valAi: `${fic2Ai} m³/h (${mcrLiqMassAi.toFixed(0)} t/h)`
-          })}>
-            <rect x="1135" y="650" width="160" height="46" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
-            <text x="1215" y="667" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">FIC2 (MCR Liq)</text>
-            <text x="1215" y="686" fill={fmt('FIC2', fic2Dcs, fic2Ai, 0).color} fontSize="13" textAnchor="middle" fontWeight="bold">
-              {fmt('FIC2', fic2Dcs, fic2Ai, 0).display} <tspan fill="#00ffff" fontSize="10">m³/h</tspan> <tspan fill={fmt('FIC2_MASS', mcrLiqMassDcs, mcrLiqMassAi, 0).color} fontSize="11">({fmt('FIC2_MASS', mcrLiqMassDcs, mcrLiqMassAi, 0).display} t/h)</tspan>
-            </text>
-          </g>
-
-          {/* 7. LNG Rundown: TI29 & TIC1A/B */}
+          {/* 5. LNG Rundown: TI29 & TIC1A/B */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'H5TI0029',
             name: 'Suhu LNG Rundown Downstream Subcooler (<5PV-15)',
@@ -1130,7 +1131,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             <text x="1167" y="218" fill={fmt('TI29', ti29Dcs, ti29Ai, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
               {fmt('TI29', ti29Dcs, ti29Ai, 1).display} <tspan fill="#00ffff" fontSize="10">°C</tspan>
             </text>
-            <line x1="1167" y1="224" x2="1167" y2="253" stroke="#e879f9" strokeWidth="1.5" strokeDasharray="3 3" />
+            <line x1="1167" y1="224" x2="1167" y2="245" stroke="#e879f9" strokeWidth="1.5" strokeDasharray="3 3" />
           </g>
 
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
@@ -1141,14 +1142,15 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             valAi: tiLngAi.toFixed(1),
             limit: 'Target ≤ -150.0°C'
           })}>
-            <rect x="1340" y="270" width="135" height="42" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
-            <text x="1407" y="287" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">TIC1A/B (LNG)</text>
-            <text x="1407" y="306" fill={fmt('TIC1A/B', tiLngDcs, tiLngAi, 1).color} fontSize="17" textAnchor="middle" fontWeight="bold">
-              {fmt('TIC1A/B', tiLngDcs, tiLngAi, 1).display} <tspan fill="#00ffff" fontSize="11">°C</tspan>
+            <rect x="1310" y="260" width="125" height="40" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
+            <text x="1372" y="276" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">TIC1A/B (LNG)</text>
+            <text x="1372" y="294" fill={fmt('TIC1A/B', tiLngDcs, tiLngAi, 1).color} fontSize="16" textAnchor="middle" fontWeight="bold">
+              {fmt('TIC1A/B', tiLngDcs, tiLngAi, 1).display} <tspan fill="#00ffff" fontSize="10">°C</tspan>
             </text>
+            <line x1="1435" y1="280" x2="1440" y2="280" stroke="#0284c7" strokeWidth="1" strokeDasharray="2 2" />
           </g>
 
-          {/* 8. Compressor Suction Return Tags: PI9, H4FI011B, TI8 */}
+          {/* 6. Compressor Suction Return Tags: PI9, H4FI011B, TI8 */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'H4PI014B',
             name: 'MCHE Bottom Outlet / Compressor Suction Pressure',
