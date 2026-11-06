@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 
 interface TopNavbarProps {
   loading: boolean;
@@ -201,49 +202,55 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
         )}
       </div>
 
-      {/* Contact Us Modal Dialog (Light Frosted Glassmorphism) */}
-      {showContactModal && (
+      {/* Contact Us Modal Dialog (Rendered at document.body via Portal for exact viewport centering) */}
+      {showContactModal && typeof document !== 'undefined' && createPortal(
         <div
           style={{
             position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.35)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(15, 23, 42, 0.55)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 1000,
+            zIndex: 99999,
             padding: '16px',
+            boxSizing: 'border-box',
           }}
           onClick={() => setShowContactModal(false)}
         >
           <div
             style={{
-              background: 'rgba(255, 255, 255, 0.92)',
-              backdropFilter: 'blur(24px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-              border: '1px solid rgba(255, 255, 255, 0.95)',
+              background: '#ffffff',
               borderRadius: '20px',
               width: '100%',
               maxWidth: '580px',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(226, 232, 240, 0.6), inset 0 1px 1px #ffffff',
+              maxHeight: 'min(90vh, 660px)',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.3), 0 0 0 1px rgba(226, 232, 240, 0.9)',
+              border: '1px solid rgba(255, 255, 255, 0.9)',
               color: '#0f172a',
-              padding: '24px 26px',
               fontFamily: "'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif",
+              overflow: 'hidden',
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
+            {/* Header (Pinned Top) */}
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
-              alignItems: 'flex-start',
-              marginBottom: '18px',
-              borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
-              paddingBottom: '14px',
+              alignItems: 'center',
+              padding: '20px 24px',
+              borderBottom: '1px solid #e2e8f0',
+              background: '#ffffff',
+              flexShrink: 0,
             }}>
               <div>
                 <div style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -261,16 +268,16 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
                     Plant-5 Liquefaction
                   </span>
                 </div>
-                <div style={{ fontSize: '12.5px', color: '#64748b', marginTop: '4px' }}>
+                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '3px' }}>
                   Badak LNG C3MR Plant-5 Process Optimization & Decision-Support System
                 </div>
               </div>
               <button
                 onClick={() => setShowContactModal(false)}
                 style={{
-                  background: 'rgba(241, 245, 249, 0.8)',
-                  border: '1px solid rgba(203, 213, 225, 0.8)',
-                  color: '#64748b',
+                  background: '#f1f5f9',
+                  border: '1px solid #cbd5e1',
+                  color: '#475569',
                   borderRadius: '8px',
                   width: '32px',
                   height: '32px',
@@ -289,23 +296,30 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
               </button>
             </div>
 
-            {/* Authors List with Light Tactile Glass Cards */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {/* Authors List (Scrollable Middle) */}
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: '18px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              background: '#ffffff',
+            }}>
               {AUTHORS.map((author) => (
                 <div
                   key={author.name}
                   style={{
-                    background: 'rgba(255, 255, 255, 0.75)',
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
-                    border: '1px solid rgba(226, 232, 240, 0.85)',
+                    background: '#f8fafc',
+                    border: '1px solid #e2e8f0',
                     borderRadius: '14px',
                     padding: '12px 16px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     gap: '14px',
-                    boxShadow: '0 4px 16px rgba(15, 23, 42, 0.03), inset 0 1px 0 #ffffff',
+                    boxShadow: '0 2px 6px rgba(15, 23, 42, 0.03)',
+                    transition: 'all 0.15s ease',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0, flex: 1 }}>
@@ -318,8 +332,8 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
                           height: '48px',
                           borderRadius: '50%',
                           objectFit: 'cover',
-                          border: '2px solid rgba(2, 132, 199, 0.4)',
-                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                          border: '2px solid #0284c7',
+                          boxShadow: '0 2px 8px rgba(2, 132, 199, 0.15)',
                           display: 'block',
                         }}
                         onError={(e) => {
@@ -341,7 +355,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
                           justifyContent: 'center',
                           fontWeight: 800,
                           fontSize: '13px',
-                          border: '2px solid rgba(2, 132, 199, 0.4)',
+                          border: '2px solid #0284c7',
                         }}
                       >
                         {author.initials}
@@ -393,7 +407,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
                       background: '#0a66c2',
                       color: '#ffffff',
                       textDecoration: 'none',
-                      padding: '7px 13px',
+                      padding: '7px 14px',
                       borderRadius: '8px',
                       fontSize: '12px',
                       fontWeight: 700,
@@ -414,25 +428,27 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
               ))}
             </div>
 
-            {/* Footer */}
+            {/* Footer (Pinned Bottom) */}
             <div style={{
-              marginTop: '20px',
-              paddingTop: '14px',
-              borderTop: '1px solid rgba(226, 232, 240, 0.8)',
+              padding: '14px 24px',
+              borderTop: '1px solid #e2e8f0',
+              background: '#f8fafc',
               display: 'flex',
               justifyContent: 'flex-end',
+              flexShrink: 0,
             }}>
               <button
                 onClick={() => setShowContactModal(false)}
                 style={{
-                  background: 'rgba(241, 245, 249, 0.9)',
-                  border: '1px solid rgba(203, 213, 225, 0.8)',
-                  color: '#334155',
-                  padding: '8px 20px',
+                  background: '#334155',
+                  border: 'none',
+                  color: '#ffffff',
+                  padding: '8px 22px',
                   borderRadius: '8px',
                   fontSize: '12.5px',
                   fontWeight: 600,
                   cursor: 'pointer',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
                   transition: 'all 0.15s ease',
                 }}
               >
@@ -440,7 +456,8 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </header>
   );

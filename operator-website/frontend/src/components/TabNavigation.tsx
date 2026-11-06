@@ -95,7 +95,6 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
               color: isActive ? '#ffffff' : '#64748b',
               fontSize: '12px',
               fontWeight: 800,
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -107,7 +106,6 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
               <div style={{
                 fontSize: '13px',
                 fontWeight: 700,
-                fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
                 lineHeight: 1.2,
                 color: isActive ? '#0f172a' : '#64748b',
                 whiteSpace: 'nowrap',
