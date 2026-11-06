@@ -27,7 +27,7 @@ interface TabInputResultsProps {
 export const TabInputResults: React.FC<TabInputResultsProps> = ({
   snapshot: _snapshot,
   scenario,
-  actualDcs,
+  actualDcs: _actualDcs,
   optimum,
   prediction,
   userMode: _userMode,
@@ -254,7 +254,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 </td>
                 <td style={{ padding: '12px 14px', backgroundColor: '#ecfdf5', fontWeight: 700, color: '#047857' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span>{actualDcs.feed_flow_t_h.toFixed(1)}</span>
+                    <span>{(optimum?.feed_t_h ?? scenario.feed_flow_t_h).toFixed(1)}</span>
                     <span style={{
                       backgroundColor: '#e0f2fe',
                       color: '#0369a1',

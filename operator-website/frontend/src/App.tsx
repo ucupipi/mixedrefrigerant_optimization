@@ -241,8 +241,31 @@ export function App() {
     initApp();
   }, []);
 
+  // Auto-optimize AI target recommendation whenever scenario feed flow changes
+  useEffect(() => {
+    if (!scenario.feed_flow_t_h || scenario.feed_flow_t_h <= 0) return;
+    const timer = setTimeout(async () => {
+      try {
+        const opt = await optimizeForFeed(scenario.feed_flow_t_h);
+        setOptimum(opt);
+      } catch (err) {
+        console.warn('Auto-optimize for feed failed:', err);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [scenario.feed_flow_t_h]);
+
   const handleScenarioChange = (key: keyof ScenarioInput, value: number) => {
-    setScenario((prev) => ({ ...prev, [key]: value }));
+    if (key === 'feed_flow_t_h') {
+      const lng = value * 0.9450;
+      setScenario((prev) => ({
+        ...prev,
+        feed_flow_t_h: value,
+        lng_flow_t_h: lng,
+      }));
+    } else {
+      setScenario((prev) => ({ ...prev, [key]: value }));
+    }
   };
 
   const handleActualChange = async (key: keyof ActualDcsState, value: number) => {
@@ -287,12 +310,13 @@ export function App() {
     try {
       setLoading(true);
       setErrorMsg(null);
-      const opt = await optimizeForFeed(actualDcs.feed_flow_t_h);
+      const targetFeed = scenario.feed_flow_t_h;
+      const opt = await optimizeForFeed(targetFeed);
       setOptimum(opt);
       setScenario((prev) => ({
         ...prev,
-        feed_flow_t_h: actualDcs.feed_flow_t_h,
-        lng_flow_t_h: actualDcs.feed_flow_t_h * 0.9450,
+        feed_flow_t_h: targetFeed,
+        lng_flow_t_h: targetFeed * 0.9450,
         mcr_flow_t_h: opt.mcr_flow_t_h,
         comp_N2_molpct: opt.comp_N2_molpct,
         comp_C1_molpct: opt.comp_C1_molpct,
