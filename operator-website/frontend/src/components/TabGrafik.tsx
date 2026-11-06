@@ -231,9 +231,9 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           </div>
         </div>
 
-        {/* SVG Centum Graphic Area (1600 x 860) */}
+        {/* SVG Centum Graphic Area (1600 x 815) */}
         <svg
-          viewBox="0 0 1600 860"
+          viewBox="0 0 1600 815"
           style={{
             width: '100%',
             height: 'auto',
@@ -578,18 +578,6 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           <text x="490" y="92" fill="#ffffff" fontSize="15" fontWeight="bold">-134.6 <tspan fill="#00ffff" fontSize="10">°C</tspan></text>
           <text x="490" y="115" fill="#00ffff" fontSize="12" fontWeight="bold">TI24</text>
           <text x="490" y="132" fill="#ffffff" fontSize="15" fontWeight="bold">-151.3 <tspan fill="#00ffff" fontSize="10">°C</tspan></text>
-
-          {/* =============================================================== */}
-          {/* BOTTOM CENTUM VP SOFTKEY BAR                                    */}
-          {/* =============================================================== */}
-          {['CG0269', 'CG0270', 'CG0271', 'CG0272', 'CG0273', 'CG0274', 'TG0129', 'TG0130'].map((btn, idx) => (
-            <g key={btn} transform={`translate(${140 + idx * 165}, 815)`}>
-              <rect width="135" height="35" fill="#334155" stroke="#64748b" strokeWidth="1" rx="2" />
-              <text x="67" y="23" fill="#f8fafc" fontSize="13" fontWeight="bold" textAnchor="middle">
-                {btn}
-              </text>
-            </g>
-          ))}
         </svg>
 
         {/* Selected Tag Info Overlay / Drawer */}
