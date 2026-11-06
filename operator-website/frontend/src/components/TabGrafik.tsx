@@ -701,13 +701,13 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           {/* HANYA MENAMPILKAN TAG / INDIKATOR YANG MEMILIKI DATA AKTUAL/AI  */}
           {/* =============================================================== */}
 
-          {/* 1. Feed Gas Tags: FI4 / H3FI0004 (Rate), PI12 (Press), TI23 (Temp) */}
-          {/* FI4: Laju Alir Umpan Gas Treated ke 5E-1 */}
+          {/* 1. Feed Gas Tags: H3FI0004 (Rate), PI12 (Press), TI23 (Temp) */}
+          {/* H3FI0004: Laju Alir Umpan Gas Treated ke 5E-1 */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H3FI0004', name: 'Feed Gas Treated Flow ke MCHE 5E-1', unit: 't/h', valDcs: feedFlowDcs.toFixed(1), valAi: feedFlowAi.toFixed(1) })}>
-            <rect x="180" y="865" width="120" height="38" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
-            <text x="240" y="880" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">FI4 (Feed)</text>
-            <text x="240" y="897" fill={fmt('FI4', feedFlowDcs, feedFlowAi, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
-              {fmt('FI4', feedFlowDcs, feedFlowAi, 1).display} <tspan fill="#00ffff" fontSize="10">t/h</tspan>
+            <rect x="175" y="865" width="130" height="38" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
+            <text x="240" y="880" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">H3FI0004 (Feed)</text>
+            <text x="240" y="897" fill={fmt('H3FI0004', feedFlowDcs, feedFlowAi, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
+              {fmt('H3FI0004', feedFlowDcs, feedFlowAi, 1).display} <tspan fill="#00ffff" fontSize="10">t/h</tspan>
             </text>
           </g>
 
