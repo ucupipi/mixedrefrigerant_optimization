@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   calculateFeedGasMW,
   DEFAULT_FEED_GAS,
@@ -59,9 +59,20 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   // Section 3 View Switcher: 'scenario' vs 'ai_target'
   const [section3View, setSection3View] = useState<'scenario' | 'ai_target'>('scenario');
 
+  // DOM Refs for responsive horizontal scrolling
+  const table1Ref = useRef<HTMLDivElement>(null);
+  const table2Ref = useRef<HTMLDivElement>(null);
+
+  const scrollTable = (ref: React.RefObject<HTMLDivElement | null>, direction: 'left' | 'right') => {
+    if (ref.current) {
+      const scrollAmount = direction === 'right' ? 240 : -240;
+      ref.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
   // Coupling: LNG Rundown follows feed gas rate via PR-EOS 5C-1 Flash Drum phase equilibrium
-  const scenarioLngFlow = prediction?.flash_drum_5c1?.lng_liquid_flow_t_h 
-    ?? scenario.lng_flow_t_h 
+  const scenarioLngFlow = prediction?.flash_drum_5c1?.lng_liquid_flow_t_h
+    ?? scenario.lng_flow_t_h
     ?? getEstimatedLngFlow(scenario.feed_flow_t_h, -152.5, feedGasComp);
 
   // Power and SEC calculations (Evaluated ceteris-paribus at the active feed & LNG flow)
@@ -117,7 +128,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   // Make-Up MCR Schedule items (from backend makeup_advisory or computed dynamically)
   const makeupTransitionHours = prediction?.makeup_advisory?.transition_hours ?? scenario.transition_hours ?? 2.0;
   const makeupInventoryKg = prediction?.makeup_advisory?.estimated_inventory_kg ?? 85000;
-  
+
   const actualCompMap = {
     N2: actualDcs.comp_N2_molpct,
     C1: actualDcs.comp_C1_molpct,
@@ -143,30 +154,30 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   const makeupItems = (prediction?.makeup_advisory?.items && prediction.makeup_advisory.items.length > 0)
     ? prediction.makeup_advisory.items
     : compMeta.map((c) => {
-        const act = (actualCompMap as any)[c.key] ?? 0;
-        const tgt = (targetCompMap as any)[c.key] ?? 0;
-        const delta = tgt - act;
-        const isInject = delta > 0.02;
-        const deltaFrac = Math.max(0, delta) / 100.0;
-        const kgTotal = deltaFrac * makeupInventoryKg;
-        const kgPerHour = kgTotal / makeupTransitionHours;
-        const nm3PerHour = (kgPerHour / c.mw) * 22.414;
-        return {
-          component: c.key,
-          tag_dcs: c.tag,
-          description: c.name,
-          unit: 'Nm³/h',
-          actual_molpct: act,
-          target_molpct: tgt,
-          delta_molpct: delta,
-          recommended_flow_nm3_h: nm3PerHour,
-          recommended_flow_kg_h: kgPerHour,
-          action: isInject ? 'INJECT' : 'HOLD',
-          instruction: isInject
-            ? `Buka valve kontrol ${c.tag} bertahap, laju ${nm3PerHour.toFixed(1)} Nm³/h (${kgPerHour.toFixed(1)} kg/h) selama ${makeupTransitionHours} jam.`
-            : `Pertahankan bukaan valve minimum (0 Nm³/h); fraksi sudah mencukupi target.`,
-        };
-      });
+      const act = (actualCompMap as any)[c.key] ?? 0;
+      const tgt = (targetCompMap as any)[c.key] ?? 0;
+      const delta = tgt - act;
+      const isInject = delta > 0.02;
+      const deltaFrac = Math.max(0, delta) / 100.0;
+      const kgTotal = deltaFrac * makeupInventoryKg;
+      const kgPerHour = kgTotal / makeupTransitionHours;
+      const nm3PerHour = (kgPerHour / c.mw) * 22.414;
+      return {
+        component: c.key,
+        tag_dcs: c.tag,
+        description: c.name,
+        unit: 'Nm³/h',
+        actual_molpct: act,
+        target_molpct: tgt,
+        delta_molpct: delta,
+        recommended_flow_nm3_h: nm3PerHour,
+        recommended_flow_kg_h: kgPerHour,
+        action: isInject ? 'INJECT' : 'HOLD',
+        instruction: isInject
+          ? `Buka valve kontrol ${c.tag} bertahap, laju ${nm3PerHour.toFixed(1)} Nm³/h (${kgPerHour.toFixed(1)} kg/h) selama ${makeupTransitionHours} jam.`
+          : `Pertahankan bukaan valve minimum (0 Nm³/h); fraksi sudah mencukupi target.`,
+      };
+    });
 
   const totalMakeupFlowNm3 = prediction?.makeup_advisory?.total_makeup_flow_nm3_h
     ?? makeupItems.reduce((acc, it) => acc + (it.recommended_flow_nm3_h || 0), 0);
@@ -215,7 +226,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
         overflow: 'hidden',
       }}>
         {/* Section Header */}
-        <div style={{
+        <div className="section1-header" style={{
           backgroundColor: '#0f172a',
           color: '#ffffff',
           padding: '14px 20px',
@@ -232,7 +243,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
             </span>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="section1-buttons" style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
             <button
               onClick={() => {
                 setLocalFeedGas({ ...DEFAULT_FEED_GAS, ...(feedGasComp || {}) });
@@ -289,16 +300,67 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
         </div>
 
         {/* Section Content: Comparison Table */}
-        <div style={{ padding: '16px 20px' }}>
-          {/* Mobile Swipe Hint */}
-          <div className="mobile-swipe-hint">
-            <span>👉 Geser tabel ke kanan untuk melihat Target AI & Satuan ↔</span>
+        <div style={{ padding: '16px 20px', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
+          {/* Capacity Boundary Warning Card */}
+          {prediction?.prediction?.capacity_warning && (
+            <div style={{
+              backgroundColor: '#fffbeb',
+              border: '1px solid #fde68a',
+              borderRadius: '8px',
+              padding: '12px 16px',
+              marginBottom: '14px',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '12px',
+              color: '#92400e',
+              fontSize: '13px',
+              fontWeight: 600,
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+            }}>
+              <span style={{ fontSize: '20px', lineHeight: 1 }}>⚠️</span>
+              <div>
+                <div style={{ fontWeight: 800, color: '#78350f', marginBottom: '2px' }}>
+                  PERINGATAN KAPASITAS DESAIN TRAIN H
+                </div>
+                <div style={{ color: '#92400e', fontWeight: 500, lineHeight: 1.4 }}>
+                  {prediction.prediction.capacity_warning}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Mobile Swipe & Scroll Control Bar */}
+          <div className="mobile-swipe-hint mobile-swipe-control">
+            <div className="mobile-swipe-info">
+              <span>👉 Geser untuk Target AI & Satuan ↔</span>
+            </div>
+            <div className="mobile-scroll-btns">
+              <button
+                type="button"
+                onClick={() => scrollTable(table1Ref, 'left')}
+                className="scroll-btn"
+                aria-label="Geser ke kiri"
+              >
+                ◀ Kiri
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollTable(table1Ref, 'right')}
+                className="scroll-btn scroll-btn-primary"
+                aria-label="Geser ke kanan"
+              >
+                Kanan ▶
+              </button>
+            </div>
           </div>
 
           <div
+            ref={table1Ref}
             className="table-scroll-container"
             style={{
               width: '100%',
+              maxWidth: '100%',
+              minWidth: 0,
               overflowX: 'auto',
               WebkitOverflowScrolling: 'touch',
               borderRadius: '8px',
@@ -309,33 +371,36 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
             <table style={{
               width: '100%',
               minWidth: '720px',
-              borderCollapse: 'collapse',
+              borderCollapse: 'separate',
+              borderSpacing: 0,
               fontSize: '14px',
               textAlign: 'left',
             }}>
             <thead>
-              <tr style={{ backgroundColor: '#f1f5f9', color: '#475569', borderBottom: '2px solid #cbd5e1' }}>
-                <th style={{ padding: '10px 14px', fontWeight: 700, fontSize: '13px', width: '28%' }}>Parameter Operasi</th>
-                <th style={{ padding: '10px 14px', fontWeight: 700, fontSize: '13px', width: '12%' }}>Tag DCS</th>
-                <th style={{ padding: '10px 14px', fontWeight: 700, fontSize: '13px', width: '26%', backgroundColor: '#f8fafc' }}>
+              <tr style={{ backgroundColor: '#f1f5f9', color: '#475569' }}>
+                <th className="sticky-col-header" style={{ padding: '10px 14px', fontWeight: 700, fontSize: '13px', width: '26%', minWidth: '150px', borderBottom: '2px solid #cbd5e1' }}>
+                  Parameter Operasi
+                </th>
+                <th style={{ padding: '10px 14px', fontWeight: 700, fontSize: '13px', width: '12%', minWidth: '85px', borderBottom: '2px solid #cbd5e1' }}>Tag DCS</th>
+                <th style={{ padding: '10px 14px', fontWeight: 700, fontSize: '13px', width: '26%', minWidth: '160px', backgroundColor: '#f8fafc', borderBottom: '2px solid #cbd5e1' }}>
                   Input Saat Ini
                 </th>
-                <th style={{ padding: '10px 14px', fontWeight: 700, fontSize: '13px', width: '24%', backgroundColor: '#ecfdf5', color: '#065f46' }}>
+                <th style={{ padding: '10px 14px', fontWeight: 700, fontSize: '13px', width: '24%', minWidth: '150px', backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>
                   Target AI
                 </th>
-                <th style={{ padding: '10px 14px', fontWeight: 700, fontSize: '13px', width: '10%' }}>Satuan</th>
+                <th style={{ padding: '10px 14px', fontWeight: 700, fontSize: '13px', width: '12%', minWidth: '60px', borderBottom: '2px solid #cbd5e1' }}>Satuan</th>
               </tr>
             </thead>
             <tbody>
               {/* Row 1: Feed Gas Flow */}
               <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                <td style={{ padding: '10px 14px', fontWeight: 600 }}>
+                <td className="sticky-col-cell" style={{ padding: '10px 14px', fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>
                   Flow Feed Gas MCHE (5E-1)
                 </td>
-                <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#0284c7', fontSize: '13px' }}>
+                <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#0284c7', fontSize: '13px', borderBottom: '1px solid #e2e8f0' }}>
                   H3FI0004
                 </td>
-                <td style={{ padding: '8px 14px', backgroundColor: '#f8fafc' }}>
+                <td style={{ padding: '8px 14px', backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <input
                       type="number"
@@ -366,7 +431,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     </span>
                   </div>
                 </td>
-                <td style={{ padding: '10px 14px', backgroundColor: '#ecfdf5', fontWeight: 700, color: '#047857' }}>
+                <td style={{ padding: '10px 14px', backgroundColor: '#ecfdf5', fontWeight: 700, color: '#047857', borderBottom: '1px solid #e2e8f0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span>{scenario.feed_flow_t_h.toFixed(1)}</span>
                     <span style={{
@@ -381,20 +446,20 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     </span>
                   </div>
                 </td>
-                <td style={{ padding: '10px 14px', color: '#64748b', fontWeight: 600 }}>
+                <td style={{ padding: '10px 14px', color: '#64748b', fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>
                   t/h
                 </td>
               </tr>
 
               {/* Row 2: MCR Flow */}
               <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#fbfcfd' }}>
-                <td style={{ padding: '10px 14px', fontWeight: 600 }}>
+                <td className="sticky-col-cell" style={{ padding: '10px 14px', fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>
                   Flow Sirkulasi MCR
                 </td>
-                <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#0284c7', fontSize: '13px' }}>
+                <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#0284c7', fontSize: '13px', borderBottom: '1px solid #e2e8f0' }}>
                   H4FI001
                 </td>
-                <td style={{ padding: '8px 14px', backgroundColor: '#f8fafc' }}>
+                <td style={{ padding: '8px 14px', backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <input
                       type="number"
@@ -427,7 +492,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     )}
                   </div>
                 </td>
-                <td style={{ padding: '10px 14px', backgroundColor: '#ecfdf5', fontWeight: 700, color: '#047857' }}>
+                <td style={{ padding: '10px 14px', backgroundColor: '#ecfdf5', fontWeight: 700, color: '#047857', borderBottom: '1px solid #e2e8f0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span>{recMcrFlow.toFixed(1)}</span>
                     {recMcrFlow < scenario.mcr_flow_t_h ? (
@@ -455,7 +520,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     )}
                   </div>
                 </td>
-                <td style={{ padding: '10px 14px', color: '#64748b', fontWeight: 600 }}>
+                <td style={{ padding: '10px 14px', color: '#64748b', fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>
                   t/h
                 </td>
               </tr>
@@ -469,13 +534,13 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 { name: 'Propana (C₃H₈ / C₃)', key: 'comp_C3_molpct' as const, rec: recC3, tag: 'comp_C3' },
               ].map((comp, idx) => (
                 <tr key={comp.key} style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: idx % 2 === 0 ? '#ffffff' : '#fbfcfd' }}>
-                  <td style={{ padding: '10px 14px', fontWeight: 500, paddingLeft: '24px' }}>
+                  <td className="sticky-col-cell" style={{ padding: '10px 14px', fontWeight: 500, paddingLeft: '24px', borderBottom: '1px solid #e2e8f0' }}>
                     {comp.name}
                   </td>
-                  <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#64748b', fontSize: '13px' }}>
+                  <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#64748b', fontSize: '13px', borderBottom: '1px solid #e2e8f0' }}>
                     {comp.tag}
                   </td>
-                  <td style={{ padding: '8px 14px', backgroundColor: '#f8fafc' }}>
+                  <td style={{ padding: '8px 14px', backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                     <input
                       type="number"
                       step="0.05"
@@ -493,10 +558,10 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       }}
                     />
                   </td>
-                  <td style={{ padding: '10px 14px', backgroundColor: '#ecfdf5', fontWeight: 700, color: '#047857' }}>
+                  <td style={{ padding: '10px 14px', backgroundColor: '#ecfdf5', fontWeight: 700, color: '#047857', borderBottom: '1px solid #e2e8f0' }}>
                     {comp.rec.toFixed(2)}
                   </td>
-                  <td style={{ padding: '10px 14px', color: '#64748b', fontSize: '13px' }}>
+                  <td style={{ padding: '10px 14px', color: '#64748b', fontSize: '13px', borderBottom: '1px solid #e2e8f0' }}>
                     mol%
                   </td>
                 </tr>
@@ -504,13 +569,13 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
 
               {/* Total Composition Row */}
               <tr style={{ backgroundColor: isCompositionClosed ? '#f0fdf4' : '#fef2f2', borderTop: '2px solid #cbd5e1' }}>
-                <td style={{ padding: '10px 14px', fontWeight: 700 }}>
+                <td className="sticky-col-cell" style={{ padding: '10px 14px', fontWeight: 700, backgroundColor: isCompositionClosed ? '#f0fdf4' : '#fee2e2', borderTop: '2px solid #cbd5e1' }}>
                   Total Komposisi MCR
                 </td>
-                <td style={{ padding: '10px 14px', fontSize: '12px', color: '#64748b' }}>
+                <td style={{ padding: '10px 14px', fontSize: '12px', color: '#64748b', borderTop: '2px solid #cbd5e1' }}>
                   Σ 5 Fraksi
                 </td>
-                <td style={{ padding: '10px 14px' }}>
+                <td style={{ padding: '10px 14px', borderTop: '2px solid #cbd5e1' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <span style={{
                       backgroundColor: isCompositionClosed ? '#dcfce7' : '#fee2e2',
@@ -540,12 +605,12 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     )}
                   </div>
                 </td>
-                <td style={{ padding: '10px 14px', fontWeight: 800, color: '#15803d' }}>
+                <td style={{ padding: '10px 14px', fontWeight: 800, color: '#15803d', borderTop: '2px solid #cbd5e1' }}>
                   <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '3px 8px', borderRadius: '6px' }}>
                     100.00 mol%
                   </span>
                 </td>
-                <td style={{ padding: '10px 14px', fontWeight: 700 }}>
+                <td style={{ padding: '10px 14px', fontWeight: 700, borderTop: '2px solid #cbd5e1' }}>
                   mol%
                 </td>
               </tr>
@@ -586,15 +651,38 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               </div>
             </div>
 
-            {/* Mobile Swipe Hint */}
-            <div className="mobile-swipe-hint">
-              <span>👉 Geser tabel ke kanan untuk melihat Laju Injeksi & Prosedur ↔</span>
+            {/* Mobile Swipe & Scroll Control Bar */}
+            <div className="mobile-swipe-hint mobile-swipe-control">
+              <div className="mobile-swipe-info">
+                <span>👉 Geser untuk Laju Injeksi & Panduan ↔</span>
+              </div>
+              <div className="mobile-scroll-btns">
+                <button
+                  type="button"
+                  onClick={() => scrollTable(table2Ref, 'left')}
+                  className="scroll-btn"
+                  aria-label="Geser ke kiri"
+                >
+                  ◀ Kiri
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollTable(table2Ref, 'right')}
+                  className="scroll-btn scroll-btn-primary"
+                  aria-label="Geser ke kanan"
+                >
+                  Kanan ▶
+                </button>
+              </div>
             </div>
 
             <div
+              ref={table2Ref}
               className="table-scroll-container"
               style={{
                 width: '100%',
+                maxWidth: '100%',
+                minWidth: 0,
                 overflowX: 'auto',
                 WebkitOverflowScrolling: 'touch',
                 borderRadius: '8px',
@@ -605,20 +693,23 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               <table style={{
                 width: '100%',
                 minWidth: '840px',
-                borderCollapse: 'collapse',
+                borderCollapse: 'separate',
+                borderSpacing: 0,
                 fontSize: '14px',
                 textAlign: 'left',
               }}>
               <thead>
-                <tr style={{ backgroundColor: '#f1f5f9', color: '#475569', borderBottom: '2px solid #cbd5e1' }}>
-                  <th style={{ padding: '10px 14px', fontWeight: 700, width: '16%' }}>Komponen</th>
-                  <th style={{ padding: '10px 14px', fontWeight: 700, width: '10%' }}>Tag Katup</th>
-                  <th style={{ padding: '10px 14px', fontWeight: 700, width: '11%', backgroundColor: '#f8fafc' }}>DCS (mol%)</th>
-                  <th style={{ padding: '10px 14px', fontWeight: 700, width: '11%', backgroundColor: '#ecfdf5', color: '#065f46' }}>Target AI</th>
-                  <th style={{ padding: '10px 14px', fontWeight: 700, width: '10%' }}>Selisih (Δ)</th>
-                  <th style={{ padding: '10px 14px', fontWeight: 700, width: '18%' }}>Laju Injeksi</th>
-                  <th style={{ padding: '10px 14px', fontWeight: 700, width: '9%', textAlign: 'center' }}>Aksi</th>
-                  <th style={{ padding: '10px 14px', fontWeight: 700, width: '15%' }}>Panduan Operator</th>
+                <tr style={{ backgroundColor: '#f1f5f9', color: '#475569' }}>
+                  <th className="sticky-col-header" style={{ padding: '10px 14px', fontWeight: 700, width: '18%', minWidth: '140px', borderBottom: '2px solid #cbd5e1' }}>
+                    Komponen
+                  </th>
+                  <th style={{ padding: '10px 14px', fontWeight: 700, width: '10%', minWidth: '85px', borderBottom: '2px solid #cbd5e1' }}>Tag Katup</th>
+                  <th style={{ padding: '10px 14px', fontWeight: 700, width: '11%', minWidth: '85px', backgroundColor: '#f8fafc', borderBottom: '2px solid #cbd5e1' }}>DCS (mol%)</th>
+                  <th style={{ padding: '10px 14px', fontWeight: 700, width: '11%', minWidth: '85px', backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>Target AI</th>
+                  <th style={{ padding: '10px 14px', fontWeight: 700, width: '10%', minWidth: '80px', borderBottom: '2px solid #cbd5e1' }}>Selisih (Δ)</th>
+                  <th style={{ padding: '10px 14px', fontWeight: 700, width: '18%', minWidth: '140px', borderBottom: '2px solid #cbd5e1' }}>Laju Injeksi</th>
+                  <th style={{ padding: '10px 14px', fontWeight: 700, width: '9%', minWidth: '75px', textAlign: 'center', borderBottom: '2px solid #cbd5e1' }}>Aksi</th>
+                  <th style={{ padding: '10px 14px', fontWeight: 700, width: '18%', minWidth: '180px', borderBottom: '2px solid #cbd5e1' }}>Panduan Operator</th>
                 </tr>
               </thead>
               <tbody>
@@ -632,42 +723,42 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
 
                   const compName =
                     item.description.includes('N2') ? 'Nitrogen (N₂)' :
-                    item.description.includes('C1') ? 'Metana (C₁)' :
-                    item.description.includes('C2H4') ? 'Etilena (C₂H₄)' :
-                    item.description.includes('C2') ? 'Etana (C₂)' :
-                    item.description.includes('C3') ? 'Propana (C₃)' :
-                    item.description;
+                      item.description.includes('C1') ? 'Metana (C₁)' :
+                        item.description.includes('C2H4') ? 'Etilena (C₂H₄)' :
+                          item.description.includes('C2') ? 'Etana (C₂)' :
+                            item.description.includes('C3') ? 'Propana (C₃)' :
+                              item.description;
 
                   const cleanInstruction = isInject
                     ? `Buka katup ${item.tag_dcs} ke ${item.recommended_flow_nm3_h.toFixed(1)} Nm³/h.`
                     : isStop
-                    ? `Tutup ${item.tag_dcs} (kadar sudah berlebih).`
-                    : `Katup standby (kadar sudah sesuai).`;
+                      ? `Tutup ${item.tag_dcs} (kadar sudah berlebih).`
+                      : `Katup standby (kadar sudah sesuai).`;
 
                   return (
                     <tr key={item.component || idx} style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: idx % 2 === 0 ? '#ffffff' : '#fbfcfd' }}>
-                      <td style={{ padding: '10px 14px', fontWeight: 600, color: '#0f172a' }}>
+                      <td className="sticky-col-cell" style={{ padding: '10px 14px', fontWeight: 600, color: '#0f172a', borderBottom: '1px solid #e2e8f0' }}>
                         {compName}
                       </td>
-                      <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#0284c7', fontSize: '13px' }}>
+                      <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#0284c7', fontSize: '13px', borderBottom: '1px solid #e2e8f0' }}>
                         {item.tag_dcs}
                       </td>
-                      <td style={{ padding: '10px 14px', backgroundColor: '#f8fafc', color: '#475569', fontWeight: 600 }}>
+                      <td style={{ padding: '10px 14px', backgroundColor: '#f8fafc', color: '#475569', fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>
                         {item.actual_molpct.toFixed(2)}
                       </td>
-                      <td style={{ padding: '10px 14px', backgroundColor: '#ecfdf5', fontWeight: 700, color: '#047857' }}>
+                      <td style={{ padding: '10px 14px', backgroundColor: '#ecfdf5', fontWeight: 700, color: '#047857', borderBottom: '1px solid #e2e8f0' }}>
                         {item.target_molpct.toFixed(2)}
                       </td>
-                      <td style={{ padding: '10px 14px', fontWeight: 600, color: item.delta_molpct > 0 ? '#15803d' : '#64748b' }}>
+                      <td style={{ padding: '10px 14px', fontWeight: 600, color: item.delta_molpct > 0 ? '#15803d' : '#64748b', borderBottom: '1px solid #e2e8f0' }}>
                         {item.delta_molpct > 0 ? `+${item.delta_molpct.toFixed(2)}` : item.delta_molpct.toFixed(2)}
                       </td>
-                      <td style={{ padding: '10px 14px', fontFamily: 'monospace', fontWeight: 700, fontSize: '13px', color: isInject ? '#0f172a' : '#94a3b8' }}>
+                      <td style={{ padding: '10px 14px', fontFamily: 'monospace', fontWeight: 700, fontSize: '13px', color: isInject ? '#0f172a' : '#94a3b8', borderBottom: '1px solid #e2e8f0' }}>
                         {item.recommended_flow_nm3_h.toFixed(1)} Nm³/h
                         <span style={{ fontSize: '12px', color: '#64748b', marginLeft: '6px', fontWeight: 500 }}>
                           ({item.recommended_flow_kg_h.toFixed(1)} kg/h)
                         </span>
                       </td>
-                      <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                      <td style={{ padding: '10px 14px', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>
                         <span style={{
                           backgroundColor: actionBg,
                           color: actionColor,
@@ -681,7 +772,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                           {actionLabel}
                         </span>
                       </td>
-                      <td style={{ padding: '10px 14px', fontSize: '13px', color: '#334155' }}>
+                      <td style={{ padding: '10px 14px', fontSize: '13px', color: '#334155', borderBottom: '1px solid #e2e8f0' }}>
                         {cleanInstruction}
                       </td>
                     </tr>
@@ -736,8 +827,8 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
           </div>
         </div>
 
-        <div style={{ padding: '16px 20px' }}>
-          <div style={{
+        <div style={{ padding: '16px 20px', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
+          <div className="safe-boundaries-grid" style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
             gap: '16px',
@@ -1067,26 +1158,26 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
             const dispSecVal = isTargetView
               ? potentialAiSecSavingKwh.toFixed(1)
               : deltaPowerSavingMw > 0
-              ? Math.abs(deltaSecLng).toFixed(1)
-              : `+${deltaSecLng.toFixed(1)}`;
+                ? Math.abs(deltaSecLng).toFixed(1)
+                : `+${deltaSecLng.toFixed(1)}`;
             const dispSecBadge = isTargetView
               ? `Hemat ${potentialAiSecSavingPct.toFixed(1)}%`
               : deltaPowerSavingMw > 0
-              ? `Hemat ${Math.abs(deltaSecLngPct).toFixed(1)}%`
-              : `+${Math.abs(deltaSecLngPct).toFixed(1)}% di atas baseline`;
+                ? `Hemat ${Math.abs(deltaSecLngPct).toFixed(1)}%`
+                : `+${Math.abs(deltaSecLngPct).toFixed(1)}% di atas baseline`;
 
             const dispSteamVal = isTargetView
               ? potentialSteamSaved_t_h.toFixed(1)
               : deltaPowerSavingMw > 0
-              ? steamSaved_t_h.toFixed(1)
-              : `+${(deltaPower * STEAM_RATE_T_PER_MWH).toFixed(1)}`;
+                ? steamSaved_t_h.toFixed(1)
+                : `+${(deltaPower * STEAM_RATE_T_PER_MWH).toFixed(1)}`;
             const dispSteamBadge = isSaving ? 'Beban Turun' : 'Beban Naik';
 
             const dispFgVal = isTargetView
               ? potentialFuelGasSaved_t_h.toFixed(1)
               : deltaPowerSavingMw > 0
-              ? fuelGasSaved_t_h.toFixed(1)
-              : `+${(((deltaPower * STEAM_RATE_T_PER_MWH * FUEL_GAS_NM3_PER_T_STEAM * FG_DENSITY_KG_NM3) / 1000)).toFixed(1)}`;
+                ? fuelGasSaved_t_h.toFixed(1)
+                : `+${(((deltaPower * STEAM_RATE_T_PER_MWH * FUEL_GAS_NM3_PER_T_STEAM * FG_DENSITY_KG_NM3) / 1000)).toFixed(1)}`;
             const dispFgBadge = isSaving
               ? `Hemat USD ${(isTargetView ? potentialFuelGasSaved_usd_yr : fuelGasSaved_usd_yr).toFixed(2)} Jt/Thn`
               : 'Biaya Naik';
@@ -1094,13 +1185,13 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
             const dispPowerVal = isTargetView
               ? potentialAiPowerSavingMw.toFixed(2)
               : deltaPowerSavingMw > 0
-              ? deltaPowerSavingMw.toFixed(2)
-              : `+${deltaPower.toFixed(2)}`;
+                ? deltaPowerSavingMw.toFixed(2)
+                : `+${deltaPower.toFixed(2)}`;
             const dispPowerBadge = isTargetView
               ? `Hemat ${((potentialAiPowerSavingMw / baselinePower) * 100).toFixed(1)}%`
               : deltaPowerSavingMw > 0
-              ? `Hemat ${Math.abs(deltaPowerPct).toFixed(1)}%`
-              : `+${Math.abs(deltaPowerPct).toFixed(1)}% di atas baseline`;
+                ? `Hemat ${Math.abs(deltaPowerPct).toFixed(1)}%`
+                : `+${Math.abs(deltaPowerPct).toFixed(1)}% di atas baseline`;
 
             const cardBg = isSaving ? '#f0fdf4' : '#fffbeb';
             const cardBorder = isSaving ? '2px solid #86efac' : '2px solid #fcd34d';
@@ -1110,7 +1201,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
             const badgeColor = isSaving ? '#166534' : '#b45309';
 
             return (
-              <div style={{
+              <div className="kpi-cards-grid" style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
                 gap: '16px',

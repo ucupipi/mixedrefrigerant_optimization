@@ -67,6 +67,8 @@ class PredictionSummary(BaseModel):
         default="Mencakup kompresor MCR 4K-2/3 dan kompresor Propana 4K-1",
         description="Catatan batas sistem dekomposisi daya",
     )
+    capacity_warning: Optional[str] = Field(None, description="Peringatan jika beban melebihi kapasitas desain Train H (350 t/h)")
+    capacity_exceeded: bool = Field(default=False, description="Apakah beban melebihi batas desain Train H")
 
 
 class DomainCheckSummary(BaseModel):

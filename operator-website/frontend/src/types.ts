@@ -95,6 +95,8 @@ export interface PredictionSummary {
   operating_regime: 'underload' | 'transition' | 'baseload' | string;
   data_label: string;
   battery_limit_note: string;
+  capacity_warning?: string | null;
+  capacity_exceeded?: boolean;
 }
 
 export interface DomainCheck {

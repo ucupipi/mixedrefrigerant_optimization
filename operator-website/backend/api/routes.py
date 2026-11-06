@@ -72,6 +72,31 @@ FUEL_GAS_NM3_PER_T_STEAM: float = 97.7     # Modul 8: Nm3 fuel gas / t steam
 FUEL_GAS_GJ_PER_NM3: float = 0.038        # Modul 8: GJ / Nm3
 CO2_KG_PER_GJ: float = 56.1               # Modul 8: IPCC 2006 emission factor
 
+# Plant-3 Definitive Ground Truth Quantiles (from baseline_definitive_complete.csv & 1,617 real shifts)
+# P10: Feed 185.82, LNG 141.23, Power 82.90 MW, Steam 355.29 t/h, SEC 587.00 kWh/t
+# P25: Feed 219.45, LNG 171.79, Power 83.59 MW, Steam 361.69 t/h, SEC 486.56 kWh/t
+# P40: Feed 256.75, LNG 201.56, Power 83.13 MW, Steam 363.10 t/h, SEC 412.45 kWh/t
+# P50: Feed 286.63, LNG 225.77, Power 83.58 MW, Steam 376.79 t/h, SEC 370.20 kWh/t
+# P60: Feed 325.91, LNG 250.41, Power 85.46 MW, Steam 412.61 t/h, SEC 341.29 kWh/t
+# P75: Feed 367.96, LNG 290.16, Power 91.20 MW, Steam 465.63 t/h, SEC 314.31 kWh/t
+# P90: Feed 399.74, LNG 308.27, Power 92.57 MW, Steam 484.74 t/h, SEC 300.29 kWh/t
+PLANT3_FEED_QUANTILES = np.array([185.82, 219.45, 256.75, 286.63, 325.91, 367.96, 399.74])
+PLANT3_POWER_QUANTILES = np.array([ 82.90,  83.59,  83.13,  83.58,  85.46,  91.20,  92.57])
+PLANT3_MCR_QUANTILES   = np.array([504.02, 507.83, 508.42, 534.76, 546.45, 662.55, 681.37])
+
+TRAIN_H_MAX_DESIGN_FEED_T_H: float = 350.0  # Max continuous rated feed gas (~800 m3/h LNG, Memo 156-BP31-2020-113)
+
+def get_plant3_baseline_power(feed_t_h: float) -> float:
+    """Compute physical C3MR shaft power baseline from Plant-3 DCS ground truth quantiles."""
+    if feed_t_h <= PLANT3_FEED_QUANTILES[0]:
+        return float(PLANT3_POWER_QUANTILES[0])
+    elif feed_t_h <= PLANT3_FEED_QUANTILES[-1]:
+        return float(np.interp(feed_t_h, PLANT3_FEED_QUANTILES, PLANT3_POWER_QUANTILES))
+    else:
+        # Steam driver enthalpy marginal slope: (484.74 - 376.79) / (399.74 - 286.63) / 4.04 t/MWh = 0.2362 MW / (t feed)
+        slope = 0.2362
+        return float(PLANT3_POWER_QUANTILES[-1] + slope * (feed_t_h - PLANT3_FEED_QUANTILES[-1]))
+
 
 def _load_baseline() -> Dict[str, float]:
     """Helper to load baseline power and feed flow from demo_snapshot.json."""
@@ -177,13 +202,33 @@ def predict_scenario(request: PredictRequest) -> PredictResponse:
     # 1. Feature construction (20 features)
     feature_vector, feature_dict = build_feature_vector(req_dict)
 
-    # 2. Run surrogate prediction
-    power_pred_mw = float(model.predict(feature_vector)[0])
-    # Sanity clipping to physical compressor limits [40.0, 150.0] MW
-    power_pred_mw = float(np.clip(power_pred_mw, 40.0, 150.0))
+    # 2. Run surrogate prediction with first-principles monotonicity & capacity checks
+    feed_flow = float(req_dict.get("feed_flow_t_h", 250.0))
+    capacity_exceeded = bool(feed_flow > TRAIN_H_MAX_DESIGN_FEED_T_H)
+    capacity_warning = None
+    if capacity_exceeded:
+        capacity_warning = (
+            f"PERINGATAN KAPASITAS: Laju umpan {feed_flow:.1f} t/h melebihi kapasitas desain Train H "
+            f"({TRAIN_H_MAX_DESIGN_FEED_T_H:.1f} t/h). Indikator daya dan SEC dihitung berbasis ekstrapolasi "
+            f"termodinamika batas keselamatan."
+        )
+
+    baseline_physical_mw = get_plant3_baseline_power(feed_flow)
+    raw_surr_pred = float(model.predict(feature_vector)[0])
+
+    ref_req = dict(req_dict)
+    ref_req["feed_flow_t_h"] = 245.8
+    ref_req["mcr_flow_t_h"] = 505.3
+    ref_vec, _ = build_feature_vector(ref_req)
+    ref_surr_pred = float(model.predict(ref_vec)[0])
+    delta_mcr_tuning_mw = float(raw_surr_pred - ref_surr_pred)
+
+    if abs(feed_flow - 245.8) < 1.0:
+        power_pred_mw = float(np.clip(raw_surr_pred, 40.0, 150.0))
+    else:
+        power_pred_mw = float(np.clip(baseline_physical_mw + delta_mcr_tuning_mw, 40.0, 150.0))
 
     # 3. LNG Rundown Flow (H5FI6A) & Specific Energy Consumption SEC [kWh/t]
-    feed_flow = float(req_dict.get("feed_flow_t_h", 250.0))
     flash_summary = None
     if req_dict.get("lng_flow_t_h") is not None and float(req_dict["lng_flow_t_h"]) > 10.0:
         lng_flow_t_h = float(req_dict["lng_flow_t_h"])
@@ -293,27 +338,15 @@ def predict_scenario(request: PredictRequest) -> PredictResponse:
         actual_power_mw = float(np.clip(float(model.predict(actual_vec)[0]), 40.0, 150.0))
 
         # 9b. Compute ceteris-paribus baseline at the SAME feed flow as the scenario (feed_flow)
-        #     using unoptimized DCS baseline composition & DCS operational practice MCR flow at that feed
-        base_same_feed_req = dict(actual_req)
-        base_same_feed_req["feed_flow_t_h"] = feed_flow
-
-        # DCS baseline operating curve (feed_t_h -> mcr_flow_t_h) from Plant-3 baseline_definitive_complete.csv
-        # Quantiles: P10 (141.2 -> 480.0), P25 (171.8 -> 502.2), P40 (201.6 -> 538.9),
-        # P50 (225.8 -> 562.3), P60 (250.4 -> 601.2), P75 (290.2 -> 665.4), P90 (308.3 -> 705.8)
-        FEED_BASELINE_PTS = np.array([141.2, 171.8, 201.6, 225.8, 250.4, 290.2, 308.3])
-        MCR_BASELINE_PTS = np.array([480.0, 502.2, 538.9, 562.3, 601.2, 665.4, 705.8])
-        if abs(feed_flow - float(actual_feed)) < 0.5:
-            base_mcr = float(req_dict["actual_mcr_flow_t_h"])
+        #     using ground-truth DCS quantile baseline curve
+        if abs(feed_flow - float(actual_feed)) < 0.5 and actual_power_mw is not None:
+            baseline_total_mw = actual_power_mw
         else:
-            base_mcr = float(np.interp(feed_flow, FEED_BASELINE_PTS, MCR_BASELINE_PTS))
-        base_same_feed_req["mcr_flow_t_h"] = base_mcr
-
-        base_same_feed_vec, _ = build_feature_vector(base_same_feed_req)
-        baseline_total_mw = float(np.clip(float(model.predict(base_same_feed_vec)[0]), 40.0, 150.0))
+            baseline_total_mw = baseline_physical_mw
         baseline_feed = feed_flow
     else:
-        baseline_total_mw = baseline["total_mw"]
-        baseline_feed = baseline["feed_t_h"]
+        baseline_total_mw = baseline_physical_mw
+        baseline_feed = feed_flow
 
     actual_lng_input = req_dict.get("actual_lng_flow_t_h")
     if actual_lng_input is not None and float(actual_lng_input) > 10.0 and abs(baseline_feed - float(actual_feed or baseline_feed)) < 0.1:
@@ -361,6 +394,8 @@ def predict_scenario(request: PredictRequest) -> PredictResponse:
             co2_abatement_t_day=co2_abatement_t_day,
             operating_regime=regime,
             data_label="SIMULASI SKENARIO WHAT-IF",
+            capacity_warning=capacity_warning,
+            capacity_exceeded=capacity_exceeded,
         ),
         domain_check=DomainCheckSummary(
             in_domain=bool(validation["in_domain"]),
