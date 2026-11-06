@@ -634,7 +634,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             <text x="278" y="329" fill="#ffffff" fontSize="11">2.645 <tspan fill="#00ffff" fontSize="9">C</tspan></text>
           </g>
 
-          {/* TI24 (MRV Top) — Suhu MR Vapor Overhead Setelah Chinese Hat */}
+          {/* TI24 (MRV Top) - Suhu MR Vapor Overhead Setelah Chinese Hat */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'H5TI0024',
             name: 'MR Vapor Overhead Temperature Post-Separator (MRV > 5HV-2)',

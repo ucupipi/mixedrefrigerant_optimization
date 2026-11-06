@@ -188,7 +188,7 @@ export const TabPanduan: React.FC<TabPanduanProps> = ({ userMode = 'OPERATOR' })
                   unit: 't/h',
                   type: 'EDITABLE (Scenario)',
                   typeColor: '#0284c7',
-                  rule: 'Primary decision variable. Normal range 480 – 620 t/h. Must remain ≥ 480.0 t/h to prevent centrifugal compressor surge trip.',
+                  rule: 'Primary decision variable. Normal range 480 - 620 t/h. Must remain ≥ 480.0 t/h to prevent centrifugal compressor surge trip.',
                 },
                 {
                   param: 'MCR Composition: N₂ (Nitrogen)',
@@ -196,7 +196,7 @@ export const TabPanduan: React.FC<TabPanduanProps> = ({ userMode = 'OPERATOR' })
                   unit: 'mol%',
                   type: 'EDITABLE (Scenario)',
                   typeColor: '#0284c7',
-                  rule: 'Range 2.0 – 5.5 mol%. Sets deep cryogenic subcooling at the cold bundle overhead of MCHE 5E-1.',
+                  rule: 'Range 2.0 - 5.5 mol%. Sets deep cryogenic subcooling at the cold bundle overhead of MCHE 5E-1.',
                 },
                 {
                   param: 'MCR Composition: CH₄ (Methane, C₁)',
@@ -204,7 +204,7 @@ export const TabPanduan: React.FC<TabPanduanProps> = ({ userMode = 'OPERATOR' })
                   unit: 'mol%',
                   type: 'EDITABLE (Scenario)',
                   typeColor: '#0284c7',
-                  rule: 'Range 40.0 – 48.0 mol%. Primary low-temperature refrigerant component for cold bundle heat absorption.',
+                  rule: 'Range 40.0 - 48.0 mol%. Primary low-temperature refrigerant component for cold bundle heat absorption.',
                 },
                 {
                   param: 'MCR Composition: C₂H₆ (Ethane, C₂)',
@@ -212,7 +212,7 @@ export const TabPanduan: React.FC<TabPanduanProps> = ({ userMode = 'OPERATOR' })
                   unit: 'mol%',
                   type: 'EDITABLE (Scenario)',
                   typeColor: '#0284c7',
-                  rule: 'Range 40.0 – 48.0 mol%. Mid-temperature refrigerant component matching intermediate condensation slope.',
+                  rule: 'Range 40.0 - 48.0 mol%. Mid-temperature refrigerant component matching intermediate condensation slope.',
                 },
                 {
                   param: 'MCR Composition: C₂H₄ (Ethylene)',
@@ -220,7 +220,7 @@ export const TabPanduan: React.FC<TabPanduanProps> = ({ userMode = 'OPERATOR' })
                   unit: 'mol%',
                   type: 'EDITABLE (Scenario)',
                   typeColor: '#0284c7',
-                  rule: 'Range 0.0 – 3.0 mol%. Dynamic transition component for fast cooling curve adjustment.',
+                  rule: 'Range 0.0 - 3.0 mol%. Dynamic transition component for fast cooling curve adjustment.',
                 },
                 {
                   param: 'MCR Composition: C₃H₈ (Propane, C₃)',
@@ -228,7 +228,7 @@ export const TabPanduan: React.FC<TabPanduanProps> = ({ userMode = 'OPERATOR' })
                   unit: 'mol%',
                   type: 'EDITABLE (Scenario)',
                   typeColor: '#0284c7',
-                  rule: 'Range 4.0 – 8.5 mol%. Heavy refrigerant component for warm bundle cooling. Primary driver of suction drum temperature.',
+                  rule: 'Range 4.0 - 8.5 mol%. Heavy refrigerant component for warm bundle cooling. Primary driver of suction drum temperature.',
                 },
                 {
                   param: 'Suction Drum Temperature Alarm Low (TAL)',

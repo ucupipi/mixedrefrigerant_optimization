@@ -19,7 +19,7 @@ interface Author {
 const AUTHORS: Author[] = [
   {
     name: 'Mukhammad Yusuf Iqbal',
-    role: 'Lead Engineer — Gas Processing & Optimization',
+    role: 'Project Lead & Gas Processing Engineer',
     institution: 'LNG Academy / PT Badak NGL',
     linkedin: 'https://www.linkedin.com/in/mukhyusufiqbal/',
     photo: '/authors/yusuf.jpg',
@@ -27,7 +27,7 @@ const AUTHORS: Author[] = [
   },
   {
     name: 'Afdal Elang Arifin',
-    role: 'Instrumentation & Process Control Engineer',
+    role: 'Machine Learning & Advanced Process Control Engineer',
     institution: 'LNG Academy / PT Badak NGL',
     linkedin: 'https://www.linkedin.com/in/afdal-elang-arifin-623418371/',
     photo: '/authors/afdal.jpg',
@@ -35,7 +35,7 @@ const AUTHORS: Author[] = [
   },
   {
     name: 'Dewi Putri Rahmawati',
-    role: 'Thermodynamic Simulation & Process Modeling',
+    role: 'Thermodynamic Simulation & Process Modeling Engineer',
     institution: 'LNG Academy / PT Badak NGL',
     linkedin: 'https://www.linkedin.com/in/dewi-putri-rahmawati-1430792b4/',
     photo: '/authors/dewi.jpeg',
@@ -43,7 +43,7 @@ const AUTHORS: Author[] = [
   },
   {
     name: 'Hizkia Dhiego Gurning',
-    role: 'Gas Processing & Cryogenic Operations',
+    role: 'Gas Processing & Liquefaction Operations Engineer',
     institution: 'LNG Academy / PT Badak NGL',
     linkedin: 'https://www.linkedin.com/in/hizkia-dhiego-gurning-a583b01ab/',
     photo: '/authors/gurning.jpg',

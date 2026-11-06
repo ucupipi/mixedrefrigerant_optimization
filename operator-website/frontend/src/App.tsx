@@ -380,9 +380,9 @@ export function App() {
       ['MCR C2H4', 'comp_4C-8_C2H4', actualDcs.comp_C2H4_molpct, scenario.comp_C2H4_molpct, 'mol%', 'DECISION_VARIABLE'],
       ['MCR C3H8 (C3)', 'comp_4C-8_C3', actualDcs.comp_C3_molpct, scenario.comp_C3_molpct, 'mol%', 'DECISION_VARIABLE'],
       ['Total C3MR Shaft Power', 'OUTPUT_MODEL', (prediction.baseline_power_mw ?? prediction.actual_power_mw), prediction.prediction.total_shaft_power_mw, 'MW', 'OUTPUT_PREDICTION'],
-      ['SEC LNG (Denominator H5FI6A)', 'DERIVED_LNG', prediction.baseline_sec_lng ?? '—', prediction.prediction.sec_lng_kwh_per_t ?? prediction.prediction.sec_kwh_per_t, 'kWh/t LNG', 'OUTPUT_PREDICTION'],
-      ['Mahalanobis Distance', 'ENVELOPE', '—', prediction.domain_check.mahalanobis_distance, 'dimensionless', prediction.domain_check.in_domain ? 'IN_DOMAIN' : 'OUT_OF_DOMAIN'],
-      ['Safety Interlock Status', 'INTERLOCK', '—', prediction.safety_check.all_safe ? 'PASSED' : 'VIOLATION', 'status', 'SAFETY_AUDIT'],
+      ['SEC LNG (Denominator H5FI6A)', 'DERIVED_LNG', prediction.baseline_sec_lng ?? '-', prediction.prediction.sec_lng_kwh_per_t ?? prediction.prediction.sec_kwh_per_t, 'kWh/t LNG', 'OUTPUT_PREDICTION'],
+      ['Mahalanobis Distance', 'ENVELOPE', '-', prediction.domain_check.mahalanobis_distance, 'dimensionless', prediction.domain_check.in_domain ? 'IN_DOMAIN' : 'OUT_OF_DOMAIN'],
+      ['Safety Interlock Status', 'INTERLOCK', '-', prediction.safety_check.all_safe ? 'PASSED' : 'VIOLATION', 'status', 'SAFETY_AUDIT'],
     ];
 
     if (prediction.makeup_advisory?.items) {
