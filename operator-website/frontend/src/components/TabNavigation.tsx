@@ -124,7 +124,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
                   marginLeft: '2px',
                   flexShrink: 0,
                 }}
-                title="Operational constraint alert detected"
+                title="Peringatan batasan terdeteksi"
               />
             )}
           </button>
