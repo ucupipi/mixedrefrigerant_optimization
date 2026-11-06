@@ -19,7 +19,7 @@ interface Author {
 const AUTHORS: Author[] = [
   {
     name: 'Mukhammad Yusuf Iqbal',
-    role: 'Process Optimization & Engineering (Lead)',
+    role: 'Lead Engineer — Gas Processing & Optimization',
     institution: 'LNG Academy / PT Badak NGL',
     linkedin: 'https://www.linkedin.com/in/mukhyusufiqbal/',
     photo: '/authors/yusuf.jpg',
@@ -27,7 +27,7 @@ const AUTHORS: Author[] = [
   },
   {
     name: 'Afdal Elang Arifin',
-    role: 'Instrumentation & Process Control',
+    role: 'Instrumentation & Process Control Engineer',
     institution: 'LNG Academy / PT Badak NGL',
     linkedin: 'https://www.linkedin.com/in/afdal-elang-arifin-623418371/',
     photo: '/authors/afdal.jpg',
@@ -35,7 +35,7 @@ const AUTHORS: Author[] = [
   },
   {
     name: 'Dewi Putri Rahmawati',
-    role: 'Thermodynamic Simulation & Modeling',
+    role: 'Thermodynamic Simulation & Process Modeling',
     institution: 'LNG Academy / PT Badak NGL',
     linkedin: 'https://www.linkedin.com/in/dewi-putri-rahmawati-1430792b4/',
     photo: '/authors/dewi.jpeg',
@@ -43,7 +43,7 @@ const AUTHORS: Author[] = [
   },
   {
     name: 'Hizkia Dhiego Gurning',
-    role: 'Process Operations & Safety Analysis',
+    role: 'Gas Processing & Cryogenic Operations',
     institution: 'LNG Academy / PT Badak NGL',
     linkedin: 'https://www.linkedin.com/in/hizkia-dhiego-gurning-a583b01ab/',
     photo: '/authors/gurning.jpg',
@@ -51,7 +51,7 @@ const AUTHORS: Author[] = [
   },
   {
     name: 'Bilqiis Dara Ramadhan Sasongko',
-    role: 'Mechanical & Rotating Equipment',
+    role: 'Mechanical & Rotating Equipment Engineer',
     institution: 'LNG Academy / PT Badak NGL',
     linkedin: 'https://www.linkedin.com/in/bilqiis-sasongko-673a5a349/',
     photo: '/authors/bilqiis.jpeg',
@@ -112,7 +112,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
             overflow: 'hidden',
             textOverflow: 'ellipsis',
           }}>
-            Optimasi Mixed Refrigerant (C3MR)
+            Mixed Refrigerant Optimization (C3MR)
           </div>
         </div>
       </div>
@@ -140,7 +140,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
             backgroundColor: modelReady ? '#10b981' : '#ef4444',
             display: 'inline-block',
           }} />
-          <span>{modelReady ? 'Sistem Aktif' : 'Offline'}</span>
+          <span>{modelReady ? 'System Online' : 'Offline'}</span>
           <span className="mobile-hide" style={{ color: '#cbd5e1' }}>|</span>
           <span className="mobile-hide" style={{ color: '#0284c7', fontWeight: 700 }}>ADVISORY</span>
         </div>
@@ -163,7 +163,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
             boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04), inset 0 1px 0 #ffffff',
             transition: 'all 0.15s ease',
           }}
-          title="Kontak Tim Peneliti & Pengembang (LinkedIn)"
+          title="Contact Research & Development Team (LinkedIn)"
         >
           <span>👥 Contact Us</span>
         </button>
@@ -186,9 +186,9 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
             boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)',
             transition: 'background-color 0.15s ease',
           }}
-          title="Unduh seluruh data skenario ke format CSV"
+          title="Download complete scenario data as CSV"
         >
-          <span>Unduh CSV</span>
+          <span>Export CSV</span>
         </button>
 
         {loading && (
@@ -197,7 +197,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
             color: '#0284c7',
             fontWeight: 600,
           }}>
-            Memproses...
+            Processing...
           </span>
         )}
       </div>
@@ -256,7 +256,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
             }}>
               <div>
                 <div style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span>Kontak Tim Peneliti</span>
+                  <span>Research Team & Contacts</span>
                   <span style={{
                     fontSize: '11px',
                     background: '#e0f2fe',
@@ -292,7 +292,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
                   lineHeight: 1,
                   transition: 'all 0.15s ease',
                 }}
-                aria-label="Tutup"
+                aria-label="Close"
               >
                 ✕
               </button>
@@ -418,7 +418,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
                       flexShrink: 0,
                       transition: 'all 0.15s ease',
                     }}
-                    title={`Profil LinkedIn ${author.name}`}
+                    title={`LinkedIn Profile - ${author.name}`}
                   >
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
@@ -454,7 +454,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
                   transition: 'all 0.15s ease',
                 }}
               >
-                Tutup
+                Close
               </button>
             </div>
           </div>

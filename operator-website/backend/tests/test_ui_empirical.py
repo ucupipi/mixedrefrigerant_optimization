@@ -87,7 +87,7 @@ class TestTabNavigationTouchScroll:
     def test_exact_tab_titles(self):
         content = read_file(TAB_NAV)
         titles = re.findall(r"title:\s*'([^']*)'", content)
-        expected = ['Input & Rekomendasi', 'Process Flow Diagram', 'Operator Guidance']
+        expected = ['Input & Recommendations', 'Process Flow Diagram', 'Operator Guidance']
         assert titles == expected, f"Tab titles must match {expected}, found {titles}"
 
     def test_zero_subtitles(self):

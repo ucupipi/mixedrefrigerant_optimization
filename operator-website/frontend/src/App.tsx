@@ -122,8 +122,8 @@ const DEFAULT_PREDICTION: PredictResponse = {
     delta_sec_kwh_per_t: -23.21,
     co2_abatement_t_day: 52.4,
     operating_regime: 'underload',
-    data_label: 'SIMULASI SKENARIO WHAT-IF',
-    battery_limit_note: 'Mencakup kompresor MCR 4K-2/3 dan kompresor Propana 4K-1',
+    data_label: 'WHAT-IF SCENARIO SIMULATION',
+    battery_limit_note: 'Includes MCR compressors 4K-2/3 and Propane precooling compressor 4K-1',
   },
   domain_check: {
     in_domain: true,
@@ -134,10 +134,10 @@ const DEFAULT_PREDICTION: PredictResponse = {
   },
   safety_check: {
     all_safe: true,
-    status_label: 'Semua kendala yang diperiksa terpenuhi',
+    status_label: 'All verified operational constraints satisfied',
     violations: [],
     warnings: [],
-    unverified_checks: ['Peta anti-surge dinamis kompresor sentrifugal (memerlukan kurva head/dp lengkap)'],
+    unverified_checks: ['Centrifugal compressor dynamic anti-surge map (requires complete head/dp curves)'],
   },
   confidence: {
     mae_mw: 0.802,
@@ -195,7 +195,7 @@ export function App() {
         setErrorMsg(null);
       } catch (err: any) {
         console.error('Auto-calculation error:', err);
-        setErrorMsg(err.message || 'Perhitungan prediksi gagal.');
+        setErrorMsg(err.message || 'Prediction calculation failed.');
       } finally {
         setLoading(false);
       }
@@ -238,7 +238,7 @@ export function App() {
         setHistoricalPoints(hist.points || []);
       } catch (err: any) {
         console.error('Initialization error:', err);
-        setErrorMsg(err.message || 'Gagal terhubung ke backend model.');
+        setErrorMsg(err.message || 'Failed to connect to backend model.');
       } finally {
         setLoading(false);
       }
@@ -336,7 +336,7 @@ export function App() {
         comp_C3_molpct: opt.comp_C3_molpct,
       }));
     } catch (err: any) {
-      setErrorMsg(err.message || 'Perhitungan titik optimum gagal.');
+      setErrorMsg(err.message || 'Optimization solver failed.');
     } finally {
       setLoading(false);
     }
@@ -348,7 +348,7 @@ export function App() {
       setErrorMsg(null);
       setPrediction(await predictScenario(buildRequest(scenario, actualDcs)));
     } catch (err: any) {
-      setErrorMsg(err.message || 'Perhitungan prediksi gagal.');
+      setErrorMsg(err.message || 'Prediction calculation failed.');
     } finally {
       setLoading(false);
     }
@@ -370,27 +370,27 @@ export function App() {
       ?? scenario.lng_flow_t_h 
       ?? scenarioFlash.lngLiquidFlowTH;
     const rows: (string | number | undefined | null)[][] = [
-      ['Parameter', 'Tag DCS', 'Aktual DCS', 'Skenario / Rekomendasi MCR', 'Satuan', 'Kategori Variabel'],
-      ['Laju Alir Treated Gas ke MCHE 5E-1 (massa)', 'H3FI0004 x 0.760', actualDcs.feed_flow_t_h, scenario.feed_flow_t_h, 't/h', 'INPUT_DISTURBANCE'],
-      ['Laju Alir Produksi LNG Rundown (H5FI6A)', 'H5FI6A', actualLng.toFixed(1), scenarioLng.toFixed(1), 't/h LNG', 'COUPLED_PRODUCT'],
-      ['Laju Alir Sirkulasi MCR (massa)', 'H4FI011B x 36.8', actualDcs.mcr_flow_t_h, scenario.mcr_flow_t_h, 't/h', 'DECISION_VARIABLE'],
+      ['Parameter', 'DCS Tag', 'DCS Actual', 'MCR Scenario / Recommendation', 'Unit', 'Variable Category'],
+      ['Treated Feed Gas Flow to MCHE 5E-1 (mass)', 'H3FI0004 x 0.760', actualDcs.feed_flow_t_h, scenario.feed_flow_t_h, 't/h', 'INPUT_DISTURBANCE'],
+      ['LNG Rundown Production Flow (H5FI6A)', 'H5FI6A', actualLng.toFixed(1), scenarioLng.toFixed(1), 't/h LNG', 'COUPLED_PRODUCT'],
+      ['MCR Circulation Flow (mass)', 'H4FI011B x 36.8', actualDcs.mcr_flow_t_h, scenario.mcr_flow_t_h, 't/h', 'DECISION_VARIABLE'],
       ['MCR N2', 'comp_4C-8_N2', actualDcs.comp_N2_molpct, scenario.comp_N2_molpct, 'mol%', 'DECISION_VARIABLE'],
       ['MCR CH4 (C1)', 'comp_4C-8_C1', actualDcs.comp_C1_molpct, scenario.comp_C1_molpct, 'mol%', 'DECISION_VARIABLE'],
       ['MCR C2H6 (C2)', 'comp_4C-8_C2', actualDcs.comp_C2_molpct, scenario.comp_C2_molpct, 'mol%', 'DECISION_VARIABLE'],
       ['MCR C2H4', 'comp_4C-8_C2H4', actualDcs.comp_C2H4_molpct, scenario.comp_C2H4_molpct, 'mol%', 'DECISION_VARIABLE'],
       ['MCR C3H8 (C3)', 'comp_4C-8_C3', actualDcs.comp_C3_molpct, scenario.comp_C3_molpct, 'mol%', 'DECISION_VARIABLE'],
-      ['Total Daya Poros C3MR', 'OUTPUT_MODEL', (prediction.baseline_power_mw ?? prediction.actual_power_mw), prediction.prediction.total_shaft_power_mw, 'MW', 'OUTPUT_PREDICTION'],
+      ['Total C3MR Shaft Power', 'OUTPUT_MODEL', (prediction.baseline_power_mw ?? prediction.actual_power_mw), prediction.prediction.total_shaft_power_mw, 'MW', 'OUTPUT_PREDICTION'],
       ['SEC LNG (Denominator H5FI6A)', 'DERIVED_LNG', prediction.baseline_sec_lng ?? '—', prediction.prediction.sec_lng_kwh_per_t ?? prediction.prediction.sec_kwh_per_t, 'kWh/t LNG', 'OUTPUT_PREDICTION'],
-      ['Jarak Mahalanobis', 'ENVELOPE', '—', prediction.domain_check.mahalanobis_distance, 'dimensionless', prediction.domain_check.in_domain ? 'IN_DOMAIN' : 'OUT_OF_DOMAIN'],
-      ['Status Keselamatan', 'INTERLOCK', '—', prediction.safety_check.all_safe ? 'PASSED' : 'VIOLATION', 'status', 'SAFETY_AUDIT'],
+      ['Mahalanobis Distance', 'ENVELOPE', '—', prediction.domain_check.mahalanobis_distance, 'dimensionless', prediction.domain_check.in_domain ? 'IN_DOMAIN' : 'OUT_OF_DOMAIN'],
+      ['Safety Interlock Status', 'INTERLOCK', '—', prediction.safety_check.all_safe ? 'PASSED' : 'VIOLATION', 'status', 'SAFETY_AUDIT'],
     ];
 
     if (prediction.makeup_advisory?.items) {
       rows.push(['---', '---', '---', '---', '---', '---']);
-      rows.push(['REKOMENDASI INJEKSI MAKE-UP', 'TAG DCS', 'AKTUAL', 'REKOMENDASI FLOW', 'SATUAN', 'STATUS']);
+      rows.push(['MAKE-UP INJECTION RECOMMENDATION', 'DCS TAG', 'ACTUAL', 'RECOMMENDED FLOW', 'UNIT', 'STATUS']);
       for (const item of prediction.makeup_advisory.items) {
         rows.push([
-          `Injeksi ${item.description}`,
+          `Injection ${item.description}`,
           item.tag_dcs,
           `${item.actual_molpct.toFixed(2)} mol%`,
           `${item.recommended_flow_nm3_h.toFixed(1)} Nm³/h (${item.recommended_flow_kg_h.toFixed(1)} kg/h)`,
@@ -404,7 +404,7 @@ export function App() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Badak_C3MR_Skenario_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `Badak_C3MR_Scenario_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -441,7 +441,7 @@ export function App() {
           MACHINE LEARNING BASED C3MR OPTIMIZATION
         </div>
         <div style={{ fontSize: '14px', color: '#64748b', marginTop: '6px' }}>
-          Memuat data operasional DCS & inisialisasi model C3MR...
+          Loading DCS operational data & initializing C3MR surrogate model...
         </div>
       </div>
     );
@@ -485,7 +485,7 @@ export function App() {
           alignItems: 'center',
           fontFamily: "'Segoe UI', sans-serif",
         }}>
-          <span>⚠️ <strong>PERINGATAN SISTEM:</strong> {errorMsg}</span>
+          <span>⚠️ <strong>SYSTEM ALERT:</strong> {errorMsg}</span>
           <button
             onClick={() => setErrorMsg(null)}
             style={{

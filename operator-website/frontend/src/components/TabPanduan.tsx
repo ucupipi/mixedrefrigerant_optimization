@@ -28,14 +28,14 @@ export const TabPanduan: React.FC<TabPanduanProps> = ({ userMode = 'OPERATOR' })
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
           <span style={{ fontSize: '20px' }}>⚠️</span>
           <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#b91c1c' }}>
-            PERNYATAAN KESELAMATAN & STATUS READ-ONLY (SAFETY NOTICE)
+            SAFETY NOTICE & READ-ONLY ADVISORY STATUS
           </h3>
         </div>
         <p style={{ margin: 0, fontSize: '15px', lineHeight: 1.6, color: '#7f1d1d' }}>
-          Aplikasi ini adalah <strong>perangkat pendukung keputusan (decision-support tool)</strong> dan kalkulator simulasi skenario what-if semata.
-          Aplikasi ini secara fisik dan arsitektural <strong>TIDAK BISA dan DILARANG</strong> mengubah setpoint DCS secara otomatis, menggerakkan katup kontrol,
-          mengatur kecepatan turbin, atau mengubah komposisi refrigeran di lapangan. Seluruh hasil yang ditampilkan adalah estimasi numerik
-          dan wajib diverifikasi melalui prosedur operasi standar serta persetujuan pengawas operasi sebelum tindakan lapangan diambil.
+          This software suite is strictly a <strong>decision-support tool</strong> and what-if simulation calculator.
+          It is architecturally and physically <strong>INCAPABLE of and PROHIBITED from</strong> writing setpoints directly to DCS, actuating control valves,
+          adjusting turbine governor speeds, or modifying field refrigerant inventory. All displayed results are numerical estimates
+          and must be verified against standard operating procedures (SOP) and approved by the Shift Supervisor before any field actions are executed.
         </p>
       </div>
 
@@ -48,54 +48,54 @@ export const TabPanduan: React.FC<TabPanduanProps> = ({ userMode = 'OPERATOR' })
         boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
       }}>
         <h2 style={{ margin: '0 0 8px 0', fontSize: '20px', fontWeight: 700, color: '#0f172a' }}>
-          Alur Kerja 7 Langkah Operator (Standard Operator Workflow)
+          Standard Operator Workflow (7-Step Execution Model)
         </h2>
         <div style={{ fontSize: '15px', color: '#64748b', marginBottom: '20px' }}>
-          Ikuti urutan langkah berikut saat melakukan pengujian skenario operasi C3MR Train H:
+          Follow this structured sequence when performing C3MR Train H operational evaluations:
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
           {[
             {
               step: '1',
-              title: 'Tinjau Data Proses',
-              desc: 'Periksa laju alir treated gas aktual (H3FI0004), produksi LNG rundown (H5FI6A), dan temperatur suction drum.',
+              title: 'Review Process Data',
+              desc: 'Inspect actual treated feed gas flow (H3FI0004), LNG rundown production (H5FI6A), and suction drum temperature.',
               color: '#0284c7',
             },
             {
               step: '2',
-              title: 'Verifikasi Validitas Sensor',
-              desc: 'Pastikan status sensor bertanda VALID, tidak ada indikasi instrumen beku atau di luar rentang wajar.',
+              title: 'Verify Sensor Validity',
+              desc: 'Ensure all instrument health flags indicate VALID, with no evidence of frozen transmitters or out-of-range tags.',
               color: '#0284c7',
             },
             {
               step: '3',
-              title: 'Masukkan Nilai Skenario',
-              desc: 'Isi nilai skenario yang diizinkan (sirkulasi MCR atau target komposisi mol%), atau klik "Gunakan Rekomendasi Optimum".',
+              title: 'Set Scenario Targets',
+              desc: 'Enter permissible scenario values (MCR flow or target mole fractions), or click "Apply AI Target".',
               color: '#2563eb',
             },
             {
               step: '4',
-              title: 'Pilih "Hitung Skenario"',
-              desc: 'Klik tombol utama "Hitung Skenario" untuk menjalankan simulasi model prediksi surrogate secara langsung.',
+              title: 'Evaluate Predictions',
+              desc: 'Review real-time machine learning surrogate predictions automatically computed with rigorous PR-EOS closure.',
               color: '#0284c7',
             },
             {
               step: '5',
-              title: 'Tinjau Hasil Simulasi (KPI)',
-              desc: 'Amati total daya poros C3MR, SEC LNG (kWh/t LNG), delta penghematan, dan tabel injeksi make-up refrigeran.',
+              title: 'Analyze KPI Benefits',
+              desc: 'Inspect total C3MR shaft power savings, specific energy consumption (SEC LNG), and the make-up injection schedule.',
               color: '#16a34a',
             },
             {
               step: '6',
-              title: 'Evaluasi Batasan Keselamatan',
-              desc: 'Periksa 5 kartu batasan: Anti-Surge, TAL Suction Drum, Superheat, DP MCHE, dan Batas Elipsoid Operasi.',
+              title: 'Audit Safety Limits',
+              desc: 'Verify the 5 critical safety constraints: Anti-Surge Floor, Suction Drum TAL, Superheat, MCHE DP, and Mahalanobis Boundary.',
               color: '#d97706',
             },
             {
               step: '7',
-              title: 'Pahami Penjelasan Hasil',
-              desc: 'Baca catatan operasional di bawah tabel KPI sebelum berkonsultasi dengan Shift Supervisor untuk eksekusi lapangan.',
+              title: 'Consult Supervisor',
+              desc: 'Review operational guidance notes before consulting with the Shift Supervisor for phased field execution.',
               color: '#475569',
             },
           ].map((item) => (
@@ -145,10 +145,10 @@ export const TabPanduan: React.FC<TabPanduanProps> = ({ userMode = 'OPERATOR' })
         boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
       }}>
         <h2 style={{ margin: '0 0 8px 0', fontSize: '20px', fontWeight: 700, color: '#0f172a' }}>
-          Tabel Variabel yang Boleh Diubah vs Terkunci (Variable Dictionary)
+          Process Variables & Constraints Dictionary
         </h2>
         <div style={{ fontSize: '15px', color: '#64748b', marginBottom: '16px' }}>
-          Pembedaan tegas antara variabel yang boleh diubah operator pada skenario what-if dan variabel terproteksi yang hanya dibaca dari DCS:
+          Explicit demarcation between operator-editable what-if scenario parameters and protected real-time DCS variables:
         </div>
 
         <div style={{ overflowX: 'auto' }}>
@@ -157,94 +157,94 @@ export const TabPanduan: React.FC<TabPanduanProps> = ({ userMode = 'OPERATOR' })
               <tr style={{ backgroundColor: '#0f172a', color: '#ffffff' }}>
                 <th style={{ padding: '12px 14px', textAlign: 'left', fontWeight: 600 }}>Parameter</th>
                 {userMode === 'ENGINEERING' && (
-                  <th style={{ padding: '12px 14px', textAlign: 'left', fontWeight: 600 }}>Tag DCS</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', fontWeight: 600 }}>DCS Tag</th>
                 )}
-                <th style={{ padding: '12px 14px', textAlign: 'left', fontWeight: 600 }}>Satuan</th>
-                <th style={{ padding: '12px 14px', textAlign: 'center', fontWeight: 600 }}>Status Input</th>
-                <th style={{ padding: '12px 14px', textAlign: 'left', fontWeight: 600 }}>Rentang & Aturan Rekayasa</th>
+                <th style={{ padding: '12px 14px', textAlign: 'left', fontWeight: 600 }}>Unit</th>
+                <th style={{ padding: '12px 14px', textAlign: 'center', fontWeight: 600 }}>Input Type</th>
+                <th style={{ padding: '12px 14px', textAlign: 'left', fontWeight: 600 }}>Operating Range & Engineering Rules</th>
               </tr>
             </thead>
             <tbody>
               {[
                 {
-                  param: 'Laju Alir Treated Gas Masuk MCHE',
+                  param: 'Treated Feed Gas Flow to MCHE (5E-1)',
                   tag: 'H3FI0004 × 0.760',
                   unit: 't/h',
-                  type: 'GANGGUAN (Read-Only)',
+                  type: 'DISTURBANCE (Read-Only)',
                   typeColor: '#64748b',
-                  rule: 'Variabel gangguan (beban kilang). Diisi sesuai pembacaan riil DCS atau rencana produksi feed gas.',
+                  rule: 'Independent process disturbance (plant loading). Follows real-time DCS telemetry or planned production rate.',
                 },
                 {
-                  param: 'Laju Alir Produksi LNG Rundown',
+                  param: 'LNG Rundown Production Flow',
                   tag: 'H5FI6A',
                   unit: 't/h LNG',
-                  type: 'TERKOPEL (Read-Only)',
+                  type: 'COUPLED (Read-Only)',
                   typeColor: '#64748b',
-                  rule: 'Dihitung via kesetimbangan termodinamika VLE 7-komponen PR-EOS flash drum 5C-1 (yield nominal ~94.53 wt% pada -152.5°C, 0.30 kg/cm²G). Denominator resmi SEC LNG.',
+                  rule: 'Determined via 7-component PR-EOS flash equilibrium of drum 5C-1 (~94.53 wt% nominal yield at -152.5°C, 0.30 kg/cm²G). Official SEC LNG denominator.',
                 },
                 {
-                  param: 'Laju Alir Sirkulasi MCR',
+                  param: 'MCR Circulation Flow',
                   tag: 'H4FI011B × 36.8',
                   unit: 't/h',
-                  type: 'EDITABLE (Skenario)',
+                  type: 'EDITABLE (Scenario)',
                   typeColor: '#0284c7',
-                  rule: 'Dapat diubah. Rentang wajar 480 – 620 t/h. Wajib ≥ 480.0 t/h untuk mencegah trip batas surge kompresor.',
+                  rule: 'Primary decision variable. Normal range 480 – 620 t/h. Must remain ≥ 480.0 t/h to prevent centrifugal compressor surge trip.',
                 },
                 {
-                  param: 'Komposisi MCR: N₂ (Nitrogen)',
+                  param: 'MCR Composition: N₂ (Nitrogen)',
                   tag: 'comp_4C-8_N2',
                   unit: 'mol%',
-                  type: 'EDITABLE (Skenario)',
+                  type: 'EDITABLE (Scenario)',
                   typeColor: '#0284c7',
-                  rule: 'Rentang 2.0 – 5.5 mol%. Mempengaruhi pendinginan subcooling kriogenik ujung dingin MCHE.',
+                  rule: 'Range 2.0 – 5.5 mol%. Sets deep cryogenic subcooling at the cold bundle overhead of MCHE 5E-1.',
                 },
                 {
-                  param: 'Komposisi MCR: CH₄ (Metana, C₁)',
+                  param: 'MCR Composition: CH₄ (Methane, C₁)',
                   tag: 'comp_4C-8_C1',
                   unit: 'mol%',
-                  type: 'EDITABLE (Skenario)',
+                  type: 'EDITABLE (Scenario)',
                   typeColor: '#0284c7',
-                  rule: 'Rentang 40.0 – 48.0 mol%. Komponen refrigeran pendingin suhu rendah (cold bundle).',
+                  rule: 'Range 40.0 – 48.0 mol%. Primary low-temperature refrigerant component for cold bundle heat absorption.',
                 },
                 {
-                  param: 'Komposisi MCR: C₂H₆ (Etana, C₂)',
+                  param: 'MCR Composition: C₂H₆ (Ethane, C₂)',
                   tag: 'comp_4C-8_C2',
                   unit: 'mol%',
-                  type: 'EDITABLE (Skenario)',
+                  type: 'EDITABLE (Scenario)',
                   typeColor: '#0284c7',
-                  rule: 'Rentang 40.0 – 48.0 mol%. Komponen pendingin suhu menengah (mid-bundle).',
+                  rule: 'Range 40.0 – 48.0 mol%. Mid-temperature refrigerant component matching intermediate condensation slope.',
                 },
                 {
-                  param: 'Komposisi MCR: C₂H₄ (Etilena)',
+                  param: 'MCR Composition: C₂H₄ (Ethylene)',
                   tag: 'comp_4C-8_C2H4',
                   unit: 'mol%',
-                  type: 'EDITABLE (Skenario)',
+                  type: 'EDITABLE (Scenario)',
                   typeColor: '#0284c7',
-                  rule: 'Rentang 0.0 – 3.0 mol%. Komponen transisi untuk penyetelan kurva VLE pendinginan cepat.',
+                  rule: 'Range 0.0 – 3.0 mol%. Dynamic transition component for fast cooling curve adjustment.',
                 },
                 {
-                  param: 'Komposisi MCR: C₃H₈ (Propana, C₃)',
+                  param: 'MCR Composition: C₃H₈ (Propane, C₃)',
                   tag: 'comp_4C-8_C3',
                   unit: 'mol%',
-                  type: 'EDITABLE (Skenario)',
+                  type: 'EDITABLE (Scenario)',
                   typeColor: '#0284c7',
-                  rule: 'Rentang 4.0 – 8.5 mol%. Komponen berat pendingin warm bundle. Penentu utama suhu suction drum.',
+                  rule: 'Range 4.0 – 8.5 mol%. Heavy refrigerant component for warm bundle cooling. Primary driver of suction drum temperature.',
                 },
                 {
-                  param: 'Batas Alarm Suhu Rendah Suction Drum (TAL)',
+                  param: 'Suction Drum Temperature Alarm Low (TAL)',
                   tag: 'H4TI004B',
                   unit: '°C',
-                  type: 'SAFETY LIMIT (Terkunci)',
+                  type: 'SAFETY LIMIT (Locked)',
                   typeColor: '#dc2626',
-                  rule: 'Interlock keselamatan pabrik: TAL ≥ -45.0 °C. Tidak dapat diedit oleh siapapun pada aplikasi ini.',
+                  rule: 'Plant mechanical safety interlock: TAL ≥ -45.0 °C. Hardcoded safety boundary, strictly non-editable.',
                 },
                 {
-                  param: 'Beda Tekan Bundle MCHE 5E-1',
+                  param: 'MCHE 5E-1 Bundle Differential Pressure',
                   tag: 'H5PDI003',
                   unit: 'kg/cm²',
-                  type: 'SAFETY LIMIT (Terkunci)',
+                  type: 'SAFETY LIMIT (Locked)',
                   typeColor: '#dc2626',
-                  rule: 'Batas hidraulik: Alarm 0.42 kg/cm², Trip darurat 0.54 kg/cm² (5PDAHH-25).',
+                  rule: 'Hydraulic limit: High Alarm at 0.42 kg/cm², Emergency Trip at 0.54 kg/cm² (5PDAHH-25).',
                 },
               ].map((row, idx) => (
                 <tr key={idx} style={{
@@ -285,10 +285,10 @@ export const TabPanduan: React.FC<TabPanduanProps> = ({ userMode = 'OPERATOR' })
         boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
       }}>
         <h2 style={{ margin: '0 0 8px 0', fontSize: '20px', fontWeight: 700, color: '#0f172a' }}>
-          Kamus Status Evaluasi Batasan (Constraint Status Dictionary)
+          Constraint Status & Badge Dictionary
         </h2>
         <div style={{ fontSize: '15px', color: '#64748b', marginBottom: '16px' }}>
-          Arti dari setiap kategori badge status yang ditampilkan pada kartu evaluasi batasan proses:
+          Definitions and engineering interpretations for each constraint evaluation badge:
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
@@ -304,10 +304,10 @@ export const TabPanduan: React.FC<TabPanduanProps> = ({ userMode = 'OPERATOR' })
               PASSED
             </span>
             <div style={{ fontSize: '16px', fontWeight: 700, color: '#15803d', margin: '10px 0 6px 0' }}>
-              Batasan Terpenuhi
+              Constraint Fully Satisfied
             </div>
             <div style={{ fontSize: '14px', color: '#166534', lineHeight: 1.5 }}>
-              Parameter operasi berada aman di dalam batas spesifikasi teknis dan memiliki margin keselamatan yang memadai.
+              Operating parameters reside well within technical design limits and maintain adequate safety margins.
             </div>
           </div>
 
@@ -323,10 +323,10 @@ export const TabPanduan: React.FC<TabPanduanProps> = ({ userMode = 'OPERATOR' })
               WARNING
             </span>
             <div style={{ fontSize: '16px', fontWeight: 700, color: '#b45309', margin: '10px 0 6px 0' }}>
-              Mendekati Batas / Perhatian
+              Approaching Safety Margin
             </div>
             <div style={{ fontSize: '14px', color: '#854d0e', lineHeight: 1.5 }}>
-              Parameter masih memenuhi batas batas minimum/maksimum tetapi margin keselamatan menyempit, atau variasi komposisi mendekati tepi domain teruji.
+              Parameters satisfy minimum/maximum thresholds but safety margin is narrowing, or composition nears training boundary.
             </div>
           </div>
 
@@ -342,10 +342,10 @@ export const TabPanduan: React.FC<TabPanduanProps> = ({ userMode = 'OPERATOR' })
               FAILED
             </span>
             <div style={{ fontSize: '16px', fontWeight: 700, color: '#b91c1c', margin: '10px 0 6px 0' }}>
-              Pelanggaran Batasan Terverifikasi
+              Verified Safety Limit Violation
             </div>
             <div style={{ fontSize: '14px', color: '#991b1b', lineHeight: 1.5 }}>
-              Skenario melanggar batas keselamatan pabrik (misal: sirkulasi &lt; 480 t/h tanpa modulasi kickback valve, atau suhu suction &lt; -45 °C). DILARANG DIGUNAKAN.
+              Scenario breaches mechanical/process safety limits (e.g., circulation &lt; 480 t/h without kickback modulation, or suction temp &lt; -45 °C). STRICTLY PROHIBITED.
             </div>
           </div>
 
@@ -361,10 +361,10 @@ export const TabPanduan: React.FC<TabPanduanProps> = ({ userMode = 'OPERATOR' })
               NOT EVALUATED
             </span>
             <div style={{ fontSize: '16px', fontWeight: 700, color: '#334155', margin: '10px 0 6px 0' }}>
-              Belum Dievaluasi
+              Telemetry Not Wired
             </div>
             <div style={{ fontSize: '14px', color: '#475569', lineHeight: 1.5 }}>
-              Pemeriksaan instrumen dinamis tertentu belum memiliki koneksi sensor live pada snapshot saat ini (misal: kurva peta head dinamis anti-surge kompresor).
+              Specific dynamic instrument checks lack live telemetry in the active snapshot (e.g., dynamic anti-surge head map curves).
             </div>
           </div>
         </div>
@@ -379,27 +379,27 @@ export const TabPanduan: React.FC<TabPanduanProps> = ({ userMode = 'OPERATOR' })
         boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
       }}>
         <h2 style={{ margin: '0 0 8px 0', fontSize: '20px', fontWeight: 700, color: '#dc2626' }}>
-          Kapan Hasil Skenario TIDAK BOLEH Digunakan (When NOT to Use)
+          When NOT to Implement Scenario Recommendations
         </h2>
         <div style={{ fontSize: '15px', color: '#64748b', marginBottom: '16px' }}>
-          Skenario prediksi dilarang keras diimplementasikan sebagai acuan pengaturan kilang jika salah satu kondisi berikut terjadi:
+          Scenario recommendations must NEVER be implemented as plant operational setpoints if any of the following occur:
         </div>
 
         <ul style={{ margin: 0, paddingLeft: '24px', fontSize: '15px', color: '#334155', lineHeight: 1.7 }}>
           <li>
-            <strong>Ada indikator FAILED pada salah satu batasan keselamatan:</strong> Terjadi pelanggaran flow anti-surge, suhu suction drum, superheat, atau beda tekan MCHE.
+            <strong>Any FAILED indicator appears on safety interlock cards:</strong> Violation of compressor flow floor, suction drum TAL, superheat, or MCHE differential pressure.
           </li>
           <li>
-            <strong>Jarak Mahalanobis DM &gt; 3.0802:</strong> Rekomendasi komposisi berada di luar batas elipsoid data latih terverifikasi (indikasi ekstrapolasi tidak aman).
+            <strong>Mahalanobis Distance DM &gt; 3.0802:</strong> Target composition lies outside the 95% confidence operating ellipsoid (unsafe extrapolation alert).
           </li>
           <li>
-            <strong>Kompresor sedang mengalami transient berat:</strong> Unit sedang dalam proses start-up, shutdown darurat, trip sebagian turbin, atau hunting surge.
+            <strong>Severe compressor transient events:</strong> Train is undergoing startup, emergency shutdown (ESD), partial turbine trip, or aerodynamic surge hunting.
           </li>
           <li>
-            <strong>Data sensor aktual DCS tidak valid:</strong> Terjadi kegagalan kromatografi gas online (AI25A-H) atau sensor transmitter flow/pressure menunjukkan bad quality.
+            <strong>DCS telemetry or online GC failure:</strong> Online chromatograph (AI25A-H) is offline or flow/pressure transmitters indicate bad quality status.
           </li>
           <li>
-            <strong>Tanpa persetujuan tertulis pengawas operasi:</strong> Segala penyesuaian resep refrigeran wajib melalui verifikasi teknis dan persetujuan pengawas operasi.
+            <strong>Absence of Shift Supervisor approval:</strong> All refrigerant recipe adjustments require rigorous engineering verification and written operational authorization.
           </li>
         </ul>
       </div>
@@ -421,12 +421,12 @@ export const TabPanduan: React.FC<TabPanduanProps> = ({ userMode = 'OPERATOR' })
             C3MR Liquefaction Optimization System | Decision-Support Workspace
           </div>
           <div style={{ fontSize: '14px', color: '#94a3b8', marginTop: '2px' }}>
-            Train H LNG Liquefaction Unit (Versi Demo & Evaluasi Rekayasa)
+            Train H LNG Liquefaction Unit (Engineering Demonstration Suite)
           </div>
         </div>
         <div style={{ fontSize: '13px', color: '#94a3b8', textAlign: 'right' }}>
-          <div>Versi Aplikasi: 2.0.0 (Operator Decision-Support System)</div>
-          <div>Batas Sistem: Total Train C3MR Shaft Power (MCR 4KT-2/3 + C3 4KT-1)</div>
+          <div>Software Version: 2.0.0 (Operator Decision-Support System)</div>
+          <div>Battery Limit: Total Train C3MR Shaft Power (MCR 4KT-2/3 + C3 4KT-1)</div>
         </div>
       </div>
     </div>

@@ -130,7 +130,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
   const ti24Dcs = -151.3; // H5TI0024: Suhu Cold Bundle MRV Overhead (MRV > 5HV-2)
   const ti24Ai = -150.8;
 
-  const ti29Dcs = -153.6; // H5TI0029: Suhu LNG Rundown Downstream Subcooler (<5PV-15)
+  const ti29Dcs = -153.6; // H5TI0029: LNG Rundown Temp Downstream Subcooler (<5PV-15)
   const ti29Ai = -153.8;
 
   // DCS Mimic GRH0065 Audited Instrumentation Tags
@@ -279,7 +279,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
               SEC: <strong style={{ color: '#34d399' }}>{secLng.toFixed(1)}</strong> <span style={{ color: '#64748b' }}>kWh/t</span>
             </span>
             <span style={{ backgroundColor: '#0b1329', padding: '3px 8px', borderRadius: '4px', border: '1px solid #1e293b' }}>
-              Daya: <strong style={{ color: '#fbbf24' }}>{totalPower.toFixed(2)}</strong> <span style={{ color: '#64748b' }}>MW</span>
+              Power: <strong style={{ color: '#fbbf24' }}>{totalPower.toFixed(2)}</strong> <span style={{ color: '#64748b' }}>MW</span>
             </span>
           </div>
 
@@ -308,7 +308,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
                   color: displayMode === 'DCS_ACTUAL' ? '#ffffff' : '#94a3b8',
                 }}
               >
-                Aktual
+                Actual
               </button>
               <button
                 type="button"
@@ -324,7 +324,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
                   color: displayMode === 'AI_OPTIMIZED' ? '#ffffff' : '#94a3b8',
                 }}
               >
-                Skenario
+                Scenario
               </button>
               <button
                 type="button"
@@ -579,7 +579,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           {/* PIC2: Tekanan Overhead ke LTSS (H5PIC002) at x=310, y=162 (Above line y=190 with sensing tap) */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'H5PIC002',
-            name: '5E-1 Overhead Pressure Controller ke LTSS (PIC2)',
+            name: '5E-1 Overhead Pressure Controller to LTSS (PIC2)',
             unit: 'KGC2G',
             valDcs: pic2Dcs.toFixed(2),
             valAi: pic2Ai.toFixed(2),
@@ -596,7 +596,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           {/* TI20: Overhead Temperature (H5TI0020) at x=647, y=162 (Above line y=190 with sensing tap) */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'H5TI0020',
-            name: 'Suhu Overhead MCHE 5E-1 ke LTSS (Upstream PIC2)',
+            name: 'MCHE 5E-1 Overhead Temperature to LTSS (Upstream PIC2)',
             unit: '°C',
             valDcs: ti20Dcs.toFixed(1),
             valAi: ti20Ai.toFixed(1)
@@ -637,7 +637,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           {/* TI24 (MRV Top) — Suhu MR Vapor Overhead Setelah Chinese Hat */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'H5TI0024',
-            name: 'Suhu MR Vapor Overhead Setelah Chinese Hat (MRV > 5HV-2)',
+            name: 'MR Vapor Overhead Temperature Post-Separator (MRV > 5HV-2)',
             unit: '°C',
             valDcs: ti24Dcs.toFixed(1),
             valAi: ti24Ai.toFixed(1)
@@ -661,11 +661,11 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           {/* FI1: MCR Vapor Flow on Stream 3 at x=312, y=472 with sensing line to y=560 */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'FI1',
-            name: 'MCR Vapor Flow ke MCHE 5E-1 (Warm Bundle Inlet)',
+            name: 'MCR Vapor Flow to MCHE 5E-1 (Warm Bundle Inlet)',
             unit: 't/h',
             valDcs: mcrVapFlowDcs.toFixed(1),
             valAi: mcrVapFlowAi.toFixed(1),
-            limit: 'Coupled with H5TI0047 (-35.1°C DCS / -32.7°C Skenario)'
+            limit: 'Coupled with H5TI0047 (-35.1°C DCS / -32.7°C Scenario)'
           })}>
             <text x="312" y="472" fill="#00ffff" fontSize="11" fontWeight="bold">FI1</text>
             <text x="312" y="490" fill={fmt('FI1', mcrVapFlowDcs, mcrVapFlowAi, 1).color} fontSize="14" fontWeight="bold">
@@ -718,7 +718,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           {/* MRL Flow Badge on Stream 4 at x=360 (PR-EOS Dynamic: Mass t/h & Volumetric m3/h, with sensing tap to y=812) */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'MRL_FLOW',
-            name: 'MCR Liquid Circulation Flow ke MCHE 5E-1 (PR-EOS Phase Split)',
+            name: 'MCR Liquid Circulation Flow to MCHE 5E-1 (PR-EOS Phase Split)',
             unit: 't/h (m³/h)',
             valDcs: `${mcrLiqMassDcs.toFixed(1)} t/h (${fic2Dcs} m³/h)`,
             valAi: `${mcrLiqMassAi.toFixed(1)} t/h (${fic2Ai} m³/h)`,
@@ -740,7 +740,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           <line x1="241" y1="841" x2="755" y2="841" stroke="#ff0000" strokeWidth="2.5" markerEnd="url(#arrow-red)" />
 
           {/* Interactive Bottom Badges (y=865, h=38: Exact regex match for test_bottom_tags_clearance) */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H3FI0004', name: 'Feed Gas Treated Flow ke MCHE 5E-1', unit: 't/h', valDcs: feedFlowDcs.toFixed(1), valAi: feedFlowAi.toFixed(1) })}>
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H3FI0004', name: 'Treated Feed Gas Flow to MCHE 5E-1', unit: 't/h', valDcs: feedFlowDcs.toFixed(1), valAi: feedFlowAi.toFixed(1) })}>
             <rect x="175" y="865" width="130" height="38" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
             <text x="240" y="880" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">H3FI0004 (Feed)</text>
             <text x="240" y="897" fill={fmt('H3FI0004', feedFlowDcs, feedFlowAi, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
@@ -748,7 +748,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             </text>
           </g>
 
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5PI0012', name: 'Feed Gas Inlet Pressure ke 5E-1', unit: 'KGC2G', valDcs: pi12Dcs.toFixed(2), valAi: pi12Ai.toFixed(2) })}>
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5PI0012', name: 'Feed Gas Inlet Pressure to 5E-1', unit: 'KGC2G', valDcs: pi12Dcs.toFixed(2), valAi: pi12Ai.toFixed(2) })}>
             <rect x="330" y="865" width="120" height="38" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
             <text x="390" y="880" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">PI12 (Inlet P)</text>
             <text x="390" y="897" fill={fmt('PI12', pi12Dcs, pi12Ai, 2).color} fontSize="15" textAnchor="middle" fontWeight="bold">
@@ -756,7 +756,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             </text>
           </g>
 
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0023', name: 'Feed Gas Inlet Temperature ke 5E-1', unit: '°C', valDcs: ti23Dcs.toFixed(1), valAi: ti23Ai.toFixed(1) })}>
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0023', name: 'Feed Gas Inlet Temperature to 5E-1', unit: '°C', valDcs: ti23Dcs.toFixed(1), valAi: ti23Ai.toFixed(1) })}>
             <rect x="480" y="865" width="120" height="38" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
             <text x="540" y="880" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">TI23 (Inlet T)</text>
             <text x="540" y="897" fill={fmt('TI23', ti23Dcs, ti23Ai, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
@@ -767,7 +767,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           {/* TI50: MR Liquid Inlet Temperature (Wired for test_pr_eos_cryogenic_tags_present_and_wired) */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'H5TI0050',
-            name: 'Suhu MR Liquid ke MCHE 5E-1 (Warm Bundle Inlet)',
+            name: 'MR Liquid Temperature to MCHE 5E-1 (Warm Bundle Inlet)',
             unit: '°C',
             valDcs: ti50Dcs.toFixed(1),
             valAi: ti50Ai.toFixed(1)
@@ -830,7 +830,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           <text x="644" y="631" fill="#00ffff" fontSize="10" textAnchor="middle">HIC3 100%</text>
 
           {/* Profile Temperatures Left: TI25, TI26, TI22 */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0025', name: 'Suhu Keluar MRV Cold Bundle (MRV < C/B)', unit: '°C', valDcs: ti25Dcs.toFixed(1), valAi: ti25Ai.toFixed(1) })}>
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0025', name: 'MRV Outlet Temp Cold Bundle (MRV < C/B)', unit: '°C', valDcs: ti25Dcs.toFixed(1), valAi: ti25Ai.toFixed(1) })}>
             <text x="549" y="479" fill="#00ffff" fontSize="11" fontWeight="bold">TI25</text>
             <text x="585" y="479" fill={fmt('TI25', ti25Dcs, ti25Ai, 1).color} fontSize="13" fontWeight="bold">
               {fmt('TI25', ti25Dcs, ti25Ai, 1).display} <tspan fill="#00ffff" fontSize="9">°C</tspan>
@@ -838,7 +838,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             <line x1="655" y1="475" x2="794" y2="475" stroke="#0284c7" strokeWidth="1" strokeDasharray="3 3" />
           </g>
 
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0026', name: 'Suhu Gas Umpan Keluar Cold Bundle (F/G > C/B)', unit: '°C', valDcs: ti26Dcs.toFixed(1), valAi: ti26Ai.toFixed(1) })}>
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0026', name: 'Feed Gas Outlet Temp Cold Bundle (F/G > C/B)', unit: '°C', valDcs: ti26Dcs.toFixed(1), valAi: ti26Ai.toFixed(1) })}>
             <text x="549" y="509" fill="#00ffff" fontSize="11" fontWeight="bold">TI26</text>
             <text x="585" y="509" fill={fmt('TI26', ti26Dcs, ti26Ai, 1).color} fontSize="13" fontWeight="bold">
               {fmt('TI26', ti26Dcs, ti26Ai, 1).display} <tspan fill="#00ffff" fontSize="9">°C</tspan>
@@ -846,7 +846,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             <line x1="655" y1="505" x2="775" y2="505" stroke="#0284c7" strokeWidth="1" strokeDasharray="3 3" />
           </g>
 
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0022', name: 'Suhu MR Liquid ke Katup 5HV-3 (MRL > 5HV-3)', unit: '°C', valDcs: ti22Dcs.toFixed(1), valAi: ti22Ai.toFixed(1) })}>
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0022', name: 'MR Liquid Temp to Valve 5HV-3 (MRL > 5HV-3)', unit: '°C', valDcs: ti22Dcs.toFixed(1), valAi: ti22Ai.toFixed(1) })}>
             <text x="549" y="535" fill="#00ffff" fontSize="11" fontWeight="bold">TI22</text>
             <text x="585" y="535" fill={fmt('TI22', ti22Dcs, ti22Ai, 1).color} fontSize="13" fontWeight="bold">
               {fmt('TI22', ti22Dcs, ti22Ai, 1).display} <tspan fill="#00ffff" fontSize="9">°C</tspan>
@@ -855,7 +855,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           </g>
 
           {/* Profile Temperatures Right: TI21 & TI27 */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0021', name: 'Suhu MRV Masuk Cold Bundle (MRV > C/B)', unit: '°C', valDcs: ti21Dcs.toFixed(1), valAi: ti21Ai.toFixed(1) })}>
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0021', name: 'MRV Inlet Temp Cold Bundle (MRV > C/B)', unit: '°C', valDcs: ti21Dcs.toFixed(1), valAi: ti21Ai.toFixed(1) })}>
             <text x="996" y="445" fill="#00ffff" fontSize="11" fontWeight="bold">TI21</text>
             <text x="1035" y="445" fill={fmt('TI21', ti21Dcs, ti21Ai, 1).color} fontSize="13" fontWeight="bold">
               {fmt('TI21', ti21Dcs, ti21Ai, 1).display} <tspan fill="#00ffff" fontSize="9">°C</tspan>
@@ -863,7 +863,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             <line x1="915" y1="441" x2="990" y2="441" stroke="#0284c7" strokeWidth="1" strokeDasharray="3 3" />
           </g>
 
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0027', name: 'Suhu Gas Umpan Masuk Cold Bundle (F/G > C/B)', unit: '°C', valDcs: ti27Dcs.toFixed(1), valAi: ti27Ai.toFixed(1) })}>
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0027', name: 'Feed Gas Inlet Temp Cold Bundle (F/G > C/B)', unit: '°C', valDcs: ti27Dcs.toFixed(1), valAi: ti27Ai.toFixed(1) })}>
             <text x="986" y="474" fill="#00ffff" fontSize="11" fontWeight="bold">TI27</text>
             <text x="1025" y="474" fill={fmt('TI27', ti27Dcs, ti27Ai, 1).color} fontSize="13" fontWeight="bold">
               {fmt('TI27', ti27Dcs, ti27Ai, 1).display} <tspan fill="#00ffff" fontSize="9">°C</tspan>
@@ -886,7 +886,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           {/* TT30 (>PV-15 / H5TI0030) at x=963, y=374 with sensing line up to yellow pipe y=337 */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'H5TI0030',
-            name: 'Suhu MR Vapor Sebelum JT Valve PV-15 (TT30)',
+            name: 'MR Vapor Temp Upstream JT Valve PV-15 (TT30)',
             unit: '°C',
             valDcs: ti30Dcs.toFixed(1),
             valAi: ti30Ai.toFixed(1)
@@ -902,7 +902,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           {/* PT8 (MR > PV-15 / H5PI0008) at x=1139, y=374 with sensing line up to yellow pipe y=337 */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'H5PI0008',
-            name: 'Tekanan MR Vapor Sebelum JT Valve PV-15 (PT8)',
+            name: 'MR Vapor Pressure Upstream JT Valve PV-15 (PT8)',
             unit: 'KGC2G',
             valDcs: pi8Dcs.toFixed(2),
             valAi: pi8Ai.toFixed(2)
@@ -930,7 +930,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           {/* PI10 (LNG < 5E-1 / H5PI0010) moved to x=1430, y=210 with sensing line down to magenta line y=253 */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'H5PI0010',
-            name: 'Tekanan LNG Keluar Cold Bundle MCHE 5E-1 (PI10)',
+            name: 'LNG Pressure Downstream Cold Bundle 5E-1 (PI10)',
             unit: 'KGC2G',
             valDcs: pi10Dcs.toFixed(2),
             valAi: pi10Ai.toFixed(2)
@@ -943,10 +943,10 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             <circle cx="1445" cy="253" r="2.5" fill="#00ffff" />
           </g>
 
-          {/* TI32: Suhu MR Liquid Setelah JT Valve 5FV-2 (H5TI0032) at x=1409, y=482 with sensing line to return line y=534 */}
+          {/* TI32: MR Liquid Temp Downstream JT Valve 5FV-2 (H5TI0032) at x=1409, y=482 with sensing line to return line y=534 */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'H5TI0032',
-            name: 'Suhu MR Liquid Setelah JT Valve 5FV-2 (H5TI0032)',
+            name: 'MR Liquid Temp Downstream JT Valve 5FV-2 (H5TI0032)',
             unit: '°C',
             valDcs: ti32Dcs.toFixed(1),
             valAi: ti32Ai.toFixed(1)
@@ -974,7 +974,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           {/* TT28 (MR > W/B / H5TI0028) at x=990, y=530 */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'H5TI0028',
-            name: 'Suhu MR ke Warm Bundle (MR > W/B / TT28)',
+            name: 'MR Temp to Warm Bundle (MR > W/B / TT28)',
             unit: '°C',
             valDcs: ti28Dcs.toFixed(1),
             valAi: ti28Ai.toFixed(1)
@@ -988,7 +988,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           {/* TT31 (MRL > 5FV-2 / H5TI0031) at x=990, y=620 with sensing line up to y=589 */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'H5TI0031',
-            name: 'Suhu MR Liquid ke Katup 5FV-2 (TT31)',
+            name: 'MR Liquid Temp to Valve 5FV-2 (TT31)',
             unit: '°C',
             valDcs: ti31Dcs.toFixed(1),
             valAi: ti31Ai.toFixed(1)
@@ -1004,7 +1004,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           {/* FIC2: MCR Liquid Flow at x=1250, y=650 with sensing line up to FV-2 at y=589 */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'H5FIC002',
-            name: 'MCR Liquid Circulation Flow ke MCHE 5E-1',
+            name: 'MCR Liquid Circulation Flow to MCHE 5E-1',
             unit: 'm³/h (t/h)',
             valDcs: `${fic2Dcs} m³/h (${mcrLiqMassDcs.toFixed(0)} t/h)`,
             valAi: `${fic2Ai} m³/h (${mcrLiqMassAi.toFixed(0)} t/h)`
@@ -1020,7 +1020,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           {/* PT7 (MR > FV-2 / H5PI0007) at x=1130, y=620 with sensing line up to y=589 */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'H5PI0007',
-            name: 'Tekanan MR Liquid Sebelum Katup 5FV-2 (PT7)',
+            name: 'MR Liquid Pressure Upstream Valve 5FV-2 (PT7)',
             unit: 'KGC2G',
             valDcs: pi7Dcs.toFixed(2),
             valAi: pi7Ai.toFixed(2)
@@ -1042,7 +1042,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           {/* TI29 (Rundown) at x=1386, y=278 (Satisfies test_pr_eos_cryogenic_tags_present_and_wired) */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'H5TI0029',
-            name: 'Suhu LNG Rundown Downstream Subcooler (<5PV-15)',
+            name: 'LNG Rundown Temp Downstream Subcooler (<5PV-15)',
             unit: '°C',
             valDcs: ti29Dcs.toFixed(1),
             valAi: ti29Ai.toFixed(1)
@@ -1080,7 +1080,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           {/* Diaphragm Letdown Control Valve TV1A at x=1568, y=393 */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'TV1A',
-            name: 'LNG Rundown Letdown Valve ke Vessel 5C-1',
+            name: 'LNG Rundown Letdown Valve to Vessel 5C-1',
             unit: '% / t/h',
             valDcs: `${lngFlowDcs.toFixed(1)} t/h`,
             valAi: `${lngFlowAi.toFixed(1)} t/h`
@@ -1152,7 +1152,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             {/* EFG Flow Telemetry Readout */}
             <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
               tag: '5C-1_EFG',
-              name: 'End Flash Gas Vapor Flow ke Fuel Gas Header (5C-1 Top)',
+              name: 'End Flash Gas Vapor Flow to Fuel Gas Header (5C-1 Top)',
               unit: 't/h',
               valDcs: flashVapDcs.toFixed(1),
               valAi: flashVapAi.toFixed(1),
@@ -1172,7 +1172,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             {/* Dedicated Telemetry Badge for LNG Production (FI6A) */}
             <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
               tag: 'H5FI006A',
-              name: 'Laju Alir Produksi LNG Rundown ke Tangki Penyimpanan (LNG > STRG)',
+              name: 'LNG Rundown Production Flow Rate to Storage (LNG > STRG)',
               unit: 't/h',
               valDcs: lngFlowDcs.toFixed(1),
               valAi: lngFlowAi.toFixed(1)
@@ -1219,7 +1219,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           {/* H4FI011B MCR Circulation Total at x=1177, y=834 */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'H4FI011B',
-            name: 'Laju Alir Sirkulasi MCR Total (Compressor Return Suction Header)',
+            name: 'Total MCR Circulation Flow Rate (Compressor Return Suction Header)',
             unit: 't/h',
             valDcs: mcrFlowDcs.toFixed(1),
             valAi: mcrFlowAi.toFixed(1),
@@ -1280,12 +1280,12 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
               <strong>{selectedTag.valDcs} {selectedTag.unit}</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
-              <span style={{ color: '#94a3b8' }}>Target Skenario:</span>
+              <span style={{ color: '#94a3b8' }}>Scenario Target:</span>
               <strong style={{ color: '#34d399' }}>{selectedTag.valAi} {selectedTag.unit}</strong>
             </div>
             {selectedTag.limit && (
               <div style={{ marginTop: '8px', paddingTop: '6px', borderTop: '1px dashed #334155', fontSize: '11px', color: '#f59e0b' }}>
-                ⚠️ Batas Operasi: {selectedTag.limit}
+                ⚠️ Operating Limit: {selectedTag.limit}
               </div>
             )}
           </div>

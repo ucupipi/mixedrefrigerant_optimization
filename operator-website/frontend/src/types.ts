@@ -37,7 +37,7 @@ export interface ScenarioInput {
   comp_C2H4_molpct: number;
   comp_C3_molpct: number;
   transition_hours?: number;
-  /* Actual DCS state entered by operator (column "Aktual DCS") */
+  /* Actual DCS state entered by operator (column "DCS Actual") */
   actual_feed_flow_t_h?: number;
   actual_lng_flow_t_h?: number;
   actual_mcr_flow_t_h?: number;

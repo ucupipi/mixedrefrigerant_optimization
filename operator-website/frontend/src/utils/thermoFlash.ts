@@ -97,7 +97,7 @@ export function calculateFlashDrum5C1(
       tFlashC: NOMINAL_T_FLASH_C,
       tBubbleC: NOMINAL_T_BUBBLE_C,
       pFlashKgcm2g: 0.30,
-      status: 'N/A — Laju alir umpan nol atau tidak terukur',
+      status: 'N/A — Zero or unmeasured feed flow rate',
     };
   }
 

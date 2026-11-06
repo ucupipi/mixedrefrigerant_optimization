@@ -16,7 +16,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
     {
       id: 'input-results' as ActiveTabId,
       number: '1',
-      title: 'Input & Rekomendasi',
+      title: 'Input & Recommendations',
       alert: hasConstraintViolations,
     },
     {
@@ -124,7 +124,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
                   marginLeft: '2px',
                   flexShrink: 0,
                 }}
-                title="Peringatan batasan terdeteksi"
+                title="Operational constraint alert detected"
               />
             )}
           </button>
