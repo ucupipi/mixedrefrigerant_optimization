@@ -6,6 +6,17 @@ Governance: AGENTS.md (Hukum Anti-Dosa Rekayasa, Pasal 1–13)
 """
 from __future__ import annotations
 
+import os
+import sys
+
+# Ensure backend root and src directory are in sys.path for serverless and container runtimes
+_backend_dir = os.path.dirname(os.path.abspath(__file__))
+if _backend_dir not in sys.path:
+    sys.path.insert(0, _backend_dir)
+_src_dir = os.path.join(_backend_dir, "src")
+if os.path.exists(_src_dir) and _src_dir not in sys.path:
+    sys.path.insert(0, _src_dir)
+
 import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
