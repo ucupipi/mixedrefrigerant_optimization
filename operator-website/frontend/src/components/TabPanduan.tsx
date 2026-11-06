@@ -35,7 +35,7 @@ export const TabPanduan: React.FC<TabPanduanProps> = ({ userMode = 'OPERATOR' })
           Aplikasi ini adalah <strong>perangkat pendukung keputusan (decision-support tool)</strong> dan kalkulator simulasi skenario what-if semata.
           Aplikasi ini secara fisik dan arsitektural <strong>TIDAK BISA dan DILARANG</strong> mengubah setpoint DCS secara otomatis, menggerakkan katup kontrol,
           mengatur kecepatan turbin, atau mengubah komposisi refrigeran di lapangan. Seluruh hasil yang ditampilkan adalah estimasi numerik
-          dan wajib diverifikasi melalui Standard Operating Procedure (SOP) Badak LNG serta persetujuan Shift Supervisor sebelum tindakan operasional diambil.
+          dan wajib diverifikasi melalui prosedur operasi standar serta persetujuan pengawas operasi sebelum tindakan lapangan diambil.
         </p>
       </div>
 
@@ -390,7 +390,7 @@ export const TabPanduan: React.FC<TabPanduanProps> = ({ userMode = 'OPERATOR' })
             <strong>Ada indikator FAILED pada salah satu batasan keselamatan:</strong> Terjadi pelanggaran flow anti-surge, suhu suction drum, superheat, atau beda tekan MCHE.
           </li>
           <li>
-            <strong>Jarak Mahalanobis DM &gt; 3.0802:</strong> Rekomendasi komposisi berada di luar batas elipsoid data latih kilang Badak LNG (indikasi halusinasi ekstrapolasi).
+            <strong>Jarak Mahalanobis DM &gt; 3.0802:</strong> Rekomendasi komposisi berada di luar batas elipsoid data latih terverifikasi (indikasi ekstrapolasi tidak aman).
           </li>
           <li>
             <strong>Kompresor sedang mengalami transient berat:</strong> Unit sedang dalam proses start-up, shutdown darurat, trip sebagian turbin, atau hunting surge.
@@ -399,55 +399,12 @@ export const TabPanduan: React.FC<TabPanduanProps> = ({ userMode = 'OPERATOR' })
             <strong>Data sensor aktual DCS tidak valid:</strong> Terjadi kegagalan kromatografi gas online (AI25A-H) atau sensor transmitter flow/pressure menunjukkan bad quality.
           </li>
           <li>
-            <strong>Tanpa persetujuan tertulis Shift Supervisor & Tim Proses:</strong> Segala penyesuaian resep refrigeran wajib melalui form perubahan parameter operasional resmi Badak LNG.
+            <strong>Tanpa persetujuan tertulis pengawas operasi:</strong> Segala penyesuaian resep refrigeran wajib melalui verifikasi teknis dan persetujuan pengawas operasi.
           </li>
         </ul>
       </div>
 
-      {/* SECTION 5: REFERENCE SOP & ENGINEERING DOCUMENTS */}
-      <div style={{
-        backgroundColor: '#ffffff',
-        border: '1px solid #cbd5e1',
-        borderRadius: '8px',
-        padding: '24px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-      }}>
-        <h2 style={{ margin: '0 0 8px 0', fontSize: '20px', fontWeight: 700, color: '#0f172a' }}>
-          Dokumen Rujukan Rekayasa & Standar Prosedur Operasi (SOP)
-        </h2>
-        <div style={{ fontSize: '15px', color: '#64748b', marginBottom: '16px' }}>
-          Spesifikasi dan batasan dalam aplikasi ini diturunkan dari dokumen resmi PT Badak NGL:
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '14px' }}>
-          <div style={{ padding: '14px', border: '1px solid #e2e8f0', borderRadius: '6px', backgroundColor: '#f8fafc' }}>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>SOP-OP-03-3H-01</div>
-            <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
-              Standard Operating Procedure Pengoperasian Unit Pencairan Gas Alam Train H (MCHE 5E-1 & C3MR Cycle).
-            </div>
-          </div>
-          <div style={{ padding: '14px', border: '1px solid #e2e8f0', borderRadius: '6px', backgroundColor: '#f8fafc' }}>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>SOP-OP-03-4K-02</div>
-            <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
-              Prosedur Pengendalian Anti-Surge & Modulasi Katup Kickback 4UV-53 Kompresor Sentrifugal MCR 4K-2/3.
-            </div>
-          </div>
-          <div style={{ padding: '14px', border: '1px solid #e2e8f0', borderRadius: '6px', backgroundColor: '#f8fafc' }}>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>Datasheet Peralatan Plant-3</div>
-            <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
-              Plant-3 Instrumentation Tag List & Batasan Trip Interlock Suction Drum 4C-8 (TAL -45.0 °C).
-            </div>
-          </div>
-          <div style={{ padding: '14px', border: '1px solid #e2e8f0', borderRadius: '6px', backgroundColor: '#f8fafc' }}>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>Model Surrogate C3MR ML Suite</div>
-            <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
-              Hasil validasi model regresi kronologis Train H (R² = 0.836, MAE = 0.179 MW &lt; 1.0 MW).
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Footer Plant Identification */}
+      {/* Footer Plant Identification (Demo Version) */}
       <div style={{
         backgroundColor: '#0f172a',
         borderRadius: '8px',
@@ -461,14 +418,14 @@ export const TabPanduan: React.FC<TabPanduanProps> = ({ userMode = 'OPERATOR' })
       }}>
         <div>
           <div style={{ fontSize: '16px', fontWeight: 700 }}>
-            PT Badak NGL &mdash; Plant-3 Operations & Technical Support
+            C3MR Liquefaction Optimization System | Decision-Support Workspace
           </div>
           <div style={{ fontSize: '14px', color: '#94a3b8', marginTop: '2px' }}>
-            Bontang, Kalimantan Timur &mdash; Train H Liquefaction Section
+            Train H LNG Liquefaction Unit (Versi Demo & Evaluasi Rekayasa)
           </div>
         </div>
         <div style={{ fontSize: '13px', color: '#94a3b8', textAlign: 'right' }}>
-          <div>Versi Aplikasi: 2.0.0 (Operator-Centered Decision-Support)</div>
+          <div>Versi Aplikasi: 2.0.0 (Operator Decision-Support System)</div>
           <div>Batas Sistem: Total Train C3MR Shaft Power (MCR 4KT-2/3 + C3 4KT-1)</div>
         </div>
       </div>

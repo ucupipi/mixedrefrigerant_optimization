@@ -25,7 +25,7 @@ interface TabInputResultsProps {
 }
 
 export const TabInputResults: React.FC<TabInputResultsProps> = ({
-  snapshot,
+  snapshot: _snapshot,
   scenario,
   actualDcs,
   optimum,
@@ -44,7 +44,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   const scenarioLngFlow = scenario.feed_flow_t_h * 0.9450;
 
   // Power and SEC calculations
-  const baselinePower = prediction?.actual_power_mw ?? snapshot.baseline_model_output?.total_shaft_power_mw ?? 84.48;
+  const baselinePower = prediction?.actual_power_mw ?? 84.48;
   const scenarioPower = prediction?.prediction?.total_shaft_power_mw ?? baselinePower;
   const deltaPower = scenarioPower - baselinePower;
   const deltaPowerPct = baselinePower > 0 ? (deltaPower / baselinePower) * 100 : 0;
@@ -54,16 +54,15 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   const deltaSecLng = scenarioSecLng - baselineSecLng;
   const deltaSecLngPct = baselineSecLng > 0 ? (deltaSecLng / baselineSecLng) * 100 : 0;
 
-  // Steam and Fuel Gas savings (Modul 8 & DCS Stage 08 anchor: 4.04 t steam / MWh, 97.7 Nm3 FG / t steam)
+  // Steam and Fuel Gas savings
   const STEAM_RATE_T_PER_MWH = 4.04;
   const FUEL_GAS_NM3_PER_T_STEAM = 97.7;
-  const FG_DENSITY_KG_NM3 = 0.75; // Average mixed fuel gas density
+  const FG_DENSITY_KG_NM3 = 0.75;
 
   const deltaPowerSavingMw = Math.max(0, -deltaPower);
   const steamSaved_t_h = deltaPowerSavingMw * STEAM_RATE_T_PER_MWH;
   const fuelGasSaved_nm3_h = steamSaved_t_h * FUEL_GAS_NM3_PER_T_STEAM;
   const fuelGasSaved_t_h = (fuelGasSaved_nm3_h * FG_DENSITY_KG_NM3) / 1000;
-  // Estimated economic value (USD 6.00 / MMBTU, ~37.3 MJ/Nm3 ~0.03535 MMBTU/Nm3, 8000 operating hours/yr)
   const fuelGasSaved_usd_yr = (fuelGasSaved_nm3_h * 0.03535 * 6.0 * 8000) / 1_000_000;
 
   // Composition sum
@@ -75,7 +74,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
     scenario.comp_C3_molpct;
   const isCompositionClosed = Math.abs(compSum - 100.0) < 0.05;
 
-  // Recommended values (fallback to optimum or physically calibrated defaults for current feed)
+  // Recommended values
   const recMcrFlow = optimum?.mcr_flow_t_h ?? Math.max(480.0, Math.min(580.0, actualDcs.feed_flow_t_h * 1.98));
   const recN2 = optimum?.comp_N2_molpct ?? 3.15;
   const recC1 = optimum?.comp_C1_molpct ?? 44.80;
@@ -135,10 +134,17 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               SECTION 1
             </span>
             <span style={{ fontSize: '16px', fontWeight: 700 }}>
-              Input Variabel Operasional & Rekomendasi AI
+              Input Operasi & Target Rekomendasi
             </span>
-            <span style={{ fontSize: '13px', color: '#94a3b8' }}>
-              (Feed Gas MCHE, Flow MCR & Komposisi MCR)
+            <span style={{
+              backgroundColor: '#1e293b',
+              color: '#38bdf8',
+              padding: '2px 8px',
+              borderRadius: '12px',
+              fontSize: '11px',
+              fontWeight: 700,
+            }}>
+              Feed Gas • Flow MCR • Komposisi
             </span>
           </div>
 
@@ -182,7 +188,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
           </div>
         </div>
 
-        {/* Section Content: Comparison Table / Matrix */}
+        {/* Section Content: Comparison Table */}
         <div style={{ padding: '20px 24px' }}>
           <table style={{
             width: '100%',
@@ -194,11 +200,11 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               <tr style={{ backgroundColor: '#f1f5f9', color: '#475569', borderBottom: '2px solid #cbd5e1' }}>
                 <th style={{ padding: '10px 14px', fontWeight: 700, width: '28%' }}>Parameter Operasi</th>
                 <th style={{ padding: '10px 14px', fontWeight: 700, width: '12%' }}>Tag DCS</th>
-                <th style={{ padding: '10px 14px', fontWeight: 700, width: '25%', backgroundColor: '#f8fafc' }}>
-                  Input Skenario Saat Ini
+                <th style={{ padding: '10px 14px', fontWeight: 700, width: '26%', backgroundColor: '#f8fafc' }}>
+                  Input Skenario
                 </th>
-                <th style={{ padding: '10px 14px', fontWeight: 700, width: '25%', backgroundColor: '#ecfdf5', color: '#065f46' }}>
-                  Target Rekomendasi AI
+                <th style={{ padding: '10px 14px', fontWeight: 700, width: '24%', backgroundColor: '#ecfdf5', color: '#065f46' }}>
+                  Target AI
                 </th>
                 <th style={{ padding: '10px 14px', fontWeight: 700, width: '10%' }}>Satuan</th>
               </tr>
@@ -210,7 +216,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                   Flow Feed Gas MCHE (5E-1)
                 </td>
                 <td style={{ padding: '12px 14px', fontFamily: 'monospace', color: '#0284c7', fontSize: '13px' }}>
-                  H1FI012 / PI12
+                  H1FI012
                 </td>
                 <td style={{ padding: '8px 14px', backgroundColor: '#f8fafc' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -222,7 +228,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       value={scenario.feed_flow_t_h}
                       onChange={(e) => onScenarioChange('feed_flow_t_h', parseFloat(e.target.value) || 0)}
                       style={{
-                        width: '110px',
+                        width: '100px',
                         padding: '6px 10px',
                         border: '1px solid #cbd5e1',
                         borderRadius: '6px',
@@ -231,15 +237,34 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                         color: '#0f172a',
                       }}
                     />
-                    <span style={{ fontSize: '12px', color: '#64748b' }}>
-                      (LNG: {scenarioLngFlow.toFixed(1)} t/h)
+                    <span style={{
+                      backgroundColor: '#e2e8f0',
+                      color: '#475569',
+                      padding: '2px 8px',
+                      borderRadius: '10px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                    }}>
+                      LNG: {scenarioLngFlow.toFixed(1)} t/h
                     </span>
                   </div>
                 </td>
                 <td style={{ padding: '12px 14px', backgroundColor: '#ecfdf5', fontWeight: 700, color: '#047857' }}>
-                  {actualDcs.feed_flow_t_h.toFixed(1)} <span style={{ fontSize: '12px', fontWeight: 500, color: '#065f46' }}>(Mengikuti Beban Kilang)</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>{actualDcs.feed_flow_t_h.toFixed(1)}</span>
+                    <span style={{
+                      backgroundColor: '#e0f2fe',
+                      color: '#0369a1',
+                      padding: '2px 8px',
+                      borderRadius: '12px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                    }}>
+                      Ikuti Beban
+                    </span>
+                  </div>
                 </td>
-                <td style={{ padding: '12px 14px', color: '#64748b', fontWeight: 500 }}>
+                <td style={{ padding: '12px 14px', color: '#64748b', fontWeight: 600 }}>
                   t/h
                 </td>
               </tr>
@@ -250,7 +275,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                   Flow Sirkulasi MCR
                 </td>
                 <td style={{ padding: '12px 14px', fontFamily: 'monospace', color: '#0284c7', fontSize: '13px' }}>
-                  H4FI001 / 4FI1
+                  H4FI001
                 </td>
                 <td style={{ padding: '8px 14px', backgroundColor: '#f8fafc' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -262,7 +287,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       value={scenario.mcr_flow_t_h}
                       onChange={(e) => onScenarioChange('mcr_flow_t_h', parseFloat(e.target.value) || 0)}
                       style={{
-                        width: '110px',
+                        width: '100px',
                         padding: '6px 10px',
                         border: scenario.mcr_flow_t_h < 480 ? '2px solid #ef4444' : '1px solid #cbd5e1',
                         borderRadius: '6px',
@@ -272,30 +297,62 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       }}
                     />
                     {scenario.mcr_flow_t_h < 480 && (
-                      <span style={{ fontSize: '11px', color: '#ef4444', fontWeight: 700 }}>
-                        ⚠️ Di bawah Surge Floor 480 t/h!
+                      <span style={{
+                        backgroundColor: '#fee2e2',
+                        color: '#b91c1c',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                      }}>
+                        Batas Minimum 480
                       </span>
                     )}
                   </div>
                 </td>
                 <td style={{ padding: '12px 14px', backgroundColor: '#ecfdf5', fontWeight: 700, color: '#047857' }}>
-                  {recMcrFlow.toFixed(1)} <span style={{ fontSize: '12px', fontWeight: 500, color: '#065f46' }}>({recMcrFlow < scenario.mcr_flow_t_h ? `↓ Hemat ${(scenario.mcr_flow_t_h - recMcrFlow).toFixed(1)} t/h` : 'Optimal'})</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>{recMcrFlow.toFixed(1)}</span>
+                    {recMcrFlow < scenario.mcr_flow_t_h ? (
+                      <span style={{
+                        backgroundColor: '#dcfce7',
+                        color: '#15803d',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                      }}>
+                        Hemat {(scenario.mcr_flow_t_h - recMcrFlow).toFixed(1)} t/h
+                      </span>
+                    ) : (
+                      <span style={{
+                        backgroundColor: '#e2e8f0',
+                        color: '#475569',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                      }}>
+                        Optimal
+                      </span>
+                    )}
+                  </div>
                 </td>
-                <td style={{ padding: '12px 14px', color: '#64748b', fontWeight: 500 }}>
+                <td style={{ padding: '12px 14px', color: '#64748b', fontWeight: 600 }}>
                   t/h
                 </td>
               </tr>
 
               {/* Rows 3-7: MCR Compositions */}
               {[
-                { name: 'Komposisi MCR: Nitrogen (N₂)', key: 'comp_N2_molpct' as const, rec: recN2, tag: 'comp_4C-8_N2' },
-                { name: 'Komposisi MCR: Metana (CH₄ / C₁)', key: 'comp_C1_molpct' as const, rec: recC1, tag: 'comp_4C-8_C1' },
-                { name: 'Komposisi MCR: Etana (C₂H₆ / C₂)', key: 'comp_C2_molpct' as const, rec: recC2, tag: 'comp_4C-8_C2' },
-                { name: 'Komposisi MCR: Etilena (C₂H₄)', key: 'comp_C2H4_molpct' as const, rec: recC2H4, tag: 'comp_4C-8_C2H4' },
-                { name: 'Komposisi MCR: Propana (C₃H₈ / C₃)', key: 'comp_C3_molpct' as const, rec: recC3, tag: 'comp_4C-8_C3' },
+                { name: 'Nitrogen (N₂)', key: 'comp_N2_molpct' as const, rec: recN2, tag: 'comp_N2' },
+                { name: 'Metana (CH₄ / C₁)', key: 'comp_C1_molpct' as const, rec: recC1, tag: 'comp_C1' },
+                { name: 'Etana (C₂H₆ / C₂)', key: 'comp_C2_molpct' as const, rec: recC2, tag: 'comp_C2' },
+                { name: 'Etilena (C₂H₄)', key: 'comp_C2H4_molpct' as const, rec: recC2H4, tag: 'comp_C2H4' },
+                { name: 'Propana (C₃H₈ / C₃)', key: 'comp_C3_molpct' as const, rec: recC3, tag: 'comp_C3' },
               ].map((comp, idx) => (
                 <tr key={comp.key} style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: idx % 2 === 0 ? '#ffffff' : '#fbfcfd' }}>
-                  <td style={{ padding: '10px 14px', fontWeight: 500, paddingLeft: '28px' }}>
+                  <td style={{ padding: '10px 14px', fontWeight: 500, paddingLeft: '24px' }}>
                     {comp.name}
                   </td>
                   <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#64748b', fontSize: '12px' }}>
@@ -310,7 +367,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       value={scenario[comp.key]}
                       onChange={(e) => onScenarioChange(comp.key, parseFloat(e.target.value) || 0)}
                       style={{
-                        width: '110px',
+                        width: '100px',
                         padding: '4px 8px',
                         border: '1px solid #cbd5e1',
                         borderRadius: '6px',
@@ -338,7 +395,13 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 </td>
                 <td style={{ padding: '10px 14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontWeight: 800, color: isCompositionClosed ? '#15803d' : '#b91c1c' }}>
+                    <span style={{
+                      backgroundColor: isCompositionClosed ? '#dcfce7' : '#fee2e2',
+                      color: isCompositionClosed ? '#15803d' : '#b91c1c',
+                      padding: '3px 8px',
+                      borderRadius: '6px',
+                      fontWeight: 800,
+                    }}>
                       {compSum.toFixed(2)} mol%
                     </span>
                     {!isCompositionClosed && (
@@ -355,13 +418,15 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                           cursor: 'pointer',
                         }}
                       >
-                        Auto-Normalize 100%
+                        Normalisasi 100%
                       </button>
                     )}
                   </div>
                 </td>
                 <td style={{ padding: '10px 14px', fontWeight: 800, color: '#15803d' }}>
-                  100.00 mol%
+                  <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '3px 8px', borderRadius: '6px' }}>
+                    100.00 mol%
+                  </span>
                 </td>
                 <td style={{ padding: '10px 14px', fontWeight: 700 }}>
                   mol%
@@ -405,7 +470,17 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               SECTION 2
             </span>
             <span style={{ fontSize: '16px', fontWeight: 700 }}>
-              Variabel Kunci Pengawasan Operator (Predicted DCS vs Optimized AI)
+              Variabel Kunci Pengawasan Operator
+            </span>
+            <span style={{
+              backgroundColor: '#1e293b',
+              color: '#38bdf8',
+              padding: '2px 8px',
+              borderRadius: '12px',
+              fontSize: '11px',
+              fontWeight: 700,
+            }}>
+              Kompresor 4K-2 • PDI MCHE • Suhu LNG
             </span>
           </div>
 
@@ -419,7 +494,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
             fontSize: '12px',
             fontWeight: 700,
           }}>
-            <span>{prediction?.safety_check?.all_safe ? '✓ ALL SAFETY LIMITS PASSED' : '⚠️ LIMITS EXCEEDED'}</span>
+            <span>{prediction?.safety_check?.all_safe ? '✓ PARAMETER AMAN' : '⚠️ PERHATIKAN BATASAN'}</span>
           </div>
         </div>
 
@@ -446,42 +521,58 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 borderBottom: '1px solid #cbd5e1',
                 paddingBottom: '6px',
               }}>
-                1. Kompresor MCR 4K-2 (Suction & Discharge)
+                1. Kompresor MCR 4K-2
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #e2e8f0', paddingBottom: '6px' }}>
-                  <span style={{ color: '#475569' }}>Suction Temp (H4TI004B / TI8):</span>
-                  <div style={{ textAlign: 'right' }}>
-                    <span style={{ color: '#64748b', textDecoration: 'line-through', marginRight: '6px' }}>-44.8°C</span>
-                    <strong style={{ color: '#059669' }}>
-                      {optimum?.expected_suction_temp_c ? `${optimum.expected_suction_temp_c.toFixed(1)}°C` : '-41.5°C'}
-                    </strong>
-                    <div style={{ fontSize: '10px', color: '#059669' }}>TAL Safe (≥ -45.0°C)</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed #e2e8f0', paddingBottom: '8px' }}>
+                  <span style={{ color: '#475569', fontWeight: 500 }}>Suhu Suction (4TI-4B):</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
+                      DCS -44.8°C
+                    </span>
+                    <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
+                      AI {optimum?.expected_suction_temp_c ? `${optimum.expected_suction_temp_c.toFixed(1)}°C` : '-41.5°C'}
+                    </span>
+                    <span style={{ backgroundColor: '#10b981', color: '#ffffff', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 800 }}>
+                      AMAN
+                    </span>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #e2e8f0', paddingBottom: '6px' }}>
-                  <span style={{ color: '#475569' }}>Suction Press (H4PI013 / PI9):</span>
-                  <div style={{ textAlign: 'right' }}>
-                    <span style={{ color: '#64748b', marginRight: '6px' }}>2.28 kg/cm²g</span>
-                    <strong style={{ color: '#0f172a' }}>2.35 kg/cm²g</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed #e2e8f0', paddingBottom: '8px' }}>
+                  <span style={{ color: '#475569', fontWeight: 500 }}>Tekanan Suction (4PI-13):</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
+                      DCS 2.28
+                    </span>
+                    <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
+                      AI 2.35 kg/cm²
+                    </span>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #e2e8f0', paddingBottom: '6px' }}>
-                  <span style={{ color: '#475569' }}>Discharge Temp (H4TI016 / TI47):</span>
-                  <div style={{ textAlign: 'right' }}>
-                    <span style={{ color: '#64748b', marginRight: '6px' }}>62.4°C</span>
-                    <strong style={{ color: '#059669' }}>58.1°C</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed #e2e8f0', paddingBottom: '8px' }}>
+                  <span style={{ color: '#475569', fontWeight: 500 }}>Suhu Discharge (4TI-16):</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
+                      DCS 62.4°C
+                    </span>
+                    <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
+                      AI 58.1°C
+                    </span>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#475569' }}>Discharge Press (H4PI001 / PI1):</span>
-                  <div style={{ textAlign: 'right' }}>
-                    <span style={{ color: '#64748b', marginRight: '6px' }}>36.90 kg/cm²g</span>
-                    <strong style={{ color: '#0f172a' }}>35.15 kg/cm²g</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#475569', fontWeight: 500 }}>Tekanan Discharge (4PI-1):</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
+                      DCS 36.90
+                    </span>
+                    <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
+                      AI 35.15 kg/cm²
+                    </span>
                   </div>
                 </div>
               </div>
@@ -504,42 +595,52 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 borderBottom: '1px solid #cbd5e1',
                 paddingBottom: '6px',
               }}>
-                2. Diferensial Tekanan MCHE 5E-1 (PDI)
+                2. Beda Tekan MCHE 5E-1 (PDI)
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #e2e8f0', paddingBottom: '6px' }}>
-                  <span style={{ color: '#475569' }}>Cold Bundle PDI (PDI4):</span>
-                  <div style={{ textAlign: 'right' }}>
-                    <span style={{ color: '#64748b', marginRight: '6px' }}>0.067</span>
-                    <strong style={{ color: '#059669' }}>0.062 kg/cm²g</strong>
-                    <div style={{ fontSize: '10px', color: '#059669' }}>Normal (&lt; 0.100)</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed #e2e8f0', paddingBottom: '8px' }}>
+                  <span style={{ color: '#475569', fontWeight: 500 }}>Cold Bundle (PDI4):</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
+                      DCS 0.067
+                    </span>
+                    <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
+                      AI 0.062
+                    </span>
+                    <span style={{ backgroundColor: '#10b981', color: '#ffffff', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 800 }}>
+                      NORMAL
+                    </span>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #e2e8f0', paddingBottom: '6px' }}>
-                  <span style={{ color: '#475569' }}>Warm Bundle PDI (PDI3/PDI25):</span>
-                  <div style={{ textAlign: 'right' }}>
-                    <span style={{ color: '#64748b', marginRight: '6px' }}>0.240</span>
-                    <strong style={{ color: '#059669' }}>0.215 kg/cm²g</strong>
-                    <div style={{ fontSize: '10px', color: '#059669' }}>Normal (&lt; 0.350)</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed #e2e8f0', paddingBottom: '8px' }}>
+                  <span style={{ color: '#475569', fontWeight: 500 }}>Warm Bundle (PDI3):</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
+                      DCS 0.240
+                    </span>
+                    <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
+                      AI 0.215
+                    </span>
+                    <span style={{ backgroundColor: '#10b981', color: '#ffffff', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 800 }}>
+                      NORMAL
+                    </span>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #e2e8f0', paddingBottom: '6px' }}>
-                  <span style={{ color: '#475569' }}>Cold Separator Level (LI2):</span>
-                  <div style={{ textAlign: 'right' }}>
-                    <strong style={{ color: '#0f172a' }}>39.0 %</strong>
-                    <div style={{ fontSize: '10px', color: '#64748b' }}>Normal Operating</div>
-                  </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed #e2e8f0', paddingBottom: '8px' }}>
+                  <span style={{ color: '#475569', fontWeight: 500 }}>Level Cold Separator (LI2):</span>
+                  <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '3px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 800 }}>
+                    39.0 %
+                  </span>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#475569' }}>Warm Separator Level (LI3):</span>
-                  <div style={{ textAlign: 'right' }}>
-                    <strong style={{ color: '#0f172a' }}>48.5 %</strong>
-                    <div style={{ fontSize: '10px', color: '#64748b' }}>Normal Operating</div>
-                  </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#475569', fontWeight: 500 }}>Level Warm Separator (LI3):</span>
+                  <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '3px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 800 }}>
+                    48.5 %
+                  </span>
                 </div>
               </div>
             </div>
@@ -561,40 +662,53 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 borderBottom: '1px solid #cbd5e1',
                 paddingBottom: '6px',
               }}>
-                3. Temperatur Outlet LNG & Cold End
+                3. Suhu Outlet LNG
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #e2e8f0', paddingBottom: '6px' }}>
-                  <span style={{ color: '#475569' }}>Temp Outlet LNG (TIC1A/B):</span>
-                  <div style={{ textAlign: 'right' }}>
-                    <span style={{ color: '#64748b', marginRight: '6px' }}>-151.2°C</span>
-                    <strong style={{ color: '#059669' }}>-152.0°C</strong>
-                    <div style={{ fontSize: '10px', color: '#059669' }}>Subcooled Target Met</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed #e2e8f0', paddingBottom: '8px' }}>
+                  <span style={{ color: '#475569', fontWeight: 500 }}>Suhu Outlet LNG (TIC1):</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
+                      DCS -151.2°C
+                    </span>
+                    <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
+                      AI -152.0°C
+                    </span>
+                    <span style={{ backgroundColor: '#10b981', color: '#ffffff', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 800 }}>
+                      TARGET
+                    </span>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #e2e8f0', paddingBottom: '6px' }}>
-                  <span style={{ color: '#475569' }}>Temp Rundown Line (TI29):</span>
-                  <div style={{ textAlign: 'right' }}>
-                    <span style={{ color: '#64748b', marginRight: '6px' }}>-153.6°C</span>
-                    <strong style={{ color: '#0f172a' }}>-153.8°C</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed #e2e8f0', paddingBottom: '8px' }}>
+                  <span style={{ color: '#475569', fontWeight: 500 }}>Suhu Rundown (TI29):</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
+                      DCS -153.6°C
+                    </span>
+                    <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
+                      AI -153.8°C
+                    </span>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #e2e8f0', paddingBottom: '6px' }}>
-                  <span style={{ color: '#475569' }}>Produksi LNG Rundown (H5FI6A):</span>
-                  <div style={{ textAlign: 'right' }}>
-                    <strong style={{ color: '#0f172a' }}>{scenarioLngFlow.toFixed(1)} t/h</strong>
-                    <div style={{ fontSize: '10px', color: '#64748b' }}>Coupled yield 94.50%</div>
-                  </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed #e2e8f0', paddingBottom: '8px' }}>
+                  <span style={{ color: '#475569', fontWeight: 500 }}>Produksi LNG (H5FI6A):</span>
+                  <span style={{ backgroundColor: '#f1f5f9', color: '#0f172a', padding: '3px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 800 }}>
+                    {scenarioLngFlow.toFixed(1)} t/h
+                  </span>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#475569' }}>Bottom MCR Outlet (TI8):</span>
-                  <div style={{ textAlign: 'right' }}>
-                    <span style={{ color: '#64748b', marginRight: '6px' }}>-44.8°C</span>
-                    <strong style={{ color: '#059669' }}>-43.5°C</strong>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#475569', fontWeight: 500 }}>Suhu Bawah MCHE (TI8):</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
+                      DCS -44.8°C
+                    </span>
+                    <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
+                      AI -43.5°C
+                    </span>
                   </div>
                 </div>
               </div>
@@ -636,12 +750,29 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               SECTION 3
             </span>
             <span style={{ fontSize: '16px', fontWeight: 700 }}>
-              Ringkasan Penghematan Energi & Utilitas Kilang (Value Creation)
+              Ringkasan Nilai Penghematan
+            </span>
+            <span style={{
+              backgroundColor: '#047857',
+              color: '#a7f3d0',
+              padding: '2px 8px',
+              borderRadius: '12px',
+              fontSize: '11px',
+              fontWeight: 700,
+            }}>
+              Energi & Utilitas
             </span>
           </div>
 
-          <div style={{ fontSize: '13px', color: '#a7f3d0' }}>
-            Basis Operasi: 8.000 Jam/Tahun • Benchmark DCS Badak LNG Plant-3
+          <div style={{
+            backgroundColor: '#047857',
+            color: '#a7f3d0',
+            padding: '3px 10px',
+            borderRadius: '12px',
+            fontSize: '12px',
+            fontWeight: 600,
+          }}>
+            Evaluasi Skenario
           </div>
         </div>
 
@@ -663,20 +794,42 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
             }}>
               <div>
                 <div style={{ fontSize: '12px', fontWeight: 700, color: '#166534', textTransform: 'uppercase' }}>
-                  1. Penghematan SEC LNG
+                  1. Efisiensi Spesifik (SEC)
                 </div>
-                <div style={{ fontSize: '28px', fontWeight: 800, color: '#15803d', margin: '8px 0 4px 0' }}>
-                  {deltaSecLng < 0 ? `${deltaSecLng.toFixed(1)}` : '0.0'}
-                  <span style={{ fontSize: '14px', fontWeight: 600, marginLeft: '4px', color: '#166534' }}>
+                <div style={{ fontSize: '30px', fontWeight: 800, color: '#15803d', margin: '8px 0 6px 0' }}>
+                  {deltaSecLng < 0 ? Math.abs(deltaSecLng).toFixed(1) : '0.0'}
+                  <span style={{ fontSize: '14px', fontWeight: 600, marginLeft: '6px', color: '#166534' }}>
                     kWh/t
                   </span>
                 </div>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#15803d' }}>
-                  {deltaSecLngPct < 0 ? `↓ ${Math.abs(deltaSecLngPct).toFixed(2)}% Efisiensi Spesifik` : 'Optimal Baseline'}
+                <div>
+                  <span style={{
+                    backgroundColor: '#bbf7d0',
+                    color: '#166534',
+                    padding: '3px 8px',
+                    borderRadius: '12px',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                  }}>
+                    {deltaSecLngPct < 0 ? `HEMAT ${Math.abs(deltaSecLngPct).toFixed(1)}%` : 'OPTIMAL'}
+                  </span>
                 </div>
               </div>
-              <div style={{ marginTop: '14px', paddingTop: '10px', borderTop: '1px solid #bbf7d0', fontSize: '12px', color: '#475569' }}>
-                Baseline: <strong>{baselineSecLng.toFixed(1)}</strong> → Skenario: <strong>{scenarioSecLng.toFixed(1)} kWh/t</strong>
+              <div style={{
+                marginTop: '14px',
+                paddingTop: '10px',
+                borderTop: '1px solid #bbf7d0',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '6px',
+              }}>
+                <span style={{ backgroundColor: '#e2e8f0', color: '#334155', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+                  DCS: {baselineSecLng.toFixed(1)}
+                </span>
+                <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
+                  AI: {scenarioSecLng.toFixed(1)} kWh/t
+                </span>
               </div>
             </div>
 
@@ -692,20 +845,41 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
             }}>
               <div>
                 <div style={{ fontSize: '12px', fontWeight: 700, color: '#166534', textTransform: 'uppercase' }}>
-                  2. Penghematan Steam (LP & MP)
+                  2. Penghematan Steam
                 </div>
-                <div style={{ fontSize: '28px', fontWeight: 800, color: '#15803d', margin: '8px 0 4px 0' }}>
-                  {deltaPowerSavingMw > 0 ? `-${steamSaved_t_h.toFixed(1)}` : '0.0'}
-                  <span style={{ fontSize: '14px', fontWeight: 600, marginLeft: '4px', color: '#166534' }}>
-                    t/h Steam
+                <div style={{ fontSize: '30px', fontWeight: 800, color: '#15803d', margin: '8px 0 6px 0' }}>
+                  {deltaPowerSavingMw > 0 ? steamSaved_t_h.toFixed(1) : '0.0'}
+                  <span style={{ fontSize: '14px', fontWeight: 600, marginLeft: '6px', color: '#166534' }}>
+                    t/jam
                   </span>
                 </div>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#15803d' }}>
-                  {deltaPowerSavingMw > 0 ? `↓ ${(deltaPowerSavingMw * 4.04).toFixed(1)} t/jam Pengurangan Beban` : 'Baseline Anchor'}
+                <div>
+                  <span style={{
+                    backgroundColor: '#bbf7d0',
+                    color: '#166534',
+                    padding: '3px 8px',
+                    borderRadius: '12px',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                  }}>
+                    BEBAN BOILER TURUN
+                  </span>
                 </div>
               </div>
-              <div style={{ marginTop: '14px', paddingTop: '10px', borderTop: '1px solid #bbf7d0', fontSize: '12px', color: '#475569' }}>
-                Anchor: <strong>4.04 t steam / MWh</strong> (Stage 08 Condensate)
+              <div style={{
+                marginTop: '14px',
+                paddingTop: '10px',
+                borderTop: '1px solid #bbf7d0',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}>
+                <span style={{ backgroundColor: '#e2e8f0', color: '#334155', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+                  Steam Utilitas
+                </span>
+                <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
+                  Lebih Efisien
+                </span>
               </div>
             </div>
 
@@ -721,20 +895,41 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
             }}>
               <div>
                 <div style={{ fontSize: '12px', fontWeight: 700, color: '#166534', textTransform: 'uppercase' }}>
-                  3. Penghematan Fuel Gas Turbin
+                  3. Penghematan Fuel Gas
                 </div>
-                <div style={{ fontSize: '28px', fontWeight: 800, color: '#15803d', margin: '8px 0 4px 0' }}>
-                  {deltaPowerSavingMw > 0 ? `-${fuelGasSaved_t_h.toFixed(1)}` : '0.0'}
-                  <span style={{ fontSize: '14px', fontWeight: 600, marginLeft: '4px', color: '#166534' }}>
-                    t/h Fuel
+                <div style={{ fontSize: '30px', fontWeight: 800, color: '#15803d', margin: '8px 0 6px 0' }}>
+                  {deltaPowerSavingMw > 0 ? fuelGasSaved_t_h.toFixed(1) : '0.0'}
+                  <span style={{ fontSize: '14px', fontWeight: 600, marginLeft: '6px', color: '#166534' }}>
+                    t/jam
                   </span>
                 </div>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#047857' }}>
-                  {deltaPowerSavingMw > 0 ? `≈ USD ${fuelGasSaved_usd_yr.toFixed(2)} Juta / Tahun` : 'Baseline Normal'}
+                <div>
+                  <span style={{
+                    backgroundColor: '#fef3c7',
+                    color: '#92400e',
+                    padding: '3px 8px',
+                    borderRadius: '12px',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                  }}>
+                    USD {fuelGasSaved_usd_yr.toFixed(2)} JUTA / TAHUN
+                  </span>
                 </div>
               </div>
-              <div style={{ marginTop: '14px', paddingTop: '10px', borderTop: '1px solid #bbf7d0', fontSize: '12px', color: '#475569' }}>
-                Anchor: <strong>97.7 Nm³ FG / t steam</strong> (Modul 8 DCS)
+              <div style={{
+                marginTop: '14px',
+                paddingTop: '10px',
+                borderTop: '1px solid #bbf7d0',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}>
+                <span style={{ backgroundColor: '#e2e8f0', color: '#334155', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+                  Fuel Turbin
+                </span>
+                <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
+                  Emisi Berkurang
+                </span>
               </div>
             </div>
 
@@ -750,20 +945,42 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
             }}>
               <div>
                 <div style={{ fontSize: '12px', fontWeight: 700, color: '#166534', textTransform: 'uppercase' }}>
-                  4. Total Daya Poros C3MR
+                  4. Daya Poros Total
                 </div>
-                <div style={{ fontSize: '28px', fontWeight: 800, color: '#15803d', margin: '8px 0 4px 0' }}>
-                  {deltaPower < 0 ? `${deltaPower.toFixed(2)}` : '0.00'}
-                  <span style={{ fontSize: '14px', fontWeight: 600, marginLeft: '4px', color: '#166534' }}>
+                <div style={{ fontSize: '30px', fontWeight: 800, color: '#15803d', margin: '8px 0 6px 0' }}>
+                  {deltaPowerSavingMw > 0 ? deltaPowerSavingMw.toFixed(2) : '0.00'}
+                  <span style={{ fontSize: '14px', fontWeight: 600, marginLeft: '6px', color: '#166534' }}>
                     MW
                   </span>
                 </div>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#15803d' }}>
-                  {deltaPowerPct < 0 ? `↓ ${Math.abs(deltaPowerPct).toFixed(2)}% Total Train Power` : 'Baseline Power'}
+                <div>
+                  <span style={{
+                    backgroundColor: '#bbf7d0',
+                    color: '#166534',
+                    padding: '3px 8px',
+                    borderRadius: '12px',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                  }}>
+                    {deltaPowerPct < 0 ? `HEMAT ${Math.abs(deltaPowerPct).toFixed(1)}%` : 'BASELINE'}
+                  </span>
                 </div>
               </div>
-              <div style={{ marginTop: '14px', paddingTop: '10px', borderTop: '1px solid #bbf7d0', fontSize: '12px', color: '#475569' }}>
-                Baseline: <strong>{baselinePower.toFixed(2)} MW</strong> → Skenario: <strong>{scenarioPower.toFixed(2)} MW</strong>
+              <div style={{
+                marginTop: '14px',
+                paddingTop: '10px',
+                borderTop: '1px solid #bbf7d0',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '6px',
+              }}>
+                <span style={{ backgroundColor: '#e2e8f0', color: '#334155', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+                  DCS: {baselinePower.toFixed(1)} MW
+                </span>
+                <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
+                  AI: {scenarioPower.toFixed(1)} MW
+                </span>
               </div>
             </div>
           </div>
