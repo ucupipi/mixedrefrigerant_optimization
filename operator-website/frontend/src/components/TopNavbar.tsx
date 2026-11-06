@@ -19,7 +19,7 @@ interface Author {
 const AUTHORS: Author[] = [
   {
     name: 'Mukhammad Yusuf Iqbal',
-    role: 'Process Simulation & Optimization (Lead)',
+    role: 'Gas Processing & Process Optimization (Lead)',
     institution: 'LNG Academy / PT Badak NGL',
     linkedin: 'https://www.linkedin.com/in/mukhyusufiqbal/',
     photo: '/authors/yusuf.jpg',
@@ -27,7 +27,7 @@ const AUTHORS: Author[] = [
   },
   {
     name: 'Afdal Elang Arifin',
-    role: 'Process Simulation & Thermodynamic Modeling',
+    role: 'Gas Processing & Thermodynamic Simulation',
     institution: 'LNG Academy / PT Badak NGL',
     linkedin: 'https://www.linkedin.com/in/afdal-elang-arifin-623418371/',
     photo: '/authors/afdal.jpg',
@@ -35,7 +35,7 @@ const AUTHORS: Author[] = [
   },
   {
     name: 'Dewi Putri Rahmawati',
-    role: 'Process Safety & Operational Interlocks',
+    role: 'Gas Processing & Operational Process Safety',
     institution: 'LNG Academy / PT Badak NGL',
     linkedin: 'https://www.linkedin.com/in/dewi-putri-rahmawati-1430792b4/',
     photo: '/authors/dewi.jpeg',
@@ -43,7 +43,7 @@ const AUTHORS: Author[] = [
   },
   {
     name: 'Hizkia Dhiego Gurning',
-    role: 'Instrumentation & Advanced Process Control',
+    role: 'Gas Processing & Process Control Engineering',
     institution: 'LNG Academy / PT Badak NGL',
     linkedin: 'https://www.linkedin.com/in/hizkia-dhiego-gurning-a583b01ab/',
     photo: '/authors/gurning.jpg',
@@ -51,7 +51,7 @@ const AUTHORS: Author[] = [
   },
   {
     name: 'Bilqiis Dara Ramadhan Sasongko',
-    role: 'Energy Efficiency & Decarbonization Analysis',
+    role: 'Mechanical & Rotating Equipment Analysis',
     institution: 'LNG Academy / PT Badak NGL',
     linkedin: 'https://www.linkedin.com/in/bilqiis-sasongko-673a5a349/',
     photo: '/authors/bilqiis.jpeg',
