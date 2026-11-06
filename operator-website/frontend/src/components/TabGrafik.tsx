@@ -55,6 +55,10 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
     ?? flashAi.lngLiquidFlowTH;
   const lngFlow = displayMode === 'DCS_ACTUAL' ? lngFlowDcs : lngFlowAi;
 
+  // Flash Drum 5C-1 vapor (EFG) calculations
+  const flashVapDcs = Math.max(0, feedFlowDcs - lngFlowDcs);
+  const flashVapAi = prediction?.flash_drum_5c1?.efg_gas_flow_t_h ?? flashAi.efgGasFlowTH;
+
   const mcrFlowDcs = actualDcs?.mcr_flow_t_h ?? 505.3;
   const mcrFlowAi = optimum?.mcr_flow_t_h ?? scenario.mcr_flow_t_h;
   const mcrFlow = displayMode === 'DCS_ACTUAL' ? mcrFlowDcs : mcrFlowAi;
@@ -165,6 +169,9 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
 
   const li1Dcs = 7.0;     // H5LI0001: 5C-1 SEP Level % (5LI1)
   const li1Ai = 7.0;
+
+  const lic7Dcs = 52.0;   // H5LIC007: 5C-2 MCR Separator Level %
+  const lic7Ai = 50.0;
 
   // Pressures
   const pi9Dcs = 2.284;
@@ -389,6 +396,71 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           </text>
 
           {/* =============================================================== */}
+          {/* VESSEL 5C-2: MCR HIGH-PRESSURE PHASE SEPARATOR (PER image38)      */}
+          {/* Vertical Separator at x=65->121, y=575->720 (Zero Overlap)        */}
+          {/* =============================================================== */}
+          <g id="vessel-5c2">
+            {/* Precooled MCR Inflow into 5C-2 from chillers (dashed line) */}
+            <line x1="25" y1="645" x2="65" y2="645" stroke="#0284c7" strokeWidth="2" strokeDasharray="3 3" />
+            <text x="25" y="638" fill="#38bdf8" fontSize="9.5" fontWeight="bold">MCR IN</text>
+
+            {/* Vessel 5C-2 Body (per image38: vertical separator drum with hemispherical heads) */}
+            <path
+              d="
+                M 65,585
+                A 28,20 0 0,1 121,585
+                L 121,710
+                A 28,20 0 0,1 65,710
+                Z
+              "
+              fill="#06101e"
+              stroke="#00ff00"
+              strokeWidth="2.5"
+            />
+            
+            {/* Liquid level fill inside 5C-2 */}
+            <path
+              d="
+                M 66,645
+                L 120,645
+                L 120,709
+                A 27,19 0 0,1 66,709
+                Z
+              "
+              fill="#0284c7"
+              opacity="0.45"
+            />
+            {/* Liquid level surface line */}
+            <line x1="66" y1="645" x2="120" y2="645" stroke="#38bdf8" strokeWidth="1.5" />
+
+            <text x="93" y="605" fill="#00ff00" fontSize="13" fontWeight="bold" textAnchor="middle">5C-2</text>
+            <text x="93" y="618" fill="#94a3b8" fontSize="8.5" textAnchor="middle">MCR SEP</text>
+
+            {/* Tag H5LIC007: Level Controller 5C-2 */}
+            <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
+              tag: 'H5LIC007',
+              name: '5C-2 MCR High-Pressure Separator Level Controller',
+              unit: '%',
+              valDcs: lic7Dcs.toFixed(1),
+              valAi: lic7Ai.toFixed(1),
+              limit: 'Normal 40.0 - 65.0 %'
+            })}>
+              <text x="93" y="682" fill="#00ffff" fontSize="10.5" textAnchor="middle" fontWeight="bold">H5LIC007</text>
+              <text x="93" y="698" fill={fmt('H5LIC007', lic7Dcs, lic7Ai, 1).color} fontSize="12" textAnchor="middle" fontWeight="bold">
+                {fmt('H5LIC007', lic7Dcs, lic7Ai, 1).display} <tspan fill="#00ffff" fontSize="8.5">%</tspan>
+              </text>
+            </g>
+
+            {/* Top Vapor Outlet from 5C-2 to MR VAP Line (y=560) */}
+            <line x1="93" y1="565" x2="93" y2="560" stroke="#ffff00" strokeWidth="2.5" />
+            <line x1="93" y1="560" x2="185" y2="560" stroke="#ffff00" strokeWidth="2.5" />
+
+            {/* Bottom Liquid Outlet from 5C-2 to MR LIQ Line (y=812) */}
+            <line x1="93" y1="730" x2="93" y2="812" stroke="#e69138" strokeWidth="2.5" />
+            <line x1="93" y1="812" x2="385" y2="812" stroke="#e69138" strokeWidth="2.5" />
+          </g>
+
+          {/* =============================================================== */}
           {/* MAIN VESSEL: MCHE 5E-1 (STEPPED SWAGE GEOMETRY PER DCS image56) */}
           {/* Shell outline: x=794->915 (Cold), swage to 755->954 (Warm)     */}
           {/* =============================================================== */}
@@ -485,6 +557,11 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           <line x1="934" y1="520" x2="894" y2="440" stroke="#ffff00" strokeWidth="1.8" strokeDasharray="4 3" />
           <line x1="894" y1="440" x2="894" y2="337" stroke="#ffff00" strokeWidth="1.8" strokeDasharray="4 3" />
 
+          {/* MR Liquid internal riser (Orange) connecting from bottom inlet at y=812 up to FV-2 JT valve at y=589 */}
+          <line x1="755" y1="812" x2="775" y2="812" stroke="#e69138" strokeWidth="2" />
+          <line x1="775" y1="812" x2="775" y2="589" stroke="#e69138" strokeWidth="1.8" strokeDasharray="4 3" />
+          <line x1="775" y1="589" x2="954" y2="589" stroke="#e69138" strokeWidth="1.8" strokeDasharray="4 3" />
+
           {/* =============================================================== */}
           {/* STREAM 7: OVERHEAD OFF-GAS TO LTSS (WHITE LINE y=226)           */}
           {/* =============================================================== */}
@@ -570,7 +647,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           {/* STREAM 3: MR VAPOR INLET (YELLOW LINE y=560 -> x=458 -> y=784)   */}
           {/* =============================================================== */}
           <text x="192" y="554" fill="#ffff00" fontSize="13" fontWeight="bold">MR VAP</text>
-          <line x1="272" y1="560" x2="458" y2="560" stroke="#ffff00" strokeWidth="2.5" />
+          <line x1="185" y1="560" x2="458" y2="560" stroke="#ffff00" strokeWidth="2.5" />
           <line x1="458" y1="560" x2="458" y2="784" stroke="#ffff00" strokeWidth="2.5" />
           <polygon points="454,720 458,730 462,720" fill="#ffff00" />
           <line x1="458" y1="784" x2="755" y2="784" stroke="#ffff00" strokeWidth="2.5" markerEnd="url(#arrow-yellow)" />
@@ -599,14 +676,6 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             </text>
           </g>
 
-          {/* 5C-1/5LI1: Level Separator at x=315, y=646 */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5LI0001', name: '5C-1 Flash Drum Separator Level % (5LI1)', unit: '%', valDcs: li1Dcs.toFixed(1), valAi: li1Ai.toFixed(1) })}>
-            <text x="315" y="646" fill="#00ffff" fontSize="11" fontWeight="bold">5C-1/5LI1</text>
-            <text x="315" y="663" fill={fmt('LI1', li1Dcs, li1Ai, 1).color} fontSize="14" fontWeight="bold">
-              {fmt('LI1', li1Dcs, li1Ai, 1).display} <tspan fill="#00ffff" fontSize="10">%</tspan>
-            </text>
-          </g>
-
           {/* TI47: Suhu MCR Masuk at x=350, y=699 */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0047', name: 'MCR Vapor Inlet Temperature (Coupled with FI1)', unit: '°C', valDcs: ti47Dcs.toFixed(1), valAi: ti47Ai.toFixed(1) })}>
             <text x="350" y="699" fill="#00ffff" fontSize="11" fontWeight="bold">TI47</text>
@@ -619,7 +688,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           {/* STREAM 4: MR LIQUID INLET (ORANGE LINE y=812)                   */}
           {/* =============================================================== */}
           <text x="394" y="800" fill="#e69138" fontSize="13" fontWeight="bold">MR LIQ</text>
-          <line x1="480" y1="812" x2="755" y2="812" stroke="#e69138" strokeWidth="2.5" markerEnd="url(#arrow-orange)" />
+          <line x1="385" y1="812" x2="755" y2="812" stroke="#e69138" strokeWidth="2.5" markerEnd="url(#arrow-orange)" />
 
           {/* PDI25 Differential Pressure Readout at x=243, y=749 */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
@@ -908,18 +977,6 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             </text>
           </g>
 
-          {/* HIC51 Tag at x=1402, y=544 */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
-            tag: 'HIC51',
-            name: 'MCR Liquid Warm Bundle Injection Valve (HIC51)',
-            unit: '%',
-            valDcs: '0.000',
-            valAi: '0.000'
-          })}>
-            <text x="1402" y="544" fill="#00ffff" fontSize="11" fontWeight="bold">HIC51</text>
-            <text x="1402" y="562" fill="#ffffff" fontSize="13" fontWeight="bold">0.000%</text>
-          </g>
-
           {/* FIC2: MCR Liquid Flow at x=1282, y=614 */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'H5FIC002',
@@ -948,21 +1005,9 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             </text>
           </g>
 
-          {/* FALFI6B Low Flow Alarm Tag at x=1474, y=675 */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
-            tag: 'FALFI6B',
-            name: 'LNG Rundown Low Flow Alarm Indicator (FALFI6B)',
-            unit: 'm³/h',
-            valDcs: '0',
-            valAi: '0'
-          })}>
-            <text x="1474" y="675" fill="#00ffff" fontSize="11" fontWeight="bold">FALFI6B</text>
-            <text x="1474" y="693" fill="#ffffff" fontSize="13" fontWeight="bold">0 <tspan fill="#00ffff" fontSize="9">m³/h</tspan></text>
-          </g>
-
           {/* =============================================================== */}
-          {/* STREAM 2: LNG RUNDOWN MANIFOLD HEADER (MAGENTA PER image56)      */}
-          {/* Top pipe: y=253 -> x=1487, vertical manifold, 3 clean branches   */}
+          {/* STREAM 2: LNG RUNDOWN TO 5C-1 (MAGENTA PER DCS image56 & image58) */}
+          {/* Clean dedicated single line through TV1A into Flash Drum 5C-1    */}
           {/* =============================================================== */}
           <line x1="814" y1="253" x2="1487" y2="253" stroke="#e879f9" strokeWidth="2.5" />
           
@@ -996,15 +1041,14 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             </text>
           </g>
 
-          {/* Vertical Manifold Line from y=253 to y=616 at x=1487 */}
-          <line x1="1487" y1="253" x2="1487" y2="616" stroke="#e879f9" strokeWidth="2.5" />
+          {/* Vertical Drop to TV1A Elevation (y=393) */}
+          <line x1="1487" y1="253" x2="1487" y2="393" stroke="#e879f9" strokeWidth="2.5" />
+          <line x1="1487" y1="393" x2="1685" y2="393" stroke="#e879f9" strokeWidth="2.5" markerEnd="url(#arrow-magenta)" />
 
-          {/* --- Branch 1 (y=393): To Vessel 5C-2 --- */}
-          <line x1="1487" y1="393" x2="1670" y2="393" stroke="#e879f9" strokeWidth="2.5" markerEnd="url(#arrow-magenta)" />
-          {/* Diaphragm Control Valve TV1A at x=1568, y=393 */}
+          {/* Diaphragm Letdown Control Valve TV1A at x=1568, y=393 */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
             tag: 'TV1A',
-            name: 'LNG Rundown Letdown Valve ke Vessel 5C-2',
+            name: 'LNG Rundown Letdown Valve ke Vessel 5C-1',
             unit: '% / t/h',
             valDcs: `${lngFlowDcs.toFixed(1)} t/h`,
             valAi: `${lngFlowAi.toFixed(1)} t/h`
@@ -1013,58 +1057,100 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             <line x1="1568" y1="385" x2="1568" y2="375" stroke="#d946ef" strokeWidth="1.5" />
             <path d="M 1556,375 A 12,12 0 0,1 1580,375 Z" fill="#d946ef" stroke="#ffffff" strokeWidth="1" />
             <text x="1568" y="365" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">TV1A</text>
-            <text x="1680" y="398" fill="#bef264" fontSize="14" fontWeight="bold">5C-2</text>
           </g>
 
-          {/* --- Branch 2 (y=476): Bypass with HIC6 --- */}
-          <line x1="1487" y1="476" x2="1607" y2="476" stroke="#e879f9" strokeWidth="2.5" />
-          <line x1="1607" y1="476" x2="1607" y2="616" stroke="#e879f9" strokeWidth="2.5" />
-          {/* Manual Valve HIC6 at x=1606, y=476 */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
-            tag: 'HIC6',
-            name: 'LNG Rundown Manual Bypass Valve (HIC6)',
-            unit: '%',
-            valDcs: '0.0',
-            valAi: '0.0'
-          })}>
-            <path d="M 1594,468 L 1618,484 L 1618,468 L 1594,484 Z" fill="#d946ef" stroke="#ffffff" strokeWidth="1" />
-            <line x1="1606" y1="468" x2="1606" y2="458" stroke="#d946ef" strokeWidth="1.5" />
-            <rect x="1596" y="452" width="20" height="6" fill="#d946ef" stroke="#ffffff" strokeWidth="0.8" />
-            <text x="1606" y="446" fill="#00ffff" fontSize="10" textAnchor="middle">HIC6</text>
-            <text x="1606" y="500" fill="#ffffff" fontSize="10" textAnchor="middle">0.0%</text>
-          </g>
+          {/* =============================================================== */}
+          {/* VESSEL 5C-1: LNG FLASH DRUM (AUTHENTIC DCS image58 GEOMETRY)     */}
+          {/* Vertical Flash Drum with Hemispherical Heads at x=1685->1741    */}
+          {/* =============================================================== */}
+          <g id="vessel-5c1">
+            {/* Vessel 5C-1 Body (per image58: vertical drum with hemispherical heads) */}
+            <path
+              d="
+                M 1685,350
+                A 28,20 0 0,1 1741,350
+                L 1741,475
+                A 28,20 0 0,1 1685,475
+                Z
+              "
+              fill="#06101e"
+              stroke="#00ff00"
+              strokeWidth="2.5"
+            />
 
-          {/* --- Branch 3 (y=616): To LNG Storage & Pump Bypass --- */}
-          <line x1="1487" y1="616" x2="1675" y2="616" stroke="#e879f9" strokeWidth="2.5" markerEnd="url(#arrow-magenta)" />
-          {/* Diaphragm Control Valve TV1B at x=1567, y=616 */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
-            tag: 'TV1B',
-            name: 'LNG Rundown to Storage Isolation/Control Valve (TV1B)',
-            unit: 't/h',
-            valDcs: `${lngFlowDcs.toFixed(1)} t/h`,
-            valAi: `${lngFlowAi.toFixed(1)} t/h`
-          })}>
-            <path d="M 1555,608 L 1579,624 L 1579,608 L 1555,624 Z" fill="#d946ef" stroke="#ffffff" strokeWidth="1" />
-            <line x1="1567" y1="608" x2="1567" y2="598" stroke="#d946ef" strokeWidth="1.5" />
-            <path d="M 1555,598 A 12,12 0 0,1 1579,598 Z" fill="#d946ef" stroke="#ffffff" strokeWidth="1" />
-            <text x="1567" y="588" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">TV1B</text>
-            <text x="1635" y="580" fill="#e879f9" fontSize="13" fontWeight="bold">LNG&gt; STRG</text>
-            <text x="1625" y="650" fill="#e879f9" fontSize="12" fontWeight="bold">PUMP BYPASS</text>
-          </g>
+            {/* Liquid level fill inside 5C-1 */}
+            <path
+              d="
+                M 1686,430
+                L 1740,430
+                L 1740,474
+                A 27,19 0 0,1 1686,474
+                Z
+              "
+              fill="#0284c7"
+              opacity="0.45"
+            />
+            {/* Liquid level surface line */}
+            <line x1="1686" y1="430" x2="1740" y2="430" stroke="#38bdf8" strokeWidth="1.5" />
 
-          {/* Dedicated Clean Telemetry Badge for LNG Production (FI6A) */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
-            tag: 'H5FI006A',
-            name: 'Laju Alir Produksi LNG Rundown ke Tangki Penyimpanan (LNG > STRG)',
-            unit: 't/h',
-            valDcs: lngFlowDcs.toFixed(1),
-            valAi: lngFlowAi.toFixed(1)
-          })}>
-            <rect x="1695" y="595" width="135" height="42" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
-            <text x="1762" y="611" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">FI6A (LNG Flow)</text>
-            <text x="1762" y="629" fill={fmt('FI6A', lngFlowDcs, lngFlowAi, 1).color} fontSize="14" textAnchor="middle" fontWeight="bold">
-              {fmt('FI6A', lngFlowDcs, lngFlowAi, 1).display} <tspan fill="#00ffff" fontSize="10">t/h</tspan>
-            </text>
+            <text x="1713" y="375" fill="#00ff00" fontSize="13" fontWeight="bold" textAnchor="middle">5C-1</text>
+            <text x="1713" y="388" fill="#94a3b8" fontSize="8.5" textAnchor="middle">FLASH DRUM</text>
+
+            {/* Tag 5LI1 (H5LI0001): 5C-1 Separator Level */}
+            <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
+              tag: 'H5LI0001',
+              name: '5C-1 LNG Flash Drum Liquid Level (5C-1 SEP)',
+              unit: '%',
+              valDcs: li1Dcs.toFixed(1),
+              valAi: li1Ai.toFixed(1),
+              limit: 'Normal 5.0 - 20.0 %'
+            })}>
+              <text x="1640" y="425" fill="#00ffff" fontSize="11" fontWeight="bold">5LI1</text>
+              <text x="1640" y="440" fill={fmt('LI1', li1Dcs, li1Ai, 1).color} fontSize="13" fontWeight="bold">
+                {fmt('LI1', li1Dcs, li1Ai, 1).display} <tspan fill="#00ffff" fontSize="9">%</tspan>
+              </text>
+              <line x1="1665" y1="430" x2="1685" y2="430" stroke="#0284c7" strokeWidth="1" strokeDasharray="2 2" />
+            </g>
+
+            {/* 5C-1 Top Vapor Outlet: End Flash Gas (EFG) to Fuel Gas Header */}
+            <line x1="1713" y1="330" x2="1713" y2="300" stroke="#00ffff" strokeWidth="2" />
+            <line x1="1713" y1="300" x2="1860" y2="300" stroke="#00ffff" strokeWidth="2" markerEnd="url(#arrow-cyan)" />
+            <text x="1865" y="296" fill="#38bdf8" fontSize="11" fontWeight="bold">EFG VAP (Fuel Gas)</text>
+            
+            {/* EFG Flow Telemetry Readout */}
+            <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
+              tag: '5C-1_EFG',
+              name: 'End Flash Gas Vapor Flow ke Fuel Gas Header (5C-1 Top)',
+              unit: 't/h',
+              valDcs: flashVapDcs.toFixed(1),
+              valAi: flashVapAi.toFixed(1),
+              limit: 'Normal 5.0 - 15.0 t/h'
+            })}>
+              <text x="1755" y="318" fill="#00ffff" fontSize="10.5" fontWeight="bold">EFG Flow</text>
+              <text x="1755" y="335" fill={fmt('EFG_VAP', flashVapDcs, flashVapAi, 1).color} fontSize="14" fontWeight="bold">
+                {fmt('EFG_VAP', flashVapDcs, flashVapAi, 1).display} <tspan fill="#00ffff" fontSize="9.5">t/h</tspan>
+              </text>
+            </g>
+
+            {/* 5C-1 Bottom Liquid Outlet: LNG Rundown to Storage (FI6A) */}
+            <line x1="1713" y1="495" x2="1713" y2="550" stroke="#e879f9" strokeWidth="2.5" />
+            <line x1="1713" y1="550" x2="1860" y2="550" stroke="#e879f9" strokeWidth="2.5" markerEnd="url(#arrow-magenta)" />
+            <text x="1755" y="540" fill="#e879f9" fontSize="12" fontWeight="bold">LNG &gt; STRG</text>
+
+            {/* Dedicated Telemetry Badge for LNG Production (FI6A) */}
+            <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
+              tag: 'H5FI006A',
+              name: 'Laju Alir Produksi LNG Rundown ke Tangki Penyimpanan (LNG > STRG)',
+              unit: 't/h',
+              valDcs: lngFlowDcs.toFixed(1),
+              valAi: lngFlowAi.toFixed(1)
+            })}>
+              <rect x="1750" y="555" width="135" height="40" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
+              <text x="1817" y="570" fill="#00ffff" fontSize="11" textAnchor="middle" fontWeight="bold">FI6A (LNG Flow)</text>
+              <text x="1817" y="588" fill={fmt('FI6A', lngFlowDcs, lngFlowAi, 1).color} fontSize="14" textAnchor="middle" fontWeight="bold">
+                {fmt('FI6A', lngFlowDcs, lngFlowAi, 1).display} <tspan fill="#00ffff" fontSize="10">t/h</tspan>
+              </text>
+            </g>
           </g>
 
           {/* =============================================================== */}

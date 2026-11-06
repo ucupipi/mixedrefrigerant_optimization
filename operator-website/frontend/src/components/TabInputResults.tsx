@@ -59,13 +59,16 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   // Section 3 View Switcher: 'scenario' vs 'ai_target'
   const [section3View, setSection3View] = useState<'scenario' | 'ai_target'>('scenario');
 
+  // Mobile View Switcher: 'card' vs 'table'
+  const [mobileMode, setMobileMode] = useState<'card' | 'table'>('card');
+
   // DOM Refs for responsive horizontal scrolling
   const table1Ref = useRef<HTMLDivElement>(null);
   const table2Ref = useRef<HTMLDivElement>(null);
 
   const scrollTable = (ref: React.RefObject<HTMLDivElement | null>, direction: 'left' | 'right') => {
     if (ref.current) {
-      const scrollAmount = direction === 'right' ? 240 : -240;
+      const scrollAmount = direction === 'right' ? 320 : -320;
       ref.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
@@ -329,8 +332,152 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
             </div>
           )}
 
+          {/* Mobile View Toggle: Cards vs Table */}
+          <div className="mobile-view-toggle-bar">
+            <button
+              type="button"
+              onClick={() => setMobileMode('card')}
+              className={`view-toggle-btn ${mobileMode === 'card' ? 'view-toggle-active' : ''}`}
+            >
+              📱 Tampilan Kartu HP (Mudah & Cepat)
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileMode('table')}
+              className={`view-toggle-btn ${mobileMode === 'table' ? 'view-toggle-active' : ''}`}
+            >
+              📊 Tampilan Tabel Penuh (Geser ↔)
+            </button>
+          </div>
+
+          {/* Mobile Card Deck for Section 1 (Rendered on mobile screens when mobileMode === 'card') */}
+          {mobileMode === 'card' && (
+            <div className="mobile-card-deck">
+              {/* Card 1: Feed Gas Flow */}
+              <div className="mobile-param-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontWeight: 700, fontSize: '13.5px', color: '#0f172a' }}>Flow Feed Gas MCHE (5E-1)</span>
+                  <span style={{ fontFamily: 'monospace', fontSize: '11px', color: '#0284c7', backgroundColor: '#e0f2fe', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>H3FI0004</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', alignItems: 'center' }}>
+                  <div style={{ backgroundColor: '#f8fafc', padding: '8px 10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600, marginBottom: '4px' }}>Input DCS (t/h)</div>
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="100"
+                      max="500"
+                      value={scenario.feed_flow_t_h}
+                      onChange={(e) => onScenarioChange('feed_flow_t_h', parseFloat(e.target.value) || 0)}
+                      style={{ width: '80px', padding: '5px 8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontWeight: 700, fontSize: '13px' }}
+                    />
+                    <div style={{ fontSize: '10.5px', color: '#475569', marginTop: '4px' }}>LNG: {scenarioLngFlow.toFixed(1)} t/h</div>
+                  </div>
+                  <div style={{ backgroundColor: '#ecfdf5', padding: '8px 10px', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+                    <div style={{ fontSize: '11px', color: '#065f46', fontWeight: 600, marginBottom: '4px' }}>Target AI</div>
+                    <div style={{ fontSize: '15px', fontWeight: 800, color: '#047857' }}>{scenario.feed_flow_t_h.toFixed(1)} <span style={{ fontSize: '11px', fontWeight: 600 }}>t/h</span></div>
+                    <div style={{ fontSize: '10px', color: '#0369a1', fontWeight: 700, marginTop: '2px' }}>Beban Tetap</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2: MCR Circulation Flow */}
+              <div className="mobile-param-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontWeight: 700, fontSize: '13.5px', color: '#0f172a' }}>Flow Sirkulasi MCR</span>
+                  <span style={{ fontFamily: 'monospace', fontSize: '11px', color: '#0284c7', backgroundColor: '#e0f2fe', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>H4FI001</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', alignItems: 'center' }}>
+                  <div style={{ backgroundColor: '#f8fafc', padding: '8px 10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600, marginBottom: '4px' }}>Input DCS (t/h)</div>
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="400"
+                      max="1200"
+                      value={scenario.mcr_flow_t_h}
+                      onChange={(e) => onScenarioChange('mcr_flow_t_h', parseFloat(e.target.value) || 0)}
+                      style={{ width: '80px', padding: '5px 8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontWeight: 700, fontSize: '13px' }}
+                    />
+                  </div>
+                  <div style={{ backgroundColor: '#ecfdf5', padding: '8px 10px', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+                    <div style={{ fontSize: '11px', color: '#065f46', fontWeight: 600, marginBottom: '4px' }}>Target AI</div>
+                    <div style={{ fontSize: '15px', fontWeight: 800, color: '#047857' }}>{recMcrFlow.toFixed(1)} <span style={{ fontSize: '11px', fontWeight: 600 }}>t/h</span></div>
+                    <div style={{ fontSize: '10px', color: scenario.mcr_flow_t_h > recMcrFlow ? '#15803d' : '#475569', fontWeight: 700, marginTop: '2px' }}>
+                      {scenario.mcr_flow_t_h > recMcrFlow ? `Hemat ${(scenario.mcr_flow_t_h - recMcrFlow).toFixed(1)} t/h` : 'Optimal'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cards 3-7: 5 MCR Compositions */}
+              {[
+                { name: 'Nitrogen (N₂)', key: 'comp_N2_molpct' as const, rec: recN2, tag: 'comp_N2' },
+                { name: 'Metana (CH₄ / C₁)', key: 'comp_C1_molpct' as const, rec: recC1, tag: 'comp_C1' },
+                { name: 'Etana (C₂H₆ / C₂)', key: 'comp_C2_molpct' as const, rec: recC2, tag: 'comp_C2' },
+                { name: 'Etilena (C₂H₄)', key: 'comp_C2H4_molpct' as const, rec: recC2H4, tag: 'comp_C2H4' },
+                { name: 'Propana (C₃H₈ / C₃)', key: 'comp_C3_molpct' as const, rec: recC3, tag: 'comp_C3' },
+              ].map((comp) => {
+                const diff = comp.rec - scenario[comp.key];
+                const diffSign = diff > 0 ? '+' : '';
+                return (
+                  <div key={comp.key} className="mobile-param-card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontWeight: 600, fontSize: '13px', color: '#1e293b' }}>{comp.name}</span>
+                      <span style={{ fontFamily: 'monospace', fontSize: '10.5px', color: '#64748b' }}>{comp.tag}</span>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', alignItems: 'center' }}>
+                      <div style={{ backgroundColor: '#f8fafc', padding: '6px 10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                        <div style={{ fontSize: '10.5px', color: '#64748b', fontWeight: 600, marginBottom: '2px' }}>Input DCS</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <input
+                            type="number"
+                            step="0.05"
+                            min="0"
+                            max="100"
+                            value={scenario[comp.key]}
+                            onChange={(e) => onScenarioChange(comp.key, parseFloat(e.target.value) || 0)}
+                            style={{ width: '70px', padding: '4px 6px', border: '1px solid #cbd5e1', borderRadius: '6px', fontWeight: 600, fontSize: '12.5px' }}
+                          />
+                          <span style={{ fontSize: '11px', color: '#64748b' }}>mol%</span>
+                        </div>
+                      </div>
+                      <div style={{ backgroundColor: '#ecfdf5', padding: '6px 10px', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+                        <div style={{ fontSize: '10.5px', color: '#065f46', fontWeight: 600, marginBottom: '2px' }}>Target AI</div>
+                        <div style={{ fontSize: '14px', fontWeight: 800, color: '#047857' }}>
+                          {comp.rec.toFixed(2)} <span style={{ fontSize: '11px', fontWeight: 600 }}>mol%</span>
+                        </div>
+                        <div style={{ fontSize: '10px', color: Math.abs(diff) > 0.01 ? (diff > 0 ? '#15803d' : '#b45309') : '#64748b', fontWeight: 700 }}>
+                          Δ {diffSign}{diff.toFixed(2)} mol%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Card 8: Total Composition Summary */}
+              <div className="mobile-param-card" style={{ backgroundColor: isCompositionClosed ? '#f0fdf4' : '#fef2f2', border: isCompositionClosed ? '1px solid #86efac' : '1px solid #fca5a5' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontWeight: 800, fontSize: '13px', color: isCompositionClosed ? '#166534' : '#991b1b' }}>Total Komposisi MCR</span>
+                  <span style={{ backgroundColor: isCompositionClosed ? '#dcfce7' : '#fee2e2', color: isCompositionClosed ? '#15803d' : '#b91c1c', padding: '2px 8px', borderRadius: '6px', fontWeight: 800, fontSize: '12px' }}>
+                    {compSum.toFixed(2)} mol%
+                  </span>
+                </div>
+                {!isCompositionClosed && (
+                  <button
+                    onClick={onNormalizeScenario}
+                    style={{ marginTop: '8px', width: '100%', backgroundColor: '#ef4444', color: '#ffffff', border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    Normalisasi ke 100%
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Mobile Swipe & Scroll Control Bar */}
-          <div className="mobile-swipe-hint mobile-swipe-control">
+          <div className={`mobile-swipe-hint mobile-swipe-control ${mobileMode === 'card' ? 'mobile-hide' : ''}`}>
             <div className="mobile-swipe-info">
               <span>👉 Geser untuk Target AI & Satuan ↔</span>
             </div>
@@ -356,7 +503,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
 
           <div
             ref={table1Ref}
-            className="table-scroll-container"
+            className={`table-scroll-container ${mobileMode === 'card' ? 'mobile-hide' : ''}`}
             style={{
               width: '100%',
               maxWidth: '100%',
@@ -651,8 +798,71 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               </div>
             </div>
 
+            {/* Mobile Card Deck for Make-Up Schedule */}
+            {mobileMode === 'card' && (
+              <div className="mobile-card-deck">
+                {makeupItems.map((item, idx) => {
+                  const isInject = item.action === 'INJEKSI' || item.action === 'INJECT';
+                  const isStop = item.action === 'TAHAN / STOP' || item.action === 'Tutup';
+                  const actionLabel = isInject ? 'Injeksi' : isStop ? 'Tutup' : 'Standby';
+                  const actionBg = isInject ? '#dcfce7' : isStop ? '#fef3c7' : '#f1f5f9';
+                  const actionColor = isInject ? '#15803d' : isStop ? '#92400e' : '#475569';
+                  const actionBorder = isInject ? '1px solid #86efac' : isStop ? '1px solid #fde68a' : '1px solid #e2e8f0';
+
+                  const compName =
+                    item.description.includes('N2') ? 'Nitrogen (N₂)' :
+                      item.description.includes('C1') ? 'Metana (C₁)' :
+                        item.description.includes('C2H4') ? 'Etilena (C₂H₄)' :
+                          item.description.includes('C2') ? 'Etana (C₂)' :
+                            item.description.includes('C3') ? 'Propana (C₃)' :
+                              item.description;
+
+                  const cleanInstruction = isInject
+                    ? `Buka katup ${item.tag_dcs} ke ${item.recommended_flow_nm3_h.toFixed(1)} Nm³/h.`
+                    : isStop
+                      ? `Tutup ${item.tag_dcs} (kadar sudah berlebih).`
+                      : `Katup standby (kadar sudah sesuai).`;
+
+                  const diff = item.target_molpct - item.actual_molpct;
+                  const diffSign = diff > 0 ? '+' : '';
+
+                  return (
+                    <div key={item.component || idx} className="mobile-param-card">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: '13.5px', color: '#0f172a' }}>{compName}</div>
+                          <div style={{ fontFamily: 'monospace', fontSize: '11px', color: '#0284c7' }}>{item.tag_dcs}</div>
+                        </div>
+                        <span style={{ backgroundColor: actionBg, color: actionColor, border: actionBorder, padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800 }}>
+                          {actionLabel}
+                        </span>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                        <div style={{ backgroundColor: '#f8fafc', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                          <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 600 }}>DCS (mol%)</div>
+                          <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>{item.actual_molpct.toFixed(2)}</div>
+                        </div>
+                        <div style={{ backgroundColor: '#ecfdf5', padding: '6px 8px', borderRadius: '6px', border: '1px solid #a7f3d0' }}>
+                          <div style={{ fontSize: '10px', color: '#065f46', fontWeight: 600 }}>Target AI (Δ)</div>
+                          <div style={{ fontSize: '13px', fontWeight: 800, color: '#047857' }}>
+                            {item.target_molpct.toFixed(2)} <span style={{ fontSize: '10px', color: diff >= 0 ? '#15803d' : '#b45309' }}>({diffSign}{diff.toFixed(2)})</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ fontSize: '11.5px', color: '#1e293b', backgroundColor: '#f1f5f9', padding: '6px 10px', borderRadius: '6px', marginBottom: '6px' }}>
+                        <strong>Laju Injeksi:</strong> {item.recommended_flow_nm3_h.toFixed(1)} Nm³/h ({item.recommended_flow_kg_h.toFixed(1)} kg/h)
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#475569', fontStyle: 'italic' }}>
+                        💡 {cleanInstruction}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
             {/* Mobile Swipe & Scroll Control Bar */}
-            <div className="mobile-swipe-hint mobile-swipe-control">
+            <div className={`mobile-swipe-hint mobile-swipe-control ${mobileMode === 'card' ? 'mobile-hide' : ''}`}>
               <div className="mobile-swipe-info">
                 <span>👉 Geser untuk Laju Injeksi & Panduan ↔</span>
               </div>
@@ -678,7 +888,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
 
             <div
               ref={table2Ref}
-              className="table-scroll-container"
+              className={`table-scroll-container ${mobileMode === 'card' ? 'mobile-hide' : ''}`}
               style={{
                 width: '100%',
                 maxWidth: '100%',

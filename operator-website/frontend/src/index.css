@@ -107,10 +107,31 @@ section,
   overflow-x: auto !important;
   overflow-y: visible !important;
   -webkit-overflow-scrolling: touch !important;
-  touch-action: pan-x pan-y;
+  touch-action: pan-x pan-y !important;
   overscroll-behavior-x: contain;
   scrollbar-width: thin;
   position: relative;
+}
+
+/* Custom modern scrollbar for table containers */
+.table-scroll-container::-webkit-scrollbar {
+  height: 8px !important;
+}
+.table-scroll-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+.table-scroll-container::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 4px;
+}
+.table-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Touch-action fix on mobile table inputs so dragging over inputs does not freeze scroll */
+.table-scroll-container input {
+  touch-action: pan-x pan-y !important;
 }
 
 /* Sticky First Column on Mobile/Desktop */
@@ -121,6 +142,7 @@ section,
   z-index: 10 !important;
   box-shadow: 2px 0 6px -1px rgba(0, 0, 0, 0.15) !important;
   border-right: 2px solid #cbd5e1 !important;
+  touch-action: pan-x pan-y !important;
 }
 
 .sticky-col-cell {
@@ -130,10 +152,81 @@ section,
   z-index: 9 !important;
   box-shadow: 2px 0 6px -1px rgba(0, 0, 0, 0.12) !important;
   border-right: 2px solid #e2e8f0 !important;
+  touch-action: pan-x pan-y !important;
 }
 
 tr:nth-child(even) .sticky-col-cell {
   background-color: #fbfcfd !important;
+}
+
+/* Mobile Table vs Card View Toggle Bar */
+.mobile-view-toggle-bar {
+  display: none;
+}
+
+.mobile-card-deck {
+  display: none;
+}
+
+@media (max-width: 820px) {
+  .sticky-col-header,
+  .sticky-col-cell {
+    min-width: 120px !important;
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+  }
+
+  .mobile-view-toggle-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+
+  .view-toggle-btn {
+    flex: 1;
+    padding: 9px 12px;
+    font-size: 12.5px;
+    font-weight: 700;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .view-toggle-active {
+    background: #ffffff;
+    color: #0284c7;
+    box-shadow: 0 2px 5px rgba(2, 132, 199, 0.15), 0 1px 2px rgba(0, 0, 0, 0.06);
+  }
+
+  .mobile-card-deck {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .mobile-param-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    transition: border-color 0.2s ease;
+  }
+
+  .mobile-param-card:hover {
+    border-color: #cbd5e1;
+  }
 }
 
 /* Mobile Swipe & Scroll Control Bar */
