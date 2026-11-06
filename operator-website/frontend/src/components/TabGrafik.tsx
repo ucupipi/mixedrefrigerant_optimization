@@ -255,7 +255,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
                 }}
                 title="Tampilkan nilai riil DCS Aktual"
               >
-                🔘 Aktual
+                Aktual
               </button>
               <button
                 type="button"
@@ -273,7 +273,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
                 }}
                 title="Tampilkan nilai Skenario Rekomendasi MCR"
               >
-                🟢 Skenario
+                Skenario
               </button>
               <button
                 type="button"
@@ -291,7 +291,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
                 }}
                 title="Tampilkan selisih Skenario terhadap Aktual (Delta Δ)"
               >
-                ⚡ Delta Δ
+                Delta (Δ)
               </button>
             </div>
 

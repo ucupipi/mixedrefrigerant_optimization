@@ -224,30 +224,9 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
           alignItems: 'center',
           borderBottom: '2px solid #0284c7',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{
-              backgroundColor: '#0284c7',
-              color: '#ffffff',
-              padding: '2px 8px',
-              borderRadius: '4px',
-              fontWeight: 800,
-              fontSize: '12px',
-              letterSpacing: '0.5px',
-            }}>
-              SECTION 1
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '16px', fontWeight: 700 }}>
-              Input Beban Pabrik & Rekomendasi MCR
-            </span>
-            <span style={{
-              backgroundColor: '#1e293b',
-              color: '#38bdf8',
-              padding: '2px 8px',
-              borderRadius: '12px',
-              fontSize: '11px',
-              fontWeight: 700,
-            }}>
-              Feed Gas • Flow MCR • Komposisi
+              1. Kondisi Operasi & Target MCR
             </span>
           </div>
 
@@ -263,18 +242,14 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: '6px',
-                padding: '6px 14px',
-                fontWeight: 700,
+                padding: '7px 14px',
+                fontWeight: 600,
                 fontSize: '13px',
                 cursor: loading ? 'not-allowed' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
               }}
-              title="Ubah Komposisi Feed Gas Overhead Scrub Column 3C-1 ke MCHE 5E-1"
+              title="Atur komposisi feed gas overhead 3C-1 ke MCHE"
             >
-              🧪 Komposisi Feed Gas (3C-1 GC)
+              Komposisi Feed Gas
             </button>
             <button
               onClick={handleApplyRecommended}
@@ -284,17 +259,13 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: '6px',
-                padding: '6px 14px',
+                padding: '7px 16px',
                 fontWeight: 700,
                 fontSize: '13px',
                 cursor: loading ? 'not-allowed' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
               }}
             >
-              ⚡ Terapkan Rekomendasi MCR
+              Terapkan Target AI
             </button>
             <button
               onClick={onReset}
@@ -304,13 +275,13 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 color: '#f1f5f9',
                 border: '1px solid #475569',
                 borderRadius: '6px',
-                padding: '6px 12px',
+                padding: '7px 12px',
                 fontWeight: 600,
                 fontSize: '13px',
                 cursor: loading ? 'not-allowed' : 'pointer',
               }}
             >
-              ⟲ Reset ke DCS
+              Reset ke DCS
             </button>
           </div>
         </div>
@@ -328,10 +299,10 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 <th style={{ padding: '10px 14px', fontWeight: 700, width: '28%' }}>Parameter Operasi</th>
                 <th style={{ padding: '10px 14px', fontWeight: 700, width: '12%' }}>Tag DCS</th>
                 <th style={{ padding: '10px 14px', fontWeight: 700, width: '26%', backgroundColor: '#f8fafc' }}>
-                  Input Skenario
+                  Input Saat Ini
                 </th>
                 <th style={{ padding: '10px 14px', fontWeight: 700, width: '24%', backgroundColor: '#ecfdf5', color: '#065f46' }}>
-                  Rekomendasi Operasi / Target Skenario
+                  Target AI
                 </th>
                 <th style={{ padding: '10px 14px', fontWeight: 700, width: '10%' }}>Satuan</th>
               </tr>
@@ -577,31 +548,20 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               gap: '10px',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{
-                  backgroundColor: '#0284c7',
-                  color: '#ffffff',
-                  padding: '3px 8px',
-                  borderRadius: '4px',
-                  fontSize: '11px',
-                  fontWeight: 800,
-                  letterSpacing: '0.5px',
-                }}>
-                  JADWAL MAKE-UP MCR
-                </span>
                 <span style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-                  Rekomendasi Injeksi Make-Up Refrigeran (Transisi Skenario / Target AI)
+                  Jadwal Make-Up Refrigeran (MCR)
                 </span>
               </div>
 
               <div style={{ display: 'flex', gap: '8px', fontSize: '12px' }}>
-                <span style={{ backgroundColor: '#f1f5f9', color: '#334155', padding: '4px 10px', borderRadius: '6px', fontWeight: 700, border: '1px solid #cbd5e1' }}>
-                  ⏱️ Transisi: <strong>{makeupTransitionHours} Jam</strong>
+                <span style={{ backgroundColor: '#f1f5f9', color: '#334155', padding: '4px 10px', borderRadius: '6px', fontWeight: 600, border: '1px solid #cbd5e1' }}>
+                  Waktu Transisi: <strong>{makeupTransitionHours} Jam</strong>
                 </span>
-                <span style={{ backgroundColor: '#f0fdf4', color: '#166534', padding: '4px 10px', borderRadius: '6px', fontWeight: 700, border: '1px solid #bbf7d0' }}>
-                  📦 Total Make-Up: <strong>{totalMakeupFlowNm3.toFixed(1)} Nm³/h</strong> ({totalMakeupFlowKg.toFixed(1)} kg/h)
+                <span style={{ backgroundColor: '#f0fdf4', color: '#166534', padding: '4px 10px', borderRadius: '6px', fontWeight: 600, border: '1px solid #bbf7d0' }}>
+                  Total Make-Up: <strong>{totalMakeupFlowNm3.toFixed(1)} Nm³/h</strong> ({totalMakeupFlowKg.toFixed(1)} kg/h)
                 </span>
-                <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '4px 10px', borderRadius: '6px', fontWeight: 700, border: '1px solid #bae6fd' }}>
-                  ⚖️ Inventori Sistem: <strong>{makeupInventoryKg.toLocaleString()} kg</strong>
+                <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '4px 10px', borderRadius: '6px', fontWeight: 600, border: '1px solid #bae6fd' }}>
+                  Inventori Loop: <strong>{makeupInventoryKg.toLocaleString()} kg</strong>
                 </span>
               </div>
             </div>
@@ -617,35 +577,55 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
             }}>
               <thead>
                 <tr style={{ backgroundColor: '#f8fafc', color: '#475569', borderBottom: '2px solid #cbd5e1' }}>
-                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '16%' }}>Komponen Refrigeran</th>
-                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '12%' }}>Tag DCS Valve</th>
-                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '11%' }}>Aktual DCS</th>
+                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '18%' }}>Komponen</th>
+                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '12%' }}>Tag Katup</th>
+                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '11%' }}>DCS (mol%)</th>
                   <th style={{ padding: '8px 12px', fontWeight: 700, width: '11%', backgroundColor: '#ecfdf5', color: '#065f46' }}>Target AI</th>
                   <th style={{ padding: '8px 12px', fontWeight: 700, width: '10%' }}>Selisih (Δ)</th>
-                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '18%' }}>Rekomendasi Flow</th>
-                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '8%', textAlign: 'center' }}>Aksi</th>
-                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '14%' }}>Prosedur Lapangan</th>
+                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '18%' }}>Laju Injeksi</th>
+                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '10%', textAlign: 'center' }}>Aksi</th>
+                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '20%' }}>Panduan Operator</th>
                 </tr>
               </thead>
               <tbody>
                 {makeupItems.map((item, idx) => {
-                  const isInject = item.action === 'INJECT';
+                  const isInject = item.action === 'INJEKSI' || item.action === 'INJECT';
+                  const isStop = item.action === 'TAHAN / STOP' || item.action === 'Tutup';
+                  const actionLabel = isInject ? 'Injeksi' : isStop ? 'Tutup' : 'Standby';
+                  const actionBg = isInject ? '#dcfce7' : isStop ? '#fef3c7' : '#f1f5f9';
+                  const actionColor = isInject ? '#15803d' : isStop ? '#92400e' : '#475569';
+                  const actionBorder = isInject ? '1px solid #86efac' : isStop ? '1px solid #fde68a' : '1px solid #e2e8f0';
+
+                  const compName =
+                    item.description.includes('N2') ? 'Nitrogen (N₂)' :
+                    item.description.includes('C1') ? 'Metana (C₁)' :
+                    item.description.includes('C2H4') ? 'Etilena (C₂H₄)' :
+                    item.description.includes('C2') ? 'Etana (C₂)' :
+                    item.description.includes('C3') ? 'Propana (C₃)' :
+                    item.description;
+
+                  const cleanInstruction = isInject
+                    ? `Buka katup ${item.tag_dcs} ke ${item.recommended_flow_nm3_h.toFixed(1)} Nm³/h.`
+                    : isStop
+                    ? `Tutup ${item.tag_dcs} (kadar sudah berlebih).`
+                    : `Katup standby (kadar sudah sesuai).`;
+
                   return (
                     <tr key={item.component || idx} style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: idx % 2 === 0 ? '#ffffff' : '#fcfcfc' }}>
                       <td style={{ padding: '8px 12px', fontWeight: 600, color: '#0f172a' }}>
-                        {item.description}
+                        {compName}
                       </td>
                       <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: '#0284c7', fontSize: '12px' }}>
                         {item.tag_dcs}
                       </td>
                       <td style={{ padding: '8px 12px', color: '#475569' }}>
-                        {item.actual_molpct.toFixed(2)} mol%
+                        {item.actual_molpct.toFixed(2)}
                       </td>
                       <td style={{ padding: '8px 12px', backgroundColor: '#ecfdf5', fontWeight: 700, color: '#047857' }}>
-                        {item.target_molpct.toFixed(2)} mol%
+                        {item.target_molpct.toFixed(2)}
                       </td>
                       <td style={{ padding: '8px 12px', fontWeight: 600, color: item.delta_molpct > 0 ? '#15803d' : '#64748b' }}>
-                        {item.delta_molpct > 0 ? `+${item.delta_molpct.toFixed(2)}` : item.delta_molpct.toFixed(2)} mol%
+                        {item.delta_molpct > 0 ? `+${item.delta_molpct.toFixed(2)}` : item.delta_molpct.toFixed(2)}
                       </td>
                       <td style={{ padding: '8px 12px', fontFamily: 'monospace', fontWeight: 700, color: isInject ? '#0f172a' : '#94a3b8' }}>
                         {item.recommended_flow_nm3_h.toFixed(1)} Nm³/h
@@ -655,20 +635,20 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       </td>
                       <td style={{ padding: '8px 12px', textAlign: 'center' }}>
                         <span style={{
-                          backgroundColor: isInject ? '#dcfce7' : '#f1f5f9',
-                          color: isInject ? '#15803d' : '#64748b',
+                          backgroundColor: actionBg,
+                          color: actionColor,
                           padding: '2px 8px',
                           borderRadius: '12px',
                           fontSize: '11px',
-                          fontWeight: 800,
+                          fontWeight: 700,
                           display: 'inline-block',
-                          border: isInject ? '1px solid #86efac' : '1px solid #e2e8f0',
+                          border: actionBorder,
                         }}>
-                          {item.action}
+                          {actionLabel}
                         </span>
                       </td>
-                      <td style={{ padding: '8px 12px', fontSize: '11px', color: '#475569', lineHeight: '1.3' }}>
-                        {item.instruction}
+                      <td style={{ padding: '8px 12px', fontSize: '12px', color: '#475569' }}>
+                        {cleanInstruction}
                       </td>
                     </tr>
                   );
@@ -681,26 +661,25 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               marginTop: '12px',
               padding: '10px 14px',
               backgroundColor: '#fffbeb',
-              borderLeft: '4px solid #f59e0b',
+              borderLeft: '3px solid #f59e0b',
               borderRadius: '4px',
               fontSize: '12px',
               color: '#78350f',
               lineHeight: '1.4',
             }}>
-              <strong>⚠️ PANDUAN KESELAMATAN OPERATOR (INTERLOCK DCS 4C-8):</strong>
+              <strong>Catatan Keselamatan:</strong>
               <div style={{ marginTop: '4px' }}>
-                • <strong>Interlock TAL Drum Suction 4C-8:</strong> Suhu suction 4TI-4B wajib dijaga di atas <strong>-45.0°C</strong>. Apabila mendekati ambang TAL, hentikan laju make-up C3 dan modulasi kickback/reheat 4TV-510.<br />
-                • <strong>Gradien Penambahan Fraksi:</strong> Kenaikan propana (C3) dan etana (C2) maksimum 0.50 mol% per jam guna mencegah akumulasi cairan di suction drum kompresor 4K-2.<br />
-                • <strong>Injeksi Nitrogen (N₂):</strong> Gunakan kontrol valve H4FIC008 dengan pantauan seksama terhadap tekanan discharge 4K-2 (4PI-1) di bawah 37.0 kg/cm²G.
+                • Suhu suction drum 4C-8 (4TI-4B) minimal <strong>-45.0°C</strong> (batas TAL).<br />
+                • Kenaikan fraksi C2 dan C3 dilakukan bertahap (maksimal 0.50 mol% per jam).<br />
+                • Tekanan discharge kompresor (4PI-1) dijaga di bawah 37.0 kg/cm²G.
               </div>
             </div>
           </div>
         </div>
       </section>
 
-
       {/* =================================================================== */}
-      {/* SECTION 2: VARIABEL KUNCI OPERATOR (PREDICTED DCS VS OPTIMIZED AI) */}
+      {/* SECTION 2: PENGAWASAN OPERASI & BATAS AMAN                         */}
       {/* =================================================================== */}
       <section style={{
         backgroundColor: '#ffffff',
@@ -718,30 +697,9 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
           alignItems: 'center',
           borderBottom: '2px solid #0284c7',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{
-              backgroundColor: '#0284c7',
-              color: '#ffffff',
-              padding: '2px 8px',
-              borderRadius: '4px',
-              fontWeight: 800,
-              fontSize: '12px',
-              letterSpacing: '0.5px',
-            }}>
-              SECTION 2
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '16px', fontWeight: 700 }}>
-              Variabel Kunci Pengawasan Operator
-            </span>
-            <span style={{
-              backgroundColor: '#1e293b',
-              color: '#38bdf8',
-              padding: '2px 8px',
-              borderRadius: '12px',
-              fontSize: '11px',
-              fontWeight: 700,
-            }}>
-              Kompresor 4K-2 • PDI MCHE • Suhu LNG
+              2. Pengawasan Operasi & Batas Aman
             </span>
           </div>
 
@@ -751,11 +709,11 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
             gap: '8px',
             backgroundColor: prediction?.safety_check?.all_safe ? '#065f46' : '#991b1b',
             padding: '4px 12px',
-            borderRadius: '16px',
+            borderRadius: '6px',
             fontSize: '12px',
             fontWeight: 700,
           }}>
-            <span>{prediction?.safety_check?.all_safe ? '✓ PARAMETER AMAN' : '⚠️ PERHATIKAN BATASAN'}</span>
+            <span>{prediction?.safety_check?.all_safe ? 'Kondisi Aman' : 'Periksa Batasan'}</span>
           </div>
         </div>
 
@@ -980,7 +938,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
 
 
       {/* =================================================================== */}
-      {/* SEKSI 3: PENGHEMATAN ENERGI & REDUKSI EMISI                        */}
+      {/* SEKSI 3: ESTIMASI PENGHEMATAN ENERGI                                */}
       {/* =================================================================== */}
       <section style={{
         backgroundColor: '#ffffff',
@@ -1000,30 +958,9 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
           flexWrap: 'wrap',
           gap: '12px',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{
-              backgroundColor: '#10b981',
-              color: '#064e3b',
-              padding: '2px 8px',
-              borderRadius: '4px',
-              fontWeight: 800,
-              fontSize: '12px',
-              letterSpacing: '0.5px',
-            }}>
-              SECTION 3
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '16px', fontWeight: 700 }}>
-              Penghematan Energi & Emisi
-            </span>
-            <span style={{
-              backgroundColor: '#047857',
-              color: '#a7f3d0',
-              padding: '2px 8px',
-              borderRadius: '12px',
-              fontSize: '11px',
-              fontWeight: 700,
-            }}>
-              Energi & Utilitas
+              3. Estimasi Penghematan Energi
             </span>
           </div>
 
@@ -1034,14 +971,14 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 backgroundColor: section3View === 'scenario' ? '#10b981' : '#047857',
                 color: section3View === 'scenario' ? '#064e3b' : '#a7f3d0',
                 border: 'none',
-                padding: '4px 12px',
+                padding: '5px 14px',
                 borderRadius: '6px',
                 fontSize: '12px',
                 fontWeight: 700,
                 cursor: 'pointer',
               }}
             >
-              Evaluasi Skenario
+              Kondisi Input
             </button>
             <button
               onClick={() => setSection3View('ai_target')}
@@ -1049,14 +986,14 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 backgroundColor: section3View === 'ai_target' ? '#10b981' : '#047857',
                 color: section3View === 'ai_target' ? '#064e3b' : '#a7f3d0',
                 border: 'none',
-                padding: '4px 12px',
+                padding: '5px 14px',
                 borderRadius: '6px',
                 fontSize: '12px',
                 fontWeight: 700,
                 cursor: 'pointer',
               }}
             >
-              🎯 Potensi Rekomendasi AI ({potentialAiPowerSavingMw.toFixed(1)} MW)
+              Target AI ({potentialAiPowerSavingMw.toFixed(1)} MW)
             </button>
           </div>
         </div>
@@ -1066,28 +1003,21 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
           {section3View === 'scenario' && deltaPower > 0 && (
             <div style={{
               backgroundColor: '#ecfdf5',
-              border: '2px solid #10b981',
+              border: '1px solid #86efac',
               borderRadius: '8px',
-              padding: '16px 20px',
+              padding: '14px 18px',
               marginBottom: '20px',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
               gap: '16px',
-              boxShadow: '0 2px 8px rgba(16, 185, 129, 0.12)',
             }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ backgroundColor: '#10b981', color: '#ffffff', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
-                    REKOMENDASI AI AKTIF
-                  </span>
-                  <span style={{ fontSize: '15px', fontWeight: 800, color: '#065f46' }}>
-                    Potensi Penghematan Rekomendasi MCR (Target: {recMcrFlow.toFixed(1)} t/h)
-                  </span>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#065f46' }}>
+                  Target AI berpotensi menghemat daya {potentialAiPowerSavingMw.toFixed(2)} MW ({potentialAiSecSavingKwh.toFixed(1)} kWh/t SEC)
                 </div>
-                <div style={{ fontSize: '13px', color: '#047857', marginTop: '6px', lineHeight: '1.4' }}>
-                  Skenario saat ini (MCR {scenario.mcr_flow_t_h.toFixed(1)} t/h) mengonsumsi +{deltaPower.toFixed(2)} MW di atas baseline DCS.
-                  Terapkan rekomendasi AI untuk memangkas daya sebesar <strong>{potentialAiPowerSavingMw.toFixed(2)} MW</strong> ({potentialAiSecSavingKwh.toFixed(1)} kWh/t SEC) vs baseline DCS!
+                <div style={{ fontSize: '13px', color: '#047857', marginTop: '4px' }}>
+                  Input saat ini ({scenario.mcr_flow_t_h.toFixed(1)} t/h) memerlukan daya lebih tinggi. Target MCR AI: {recMcrFlow.toFixed(1)} t/h.
                 </div>
               </div>
               <button
@@ -1098,18 +1028,14 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                   color: '#ffffff',
                   border: 'none',
                   borderRadius: '6px',
-                  padding: '10px 18px',
-                  fontWeight: 800,
+                  padding: '8px 16px',
+                  fontWeight: 700,
                   fontSize: '13px',
                   cursor: loading ? 'not-allowed' : 'pointer',
                   whiteSpace: 'nowrap',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
                 }}
               >
-                ⚡ Terapkan Rekomendasi MCR
+                Terapkan Target AI
               </button>
             </div>
           )}
@@ -1125,17 +1051,17 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               ? Math.abs(deltaSecLng).toFixed(1)
               : `+${deltaSecLng.toFixed(1)}`;
             const dispSecBadge = isTargetView
-              ? `HEMAT ${potentialAiSecSavingPct.toFixed(1)}%`
+              ? `Hemat ${potentialAiSecSavingPct.toFixed(1)}%`
               : deltaPowerSavingMw > 0
-              ? `HEMAT ${Math.abs(deltaSecLngPct).toFixed(1)}%`
-              : `+${Math.abs(deltaSecLngPct).toFixed(1)}% BELUM OPTIMAL`;
+              ? `Hemat ${Math.abs(deltaSecLngPct).toFixed(1)}%`
+              : `+${Math.abs(deltaSecLngPct).toFixed(1)}% di atas baseline`;
 
             const dispSteamVal = isTargetView
               ? potentialSteamSaved_t_h.toFixed(1)
               : deltaPowerSavingMw > 0
               ? steamSaved_t_h.toFixed(1)
               : `+${(deltaPower * STEAM_RATE_T_PER_MWH).toFixed(1)}`;
-            const dispSteamBadge = isSaving ? 'BEBAN BOILER TURUN' : 'KONSUMSI STEAM NAIK';
+            const dispSteamBadge = isSaving ? 'Beban Turun' : 'Beban Naik';
 
             const dispFgVal = isTargetView
               ? potentialFuelGasSaved_t_h.toFixed(1)
@@ -1143,8 +1069,8 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               ? fuelGasSaved_t_h.toFixed(1)
               : `+${(((deltaPower * STEAM_RATE_T_PER_MWH * FUEL_GAS_NM3_PER_T_STEAM * FG_DENSITY_KG_NM3) / 1000)).toFixed(1)}`;
             const dispFgBadge = isSaving
-              ? `USD ${(isTargetView ? potentialFuelGasSaved_usd_yr : fuelGasSaved_usd_yr).toFixed(2)} JUTA / TAHUN`
-              : 'BIAYA NAIK';
+              ? `Hemat USD ${(isTargetView ? potentialFuelGasSaved_usd_yr : fuelGasSaved_usd_yr).toFixed(2)} Jt/Thn`
+              : 'Biaya Naik';
 
             const dispPowerVal = isTargetView
               ? potentialAiPowerSavingMw.toFixed(2)
@@ -1152,10 +1078,10 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               ? deltaPowerSavingMw.toFixed(2)
               : `+${deltaPower.toFixed(2)}`;
             const dispPowerBadge = isTargetView
-              ? `HEMAT ${((potentialAiPowerSavingMw / baselinePower) * 100).toFixed(1)}%`
+              ? `Hemat ${((potentialAiPowerSavingMw / baselinePower) * 100).toFixed(1)}%`
               : deltaPowerSavingMw > 0
-              ? `HEMAT ${Math.abs(deltaPowerPct).toFixed(1)}%`
-              : `+${Math.abs(deltaPowerPct).toFixed(1)}% DI ATAS DCS`;
+              ? `Hemat ${Math.abs(deltaPowerPct).toFixed(1)}%`
+              : `+${Math.abs(deltaPowerPct).toFixed(1)}% di atas baseline`;
 
             const cardBg = isSaving ? '#f0fdf4' : '#fffbeb';
             const cardBorder = isSaving ? '2px solid #86efac' : '2px solid #fcd34d';
@@ -1420,14 +1346,14 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ backgroundColor: '#0284c7', color: '#ffffff', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
-                    STREAM GC 3C-1
+                    GC 3C-1
                   </span>
                   <span style={{ fontSize: '16px', fontWeight: 700 }}>
-                    Komposisi & Kondisi Feed Gas Masuk MCHE (5E-1)
+                    Komposisi Feed Gas (3C-1)
                   </span>
                 </div>
                 <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
-                  Overhead Scrub Column 3C-1 downstream Chiller 3E-14 • Penentu Beban Termal Tube Side MCHE
+                  Data kromatografi aliran gas treated masuk MCHE 5E-1
                 </div>
               </div>
               <button
@@ -1468,7 +1394,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     color: '#0f172a',
                   }}
                 >
-                  📋 Baseline DCS (94.51% C₁)
+                  Baseline DCS (94.51% C₁)
                 </button>
                 <button
                   type="button"
@@ -1494,7 +1420,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     color: '#0f172a',
                   }}
                 >
-                  ⚡ Lean Gas (96.20% C₁)
+                  Gas Lean (96.20% C₁)
                 </button>
                 <button
                   type="button"
@@ -1520,7 +1446,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     color: '#0f172a',
                   }}
                 >
-                  🌊 Rich Gas (92.50% C₁)
+                  Gas Rich (92.50% C₁)
                 </button>
               </div>
 
@@ -1643,7 +1569,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                             cursor: 'pointer',
                           }}
                         >
-                          ⚖️ Normalisasi ke 100.00%
+                          Normalisasi 100%
                         </button>
                       )}
                     </div>
@@ -1743,7 +1669,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                   cursor: 'pointer',
                 }}
               >
-                ⟲ Reset ke Baseline DCS
+                Reset ke DCS
               </button>
 
               <div style={{ display: 'flex', gap: '10px' }}>
@@ -1781,7 +1707,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                   }}
                 >
-                  ✓ Terapkan ke Model Pendinginan
+                  Simpan Perubahan
                 </button>
               </div>
             </div>

@@ -26,10 +26,10 @@ MW_COMPONENTS: Dict[str, float] = {
 
 # Real plant DCS tags for MR make-up injection controllers (CANONICAL_TAG_DICTIONARY.csv)
 TAG_MAKEUP_CONTROLLERS: Dict[str, Dict[str, str]] = {
-    "N2": {"tag": "H4FIC006", "desc": "N2 MAKE UP > MCR", "unit": "Nm3/h"},
-    "C1": {"tag": "H4FIC005", "desc": "C1 MAKE UP > MCR", "unit": "Nm3/h"},
-    "C2": {"tag": "H4FI00C8", "desc": "C2 MAKE UP > MCR", "unit": "Nm3/h"},
-    "C3": {"tag": "H4FIC007", "desc": "C3 MAKE UP > MCR", "unit": "Nm3/h"},
+    "N2": {"tag": "H4FIC006", "desc": "Nitrogen (N₂)", "unit": "Nm3/h"},
+    "C1": {"tag": "H4FIC005", "desc": "Metana (C₁)", "unit": "Nm3/h"},
+    "C2": {"tag": "H4FI00C8", "desc": "Etana (C₂)", "unit": "Nm3/h"},
+    "C3": {"tag": "H4FIC007", "desc": "Propana (C₃)", "unit": "Nm3/h"},
 }
 
 # Standard normal molar volume [Nm3/kmol] at 0 °C, 1 atm
@@ -92,22 +92,21 @@ def calculate_makeup_recommendations(
 
             action = "INJEKSI"
             instruction = (
-                f"Buka katup kontrol {tag} ({meta['desc']}) dengan set point "
-                f"{flow_nm3_h:.1f} Nm3/h ({flow_kg_h:.1f} kg/h) selama {t_hours:.1f} jam."
+                f"Buka katup {tag} ke "
+                f"{flow_nm3_h:.1f} Nm3/h ({flow_kg_h:.1f} kg/h)."
             )
         elif delta_pct < -0.05:  # Excess component -> Hold injection, natural decay or purge
             flow_nm3_h = 0.0
             flow_kg_h = 0.0
             action = "TAHAN / STOP"
             instruction = (
-                f"Tutup katup {tag}. Konsentrasi berlebih (+{abs(delta_pct):.2f}%). "
-                f"Biarkan dilusi alami via sirkulasi atau lakukan purge terkontrol jika mendesak."
+                f"Tutup katup {tag} (kadar sudah berlebih +{abs(delta_pct):.2f}%)."
             )
         else:  # Balanced
             flow_nm3_h = 0.0
             flow_kg_h = 0.0
             action = "STABIL / SEIMBANG"
-            instruction = f"Pertahankan bukaan katup {tag} pada posisi normal/standby."
+            instruction = f"Katup {tag} standby (kadar sudah sesuai)."
 
         items.append({
             "component": comp,
