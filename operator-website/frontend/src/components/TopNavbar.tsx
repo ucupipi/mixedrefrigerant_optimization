@@ -55,17 +55,6 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
           }}>
             Optimasi Mixed Refrigerant (C3MR)
           </div>
-          <div style={{
-            fontSize: '12px',
-            color: '#94a3b8',
-            fontWeight: 500,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            marginTop: '2px',
-          }}>
-            <span>Badak LNG Plant-3 Train H</span>
-          </div>
         </div>
       </div>
 
