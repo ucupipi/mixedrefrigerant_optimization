@@ -80,6 +80,19 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
   const ti23Dcs = -54.8; // Feed Gas Inlet
   const ti23Ai = -53.5;
 
+  // Additional Cryogenic Tags (PR-EOS & DCS Verified: ORIGINAL_REQUEST Feature 4)
+  const ti50Dcs = -36.0; // Suhu MR Liquid Inlet ke MCHE 5E-1
+  const ti50Ai = -34.5;  // PR-EOS Skenario
+
+  const ti20Dcs = -134.6; // Suhu MCHE 5E-1 Overhead ke LTSS
+  const ti20Ai = -131.2;  // PR-EOS Skenario
+
+  const ti24Dcs = -151.3; // Suhu Cold Bundle MRV Overhead (MRV > 5HV-2)
+  const ti24Ai = -150.8;  // PR-EOS Skenario
+
+  const ti29Dcs = -153.6; // Suhu LNG Rundown Downstream Subcooler (<5PV-15)
+  const ti29Ai = -153.8;  // PR-EOS Skenario
+
   // Pressure values
   const pi9Dcs = 2.284;
   const pi9Ai = 2.350;
@@ -291,9 +304,9 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           </div>
         </div>
 
-        {/* SVG Centum Graphic Area (Native DCS Coordinate System: 1920 x 755 matching image56.png) */}
+        {/* SVG Centum Graphic Area (Native DCS Coordinate System: 1920 x 790 matching image56.png) */}
         <svg
-          viewBox="0 140 1920 755"
+          viewBox="0 140 1920 790"
           style={{
             width: '100%',
             height: 'auto',
@@ -476,6 +489,22 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           <text x="430" y="805" fill="#e69138" fontSize="14" fontWeight="bold">MR LIQ</text>
           <line x1="380" y1="812" x2="755" y2="812" stroke="#e69138" strokeWidth="2.5" markerEnd="url(#arrow-orange)" />
 
+          {/* TI50 (MR Liquid Inlet Temperature) */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
+            tag: 'H5TI0050',
+            name: 'Suhu MR Liquid ke MCHE 5E-1 (Warm Bundle Inlet)',
+            unit: '°C',
+            valDcs: ti50Dcs.toFixed(1),
+            valAi: ti50Ai.toFixed(1)
+          })}>
+            <rect x="470" y="742" width="105" height="38" fill="#0f172a" stroke="#e69138" strokeWidth="1" rx="4" />
+            <text x="522" y="757" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">TI50 (MRL)</text>
+            <text x="522" y="774" fill={fmt('TI50', ti50Dcs, ti50Ai, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
+              {fmt('TI50', ti50Dcs, ti50Ai, 1).display} <tspan fill="#00ffff" fontSize="10">°C</tspan>
+            </text>
+            <line x1="522" y1="780" x2="522" y2="812" stroke="#e69138" strokeWidth="1.5" strokeDasharray="3 3" />
+          </g>
+
           {/* =============================================================== */}
           {/* STREAM 5: COLD MR LOOPS (LEFT & RIGHT)                          */}
           {/* Left: emerging y=337 -> x=551 -> y=310 -> HIC2 -> cold tray     */}
@@ -526,6 +555,38 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           <line x1="220" y1="236" x2="220" y2="226" stroke="#00ff00" strokeWidth="1.5" />
           <path d="M 208,226 A 12,12 0 0,1 232,226 Z" fill="#00ff00" stroke="#ffffff" strokeWidth="1" />
 
+          {/* TI20 (MCHE Overhead to LTSS upstream PIC2) */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
+            tag: 'H5TI0020',
+            name: 'Suhu Overhead MCHE 5E-1 ke LTSS (Upstream PIC2)',
+            unit: '°C',
+            valDcs: ti20Dcs.toFixed(1),
+            valAi: ti20Ai.toFixed(1)
+          })}>
+            <rect x="365" y="186" width="105" height="38" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
+            <text x="417" y="201" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">TI20 (OVHD)</text>
+            <text x="417" y="218" fill={fmt('TI20', ti20Dcs, ti20Ai, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
+              {fmt('TI20', ti20Dcs, ti20Ai, 1).display} <tspan fill="#00ffff" fontSize="10">°C</tspan>
+            </text>
+            <line x1="417" y1="224" x2="417" y2="237" stroke="#ffffff" strokeWidth="1.5" strokeDasharray="3 3" />
+          </g>
+
+          {/* TI24 (Cold Bundle MRV Overhead) */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
+            tag: 'H5TI0024',
+            name: 'Suhu Cold Bundle MRV Overhead (MRV > 5HV-2)',
+            unit: '°C',
+            valDcs: ti24Dcs.toFixed(1),
+            valAi: ti24Ai.toFixed(1)
+          })}>
+            <rect x="490" y="186" width="105" height="38" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
+            <text x="542" y="201" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">TI24 (MRV Top)</text>
+            <text x="542" y="218" fill={fmt('TI24', ti24Dcs, ti24Ai, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
+              {fmt('TI24', ti24Dcs, ti24Ai, 1).display} <tspan fill="#00ffff" fontSize="10">°C</tspan>
+            </text>
+            <line x1="542" y1="224" x2="542" y2="237" stroke="#ffffff" strokeWidth="1.5" strokeDasharray="3 3" />
+          </g>
+
           {/* =============================================================== */}
           {/* STREAM 8: SHELL-SIDE LP SUCTION RETURN TO 4C-7 (YELLOW y=813)   */}
           {/* =============================================================== */}
@@ -550,14 +611,15 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H3FI0004', name: 'Feed Gas Treated Flow ke MCHE 5E-1', unit: 't/h', valDcs: feedFlowDcs.toFixed(1), valAi: feedFlowAi.toFixed(1) })}>
             <rect x="180" y="865" width="120" height="38" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
             <text x="240" y="880" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">FI12 (Feed)</text>
-            <text x="240" y="897" fill={displayMode === 'AI_OPTIMIZED' ? '#34d399' : '#ffffff'} fontSize="15" textAnchor="middle" fontWeight="bold">
+            <text x="240" y="897" fill={fmt('FI12', feedFlowDcs, feedFlowAi, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
               {fmt('FI12', feedFlowDcs, feedFlowAi, 1).display} <tspan fill="#00ffff" fontSize="10">t/h</tspan>
             </text>
           </g>
 
           {/* PI12: Tekanan Umpan Masuk */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5PI0012', name: 'Feed Gas Inlet Pressure ke 5E-1', unit: 'KGC2G', valDcs: pi12Dcs.toFixed(2), valAi: pi12Ai.toFixed(2) })}>
-            <text x="390" y="878" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">PI12</text>
+            <rect x="330" y="865" width="120" height="38" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
+            <text x="390" y="880" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">PI12 (Inlet P)</text>
             <text x="390" y="897" fill={fmt('PI12', pi12Dcs, pi12Ai, 2).color} fontSize="15" textAnchor="middle" fontWeight="bold">
               {fmt('PI12', pi12Dcs, pi12Ai, 2).display} <tspan fill="#00ffff" fontSize="10">KGC2G</tspan>
             </text>
@@ -565,7 +627,8 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
 
           {/* TI23: Suhu Umpan Masuk */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0023', name: 'Feed Gas Inlet Temperature ke 5E-1', unit: '°C', valDcs: ti23Dcs.toFixed(1), valAi: ti23Ai.toFixed(1) })}>
-            <text x="540" y="878" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">TI23</text>
+            <rect x="480" y="865" width="120" height="38" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
+            <text x="540" y="880" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">TI23 (Inlet T)</text>
             <text x="540" y="897" fill={fmt('TI23', ti23Dcs, ti23Ai, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
               {fmt('TI23', ti23Dcs, ti23Ai, 1).display} <tspan fill="#00ffff" fontSize="10">°C</tspan>
             </text>
@@ -653,7 +716,23 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
             </text>
           </g>
 
-          {/* 5. LNG Rundown Tags: TIC1A/B (Temp) & FI6A (Production Flow) */}
+          {/* 5. LNG Rundown Tags: TI29 (Subcooler T), TIC1A/B (Temp) & FI6A (Production Flow) */}
+          {/* TI29: Suhu LNG Rundown Subcooled */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({
+            tag: 'H5TI0029',
+            name: 'Suhu LNG Rundown Downstream Subcooler (<5PV-15)',
+            unit: '°C',
+            valDcs: ti29Dcs.toFixed(1),
+            valAi: ti29Ai.toFixed(1)
+          })}>
+            <rect x="1110" y="186" width="115" height="38" fill="#0f172a" stroke="#d946ef" strokeWidth="1" rx="4" />
+            <text x="1167" y="201" fill="#e879f9" fontSize="12" textAnchor="middle" fontWeight="bold">TI29 (Rundown)</text>
+            <text x="1167" y="218" fill={fmt('TI29', ti29Dcs, ti29Ai, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
+              {fmt('TI29', ti29Dcs, ti29Ai, 1).display} <tspan fill="#00ffff" fontSize="10">°C</tspan>
+            </text>
+            <line x1="1167" y1="224" x2="1167" y2="253" stroke="#e879f9" strokeWidth="1.5" strokeDasharray="3 3" />
+          </g>
+
           {/* TIC1A/B: Suhu LNG Rundown */}
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TIC01A', name: 'LNG Rundown Temperature Controller', unit: '°C', valDcs: tiLngDcs.toFixed(1), valAi: tiLngAi.toFixed(1), limit: 'Target ≤ -150.0°C' })}>
             <rect x="1340" y="270" width="135" height="42" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />

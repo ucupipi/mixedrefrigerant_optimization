@@ -81,15 +81,99 @@ const buildRequest = (s: ScenarioInput, a: ActualDcsState): ScenarioInput => ({
   actual_comp_C3_molpct: a.comp_C3_molpct,
 });
 
+const DEFAULT_RECOMMENDED: OptimizeResponse = {
+  feed_t_h: 245.8,
+  mcr_flow_t_h: 480.0,
+  comp_N2_molpct: 3.31,
+  comp_C1_molpct: 46.08,
+  comp_C2_molpct: 45.15,
+  comp_C2H4_molpct: 0.05,
+  comp_C3_molpct: 5.41,
+  mahalanobis_distance: 0.858,
+  expected_suction_temp_c: -38.7,
+  suction_tal_ok: true,
+  antisurge_floor_applied: true,
+  envelope_shrink_applied: false,
+  extrapolated: false,
+  feed_span_t_h: [141.2, 296.4],
+  source: 'Live SLSQP Solver (PR-EOS + GBRT Surrogate)',
+  solver_converged: true,
+  constraint_residuals: {
+    suction_tal_margin_c: 6.31,
+    mahalanobis_margin: 2.222,
+    antisurge_margin_t_h: 0.0,
+    superheat_margin_c: 20.76,
+  },
+};
+
+const DEFAULT_PREDICTION: PredictResponse = {
+  prediction: {
+    total_shaft_power_mw: 79.09,
+    power_mcr_mw: 48.24,
+    power_c3_mw: 30.85,
+    delta_power_mw: -5.39,
+    delta_power_pct: -6.38,
+    sec_kwh_per_t: 340.49,
+    specific_shaft_power_feed_kwh_per_t: 321.77,
+    sec_lng_kwh_per_t: 340.49,
+    sec_lng_status: 'OK',
+    delta_sec_kwh_per_t: -23.21,
+    co2_abatement_t_day: 52.4,
+    operating_regime: 'underload',
+    data_label: 'SKENARIO WHAT-IF (HASIL MODEL ML)',
+    battery_limit_note: 'Mencakup kompresor MCR 4K-2/3 dan kompresor Propana 4K-1',
+  },
+  domain_check: {
+    in_domain: true,
+    mahalanobis_distance: 0.858,
+    mahalanobis_limit: 3.0802,
+    composition_closure_ok: true,
+    composition_sum_molpct: 100.0,
+  },
+  safety_check: {
+    all_safe: true,
+    status_label: 'Semua kendala yang diperiksa terpenuhi',
+    violations: [],
+    warnings: [],
+    unverified_checks: ['Peta anti-surge dinamis kompresor sentrifugal (memerlukan kurva head/dp lengkap)'],
+  },
+  confidence: {
+    mae_mw: 0.802,
+    bootstrap_ci_lower_mw: 78.29,
+    bootstrap_ci_upper_mw: 79.89,
+    regime_r2: 0.985,
+    regime_warning: null,
+  },
+  actual_power_mw: 84.48,
+  features_computed: {},
+  makeup_advisory: {
+    transition_hours: 2.0,
+    estimated_inventory_kg: 85000,
+    total_makeup_flow_nm3_h: 0,
+    total_makeup_flow_kg_h: 0,
+    items: [],
+    operational_notes: [],
+  },
+};
+
 export function App() {
-  const [userMode, setUserMode] = useState<UserMode>('OPERATOR');
+  const userMode: UserMode = 'OPERATOR';
   const [activeTab, setActiveTab] = useState<ActiveTabId>('input-results');
   const [modelReady, setModelReady] = useState<boolean>(false);
   const [snapshot, setSnapshot] = useState<DemoSnapshot | null>(null);
   const [actualDcs, setActualDcs] = useState<ActualDcsState>(DEFAULT_ACTUAL);
-  const [scenario, setScenario] = useState<ScenarioInput>(scenarioFromActual(DEFAULT_ACTUAL, 2.0));
-  const [optimum, setOptimum] = useState<OptimizeResponse | null>(null);
-  const [prediction, setPrediction] = useState<PredictResponse | null>(null);
+  const [optimum, setOptimum] = useState<OptimizeResponse | null>(DEFAULT_RECOMMENDED);
+  const [scenario, setScenario] = useState<ScenarioInput>({
+    ...DEFAULT_ACTUAL,
+    mcr_flow_t_h: DEFAULT_RECOMMENDED.mcr_flow_t_h,
+    comp_N2_molpct: DEFAULT_RECOMMENDED.comp_N2_molpct,
+    comp_C1_molpct: DEFAULT_RECOMMENDED.comp_C1_molpct,
+    comp_C2_molpct: DEFAULT_RECOMMENDED.comp_C2_molpct,
+    comp_C2H4_molpct: DEFAULT_RECOMMENDED.comp_C2H4_molpct,
+    comp_C3_molpct: DEFAULT_RECOMMENDED.comp_C3_molpct,
+    transition_hours: 2.0,
+  });
+  const [prediction, setPrediction] = useState<PredictResponse | null>(DEFAULT_PREDICTION);
   const [historicalPoints, setHistoricalPoints] = useState<HistoricalPoint[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -125,7 +209,24 @@ export function App() {
         const snap = await fetchDemoSnapshot();
         const act = actualFromSnapshot(snap);
         setActualDcs(act);
-        setScenario(scenarioFromActual(act, 2.0));
+
+        // Fetch AI recommendation for actual feed
+        const opt = await optimizeForFeed(act.feed_flow_t_h).catch(() => DEFAULT_RECOMMENDED);
+        setOptimum(opt);
+
+        // Synchronize scenario input with AI recommendation
+        setScenario({
+          ...act,
+          feed_flow_t_h: act.feed_flow_t_h,
+          lng_flow_t_h: act.lng_flow_t_h,
+          mcr_flow_t_h: opt.mcr_flow_t_h,
+          comp_N2_molpct: opt.comp_N2_molpct,
+          comp_C1_molpct: opt.comp_C1_molpct,
+          comp_C2_molpct: opt.comp_C2_molpct,
+          comp_C2H4_molpct: opt.comp_C2H4_molpct,
+          comp_C3_molpct: opt.comp_C3_molpct,
+          transition_hours: 2.0,
+        });
         setSnapshot(snap);
 
         const hist = await fetchHistoricalSummary().catch(() => ({ points: [] }));
@@ -144,20 +245,37 @@ export function App() {
     setScenario((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleActualChange = (key: keyof ActualDcsState, value: number) => {
+  const handleActualChange = async (key: keyof ActualDcsState, value: number) => {
     setActualDcs((prev) => ({ ...prev, [key]: value }));
     // Feed is a disturbance: target feed follows actual feed
     if (key === 'feed_flow_t_h') {
+      const lng = value * 0.9450;
       setActualDcs((prev) => ({
         ...prev,
         feed_flow_t_h: value,
-        lng_flow_t_h: value * 0.9450,
+        lng_flow_t_h: lng,
       }));
-      setScenario((prev) => ({
-        ...prev,
-        feed_flow_t_h: value,
-        lng_flow_t_h: value * 0.9450,
-      }));
+      try {
+        const opt = await optimizeForFeed(value);
+        setOptimum(opt);
+        setScenario((prev) => ({
+          ...prev,
+          feed_flow_t_h: value,
+          lng_flow_t_h: lng,
+          mcr_flow_t_h: opt.mcr_flow_t_h,
+          comp_N2_molpct: opt.comp_N2_molpct,
+          comp_C1_molpct: opt.comp_C1_molpct,
+          comp_C2_molpct: opt.comp_C2_molpct,
+          comp_C2H4_molpct: opt.comp_C2H4_molpct,
+          comp_C3_molpct: opt.comp_C3_molpct,
+        }));
+      } catch {
+        setScenario((prev) => ({
+          ...prev,
+          feed_flow_t_h: value,
+          lng_flow_t_h: lng,
+        }));
+      }
     }
   };
 
@@ -302,10 +420,7 @@ export function App() {
     }}>
       {/* Top Navbar */}
       <TopNavbar
-        userMode={userMode}
-        onToggleUserMode={setUserMode}
         loading={loading}
-        onReset={handleReset}
         onExportCsv={handleExportCsv}
         modelReady={modelReady}
       />

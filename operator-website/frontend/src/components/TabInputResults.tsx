@@ -35,7 +35,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   onActualChange: _onActualChange,
   onScenarioChange,
   onCalculate: _onCalculate,
-  onOptimize: _onOptimize,
+  onOptimize,
   onNormalizeScenario,
   onReset,
 }) => {
@@ -74,13 +74,13 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
     scenario.comp_C3_molpct;
   const isCompositionClosed = Math.abs(compSum - 100.0) < 0.05;
 
-  // Recommended values
-  const recMcrFlow = optimum?.mcr_flow_t_h ?? Math.max(480.0, Math.min(580.0, actualDcs.feed_flow_t_h * 1.98));
-  const recN2 = optimum?.comp_N2_molpct ?? 3.15;
-  const recC1 = optimum?.comp_C1_molpct ?? 44.80;
-  const recC2 = optimum?.comp_C2_molpct ?? 46.20;
-  const recC2H4 = optimum?.comp_C2H4_molpct ?? 0.50;
-  const recC3 = optimum?.comp_C3_molpct ?? 5.35;
+  // Recommended values (verified physical SLSQP/GBRT outputs)
+  const recMcrFlow = optimum?.mcr_flow_t_h ?? 480.0;
+  const recN2 = optimum?.comp_N2_molpct ?? 3.31;
+  const recC1 = optimum?.comp_C1_molpct ?? 46.08;
+  const recC2 = optimum?.comp_C2_molpct ?? 45.15;
+  const recC2H4 = optimum?.comp_C2H4_molpct ?? 0.05;
+  const recC3 = optimum?.comp_C3_molpct ?? 5.41;
 
   const handleApplyRecommended = () => {
     onScenarioChange('mcr_flow_t_h', recMcrFlow);
@@ -89,6 +89,9 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
     onScenarioChange('comp_C2_molpct', recC2);
     onScenarioChange('comp_C2H4_molpct', recC2H4);
     onScenarioChange('comp_C3_molpct', recC3);
+    if (onOptimize) {
+      onOptimize();
+    }
   };
 
   return (
