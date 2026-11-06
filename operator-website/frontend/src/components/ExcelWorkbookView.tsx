@@ -235,7 +235,7 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '0.92rem', fontWeight: 700 }}>
-                Plant-3 Train H — C3MR Optimization & Make-Up Advisory
+                Plant-5 Train H — C3MR Liquefaction & Make-Up Advisory
               </span>
               <span style={{
                 fontSize: '0.65rem',
@@ -1072,7 +1072,7 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                     {deltaSecLng <= 0 ? `HEMAT ${Math.abs(deltaSecLng).toFixed(1)} kWh/t` : `NAIK +${deltaSecLng.toFixed(1)} kWh/t`}
                   </td>
                   <td style={noteCell}>
-                    = (Total Power × 1000) / H5FI6A [t/h LNG]. Metrik efisiensi resmi Plant-3 Train H
+                    = (Total Power × 1000) / H5FI6A [t/h LNG]. Metrik efisiensi resmi Plant-5 Train H (Liquefaction)
                   </td>
                 </tr>
 
@@ -1338,7 +1338,7 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
             <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }} />
             Sistem Siap
           </span>
-          <span>PT Badak NGL — Plant-3 Train H</span>
+          <span>PT Badak NGL — Plant-5 Train H (Liquefaction)</span>
           <span>Disiplin: AGENTS.md</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>

@@ -214,7 +214,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
                 <div style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span>👥 Contact Us</span>
                   <span style={{ fontSize: '11px', backgroundColor: '#0284c7', color: '#ffffff', padding: '2px 8px', borderRadius: '12px', fontWeight: 700 }}>
-                    Plant-3 Suite
+                    Plant-5 Liquefaction
                   </span>
                 </div>
                 <div style={{ fontSize: '12.5px', color: '#94a3b8', marginTop: '4px' }}>

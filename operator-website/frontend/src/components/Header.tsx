@@ -40,7 +40,7 @@ export const Header: React.FC<HeaderProps> = ({ timestamp, modelReady, shiftInfo
             alignItems: 'center',
             gap: '10px'
           }}>
-            Plant-3 Train H — C3MR Refrigeration Cycle
+            Plant-5 Train H — C3MR Liquefaction & Refrigeration Cycle
             <span style={{
               fontSize: '0.75rem',
               fontWeight: 600,
