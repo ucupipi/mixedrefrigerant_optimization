@@ -222,27 +222,45 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
       {/* SECTION 1: INPUT VARIABEL PROSES & REKOMENDASI AI                  */}
       {/* =================================================================== */}
       <section style={{
-        backgroundColor: '#ffffff',
-        borderRadius: '10px',
-        border: '1px solid #e2e8f0',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+        backgroundColor: 'rgba(255, 255, 255, 0.85)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        borderRadius: '16px',
+        border: '1px solid rgba(226, 232, 240, 0.85)',
+        boxShadow: '0 4px 20px -2px rgba(15, 23, 42, 0.04), inset 0 1px 0 #ffffff',
         overflow: 'hidden',
       }}>
         {/* Section Header */}
         <div className="section1-header" style={{
-          backgroundColor: '#0f172a',
-          color: '#ffffff',
+          backgroundColor: 'rgba(248, 250, 252, 0.9)',
+          backdropFilter: 'blur(10px)',
+          color: '#0f172a',
           padding: '14px 20px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          borderBottom: '2px solid #0284c7',
+          borderBottom: '1px solid rgba(226, 232, 240, 0.9)',
           flexWrap: 'wrap',
           gap: '12px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '16px', fontWeight: 700, letterSpacing: '-0.2px' }}>
-              1. Kondisi Operasi & Target MCR
+            <span style={{
+              width: '24px',
+              height: '24px',
+              borderRadius: '6px',
+              background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+              color: '#ffffff',
+              fontSize: '12px',
+              fontWeight: 800,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)',
+            }}>
+              1
+            </span>
+            <span style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.2px' }}>
+              Kondisi Operasi & Target MCR
             </span>
           </div>
 
@@ -254,14 +272,16 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               }}
               disabled={loading}
               style={{
-                backgroundColor: '#0284c7',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '6px',
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                color: '#0369a1',
+                border: '1px solid rgba(203, 213, 225, 0.9)',
+                borderRadius: '8px',
                 padding: '7px 14px',
                 fontWeight: 600,
                 fontSize: '13px',
                 cursor: loading ? 'not-allowed' : 'pointer',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+                transition: 'all 0.15s ease',
               }}
               title="Atur komposisi feed gas overhead 3C-1 ke MCHE"
             >
@@ -271,14 +291,16 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               onClick={handleApplyRecommended}
               disabled={loading}
               style={{
-                backgroundColor: '#10b981',
+                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
                 color: '#ffffff',
                 border: 'none',
-                borderRadius: '6px',
+                borderRadius: '8px',
                 padding: '7px 16px',
                 fontWeight: 700,
                 fontSize: '13px',
                 cursor: loading ? 'not-allowed' : 'pointer',
+                boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)',
+                transition: 'all 0.15s ease',
               }}
             >
               Terapkan Target AI
@@ -287,14 +309,15 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               onClick={onReset}
               disabled={loading}
               style={{
-                backgroundColor: '#334155',
-                color: '#f1f5f9',
-                border: '1px solid #475569',
-                borderRadius: '6px',
-                padding: '7px 12px',
+                backgroundColor: 'rgba(241, 245, 249, 0.9)',
+                color: '#475569',
+                border: '1px solid rgba(203, 213, 225, 0.9)',
+                borderRadius: '8px',
+                padding: '7px 14px',
                 fontWeight: 600,
                 fontSize: '13px',
                 cursor: loading ? 'not-allowed' : 'pointer',
+                transition: 'all 0.15s ease',
               }}
             >
               Reset ke DCS
@@ -1000,26 +1023,44 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
       {/* SECTION 2: PENGAWASAN OPERASI & BATAS AMAN                         */}
       {/* =================================================================== */}
       <section style={{
-        backgroundColor: '#ffffff',
-        borderRadius: '10px',
-        border: '1px solid #e2e8f0',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+        backgroundColor: 'rgba(255, 255, 255, 0.85)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        borderRadius: '16px',
+        border: '1px solid rgba(226, 232, 240, 0.85)',
+        boxShadow: '0 4px 20px -2px rgba(15, 23, 42, 0.04), inset 0 1px 0 #ffffff',
         overflow: 'hidden',
       }}>
         <div style={{
-          backgroundColor: '#0f172a',
-          color: '#ffffff',
+          backgroundColor: 'rgba(248, 250, 252, 0.9)',
+          backdropFilter: 'blur(10px)',
+          color: '#0f172a',
           padding: '14px 20px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          borderBottom: '2px solid #0284c7',
+          borderBottom: '1px solid rgba(226, 232, 240, 0.9)',
           flexWrap: 'wrap',
           gap: '10px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '16px', fontWeight: 700, letterSpacing: '-0.2px' }}>
-              2. Pengawasan Operasi & Batas Aman
+            <span style={{
+              width: '24px',
+              height: '24px',
+              borderRadius: '6px',
+              background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+              color: '#ffffff',
+              fontSize: '12px',
+              fontWeight: 800,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)',
+            }}>
+              2
+            </span>
+            <span style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.2px' }}>
+              Pengawasan Operasi & Batas Aman
             </span>
           </div>
 
@@ -1027,13 +1068,15 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            backgroundColor: prediction?.safety_check?.all_safe ? '#065f46' : '#991b1b',
-            padding: '4px 12px',
-            borderRadius: '6px',
+            backgroundColor: prediction?.safety_check?.all_safe ? '#dcfce7' : '#fee2e2',
+            color: prediction?.safety_check?.all_safe ? '#166534' : '#991b1b',
+            border: prediction?.safety_check?.all_safe ? '1px solid #bbf7d0' : '1px solid #fecaca',
+            padding: '5px 14px',
+            borderRadius: '20px',
             fontSize: '12px',
             fontWeight: 700,
           }}>
-            <span>{prediction?.safety_check?.all_safe ? 'Kondisi Aman' : 'Periksa Batasan'}</span>
+            <span>{prediction?.safety_check?.all_safe ? '✓ Kondisi Aman' : '⚠ Periksa Batasan'}</span>
           </div>
         </div>
 
@@ -1261,26 +1304,44 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
       {/* SEKSI 3: ESTIMASI PENGHEMATAN ENERGI                                */}
       {/* =================================================================== */}
       <section style={{
-        backgroundColor: '#ffffff',
-        borderRadius: '10px',
-        border: '1px solid #e2e8f0',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+        backgroundColor: 'rgba(255, 255, 255, 0.85)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        borderRadius: '16px',
+        border: '1px solid rgba(226, 232, 240, 0.85)',
+        boxShadow: '0 4px 20px -2px rgba(15, 23, 42, 0.04), inset 0 1px 0 #ffffff',
         overflow: 'hidden',
       }}>
         <div style={{
-          backgroundColor: '#064e3b',
-          color: '#ffffff',
+          backgroundColor: 'rgba(248, 250, 252, 0.9)',
+          backdropFilter: 'blur(10px)',
+          color: '#0f172a',
           padding: '14px 24px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          borderBottom: '2px solid #10b981',
+          borderBottom: '1px solid rgba(226, 232, 240, 0.9)',
           flexWrap: 'wrap',
           gap: '12px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '16px', fontWeight: 700 }}>
-              3. Estimasi Penghematan Energi
+            <span style={{
+              width: '24px',
+              height: '24px',
+              borderRadius: '6px',
+              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+              color: '#ffffff',
+              fontSize: '12px',
+              fontWeight: 800,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 2px 6px rgba(5, 150, 105, 0.3)',
+            }}>
+              3
+            </span>
+            <span style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.2px' }}>
+              Estimasi Penghematan Energi & Dekarbonisasi
             </span>
           </div>
 
@@ -1288,14 +1349,16 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
             <button
               onClick={() => setSection3View('scenario')}
               style={{
-                backgroundColor: section3View === 'scenario' ? '#10b981' : '#047857',
-                color: section3View === 'scenario' ? '#064e3b' : '#a7f3d0',
-                border: 'none',
-                padding: '5px 14px',
-                borderRadius: '6px',
+                backgroundColor: section3View === 'scenario' ? '#0284c7' : 'rgba(241, 245, 249, 0.8)',
+                color: section3View === 'scenario' ? '#ffffff' : '#64748b',
+                border: section3View === 'scenario' ? '1px solid #0284c7' : '1px solid rgba(203, 213, 225, 0.8)',
+                padding: '6px 14px',
+                borderRadius: '8px',
                 fontSize: '12px',
                 fontWeight: 700,
                 cursor: 'pointer',
+                boxShadow: section3View === 'scenario' ? '0 2px 6px rgba(2, 132, 199, 0.25)' : 'none',
+                transition: 'all 0.15s ease',
               }}
             >
               Kondisi Input
@@ -1303,14 +1366,16 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
             <button
               onClick={() => setSection3View('ai_target')}
               style={{
-                backgroundColor: section3View === 'ai_target' ? '#10b981' : '#047857',
-                color: section3View === 'ai_target' ? '#064e3b' : '#a7f3d0',
-                border: 'none',
-                padding: '5px 14px',
-                borderRadius: '6px',
+                backgroundColor: section3View === 'ai_target' ? '#059669' : 'rgba(241, 245, 249, 0.8)',
+                color: section3View === 'ai_target' ? '#ffffff' : '#64748b',
+                border: section3View === 'ai_target' ? '1px solid #059669' : '1px solid rgba(203, 213, 225, 0.8)',
+                padding: '6px 14px',
+                borderRadius: '8px',
                 fontSize: '12px',
                 fontWeight: 700,
                 cursor: 'pointer',
+                boxShadow: section3View === 'ai_target' ? '0 2px 6px rgba(5, 150, 105, 0.25)' : 'none',
+                transition: 'all 0.15s ease',
               }}
             >
               Target AI ({potentialAiPowerSavingMw.toFixed(1)} MW)
@@ -1633,8 +1698,9 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.75)',
-          backdropFilter: 'blur(4px)',
+          backgroundColor: 'rgba(15, 23, 42, 0.35)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -1642,37 +1708,47 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
           padding: '20px',
         }}>
           <div style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '12px',
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(24px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+            borderRadius: '20px',
             width: '100%',
             maxWidth: '780px',
             maxHeight: '92vh',
             overflowY: 'auto',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)',
-            border: '2px solid #0284c7',
+            boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(226, 232, 240, 0.8), inset 0 1px 1px #ffffff',
+            border: '1px solid rgba(255, 255, 255, 0.95)',
             display: 'flex',
             flexDirection: 'column',
           }}>
             {/* Modal Header */}
             <div style={{
-              backgroundColor: '#0f172a',
-              color: '#ffffff',
+              backgroundColor: 'rgba(248, 250, 252, 0.9)',
+              backdropFilter: 'blur(10px)',
+              color: '#0f172a',
               padding: '16px 24px',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              borderBottom: '2px solid #0284c7',
+              borderBottom: '1px solid rgba(226, 232, 240, 0.9)',
             }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ backgroundColor: '#0284c7', color: '#ffffff', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
+                  <span style={{
+                    background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                    color: '#ffffff',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                  }}>
                     GC 3C-1
                   </span>
-                  <span style={{ fontSize: '16px', fontWeight: 700 }}>
+                  <span style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
                     Komposisi Feed Gas (3C-1)
                   </span>
                 </div>
-                <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
+                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
                   Data kromatografi aliran gas treated masuk MCHE 5E-1
                 </div>
               </div>
@@ -1680,13 +1756,20 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 type="button"
                 onClick={() => setShowFeedGasModal(false)}
                 style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#94a3b8',
-                  fontSize: '22px',
+                  background: 'rgba(241, 245, 249, 0.8)',
+                  border: '1px solid rgba(203, 213, 225, 0.8)',
+                  color: '#64748b',
+                  fontSize: '16px',
+                  borderRadius: '8px',
+                  width: '32px',
+                  height: '32px',
                   cursor: 'pointer',
                   fontWeight: 700,
-                  padding: '4px 8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  lineHeight: 1,
+                  transition: 'all 0.15s ease',
                 }}
               >
                 ✕

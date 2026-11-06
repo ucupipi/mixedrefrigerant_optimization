@@ -1,20 +1,23 @@
 :root {
   --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', Consolas, monospace;
-  --bg-gradient: radial-gradient(circle at 10% 10%, rgba(2, 132, 199, 0.08) 0%, transparent 45%),
-    radial-gradient(circle at 90% 15%, rgba(99, 102, 241, 0.08) 0%, transparent 45%),
-    radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.06) 0%, transparent 50%),
-    #f1f5f9;
-  --glass-bg: rgba(255, 255, 255, 0.78);
-  --glass-bg-hover: rgba(255, 255, 255, 0.92);
-  --glass-border: rgba(255, 255, 255, 0.55);
-  --glass-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.06);
+  --bg-gradient: radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 85% 20%, rgba(249, 115, 22, 0.04) 0%, transparent 40%),
+    #f8fafc;
+  --glass-bg: rgba(255, 255, 255, 0.82);
+  --glass-bg-hover: rgba(255, 255, 255, 0.95);
+  --glass-border: rgba(226, 232, 240, 0.8);
+  --glass-shadow: 0 10px 30px 0 rgba(15, 23, 42, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --glass-card-bg: rgba(255, 255, 255, 0.88);
+  --glass-card-border: rgba(255, 255, 255, 0.95);
+  --glass-card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), inset 0 1px 0 #ffffff;
   --glass-dark-bg: rgba(15, 23, 42, 0.78);
   --glass-dark-border: rgba(255, 255, 255, 0.12);
   --glass-dark-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
   --text-main: #0f172a;
   --text-muted: #64748b;
   --accent-blue: #0284c7;
+  --accent-blue-hover: #0369a1;
   --accent-green: #10b981;
 }
 
@@ -65,28 +68,29 @@ body {
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.65);
-  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.04);
+  background: var(--glass-card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-card-border);
+  box-shadow: var(--glass-card-shadow);
   border-radius: 14px;
 }
 
 .glass-input {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(203, 213, 225, 0.8);
+  border: 1px solid rgba(203, 213, 225, 0.85);
   border-radius: 8px;
   font-family: var(--font-sans);
+  color: #0f172a;
   transition: all 0.2s ease;
 }
 
 .glass-input:focus {
   outline: none;
   border-color: #0284c7;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
 }
 
 /* Ensure all containers respect mobile viewport boundaries without blowing out flex */
