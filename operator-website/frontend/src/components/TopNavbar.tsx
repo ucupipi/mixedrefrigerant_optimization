@@ -19,7 +19,7 @@ interface Author {
 const AUTHORS: Author[] = [
   {
     name: 'Mukhammad Yusuf Iqbal',
-    role: 'Project Lead & Gas Processing Engineer',
+    role: 'Project Engineer',
     institution: 'LNG Academy / PT Badak NGL',
     linkedin: 'https://www.linkedin.com/in/mukhyusufiqbal/',
     photo: '/authors/yusuf.jpg',
