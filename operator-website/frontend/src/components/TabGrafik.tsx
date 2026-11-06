@@ -240,13 +240,7 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
               <span style={{ color: '#bae6fd' }}>MCHE (5E-1)</span>
             </div>
 
-            {/* Sibling Inactive Tabs (Collapsed on smaller screens via CSS class) */}
-            <div className="mobile-hide" style={{ display: 'flex', gap: '8px', color: '#64748b', fontSize: '11px' }}>
-              <span style={{ cursor: 'pointer' }} title="GRH0067 2K-1 Lube Oil System">GRH0067</span>
-              <span style={{ cursor: 'pointer' }} title="GRH0066 2K-1 Vibration Monitor">GRH0066</span>
-              <span style={{ cursor: 'pointer' }} title="GRH0065 Fuel Gas Compressor">GRH0065</span>
-              <span style={{ cursor: 'pointer' }} title="GRH0064 4K-3 Lube Oil System">GRH0064</span>
-            </div>
+
           </div>
 
           {/* ZONE 2 (CENTER): Real-Time DCS Telemetry KPI Chips */}
