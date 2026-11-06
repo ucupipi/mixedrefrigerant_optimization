@@ -656,24 +656,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               </tbody>
             </table>
 
-            {/* Operator Safety Guidance Callout */}
-            <div style={{
-              marginTop: '12px',
-              padding: '10px 14px',
-              backgroundColor: '#fffbeb',
-              borderLeft: '3px solid #f59e0b',
-              borderRadius: '4px',
-              fontSize: '12px',
-              color: '#78350f',
-              lineHeight: '1.4',
-            }}>
-              <strong>Catatan Keselamatan:</strong>
-              <div style={{ marginTop: '4px' }}>
-                • Suhu suction drum 4C-8 (4TI-4B) minimal <strong>-45.0°C</strong> (batas TAL).<br />
-                • Kenaikan fraksi C2 dan C3 dilakukan bertahap (maksimal 0.50 mol% per jam).<br />
-                • Tekanan discharge kompresor (4PI-1) dijaga di bawah 37.0 kg/cm²G.
-              </div>
-            </div>
+
           </div>
         </div>
       </section>
