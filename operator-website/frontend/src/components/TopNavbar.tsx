@@ -27,7 +27,7 @@ const AUTHORS: Author[] = [
   },
   {
     name: 'Afdal Elang Arifin',
-    role: 'Machine Learning & Process Control Engineer',
+    role: 'Process Control Engineer',
     institution: 'LNG Academy / PT Badak NGL',
     linkedin: 'https://www.linkedin.com/in/afdal-elang-arifin-623418371/',
     photo: '/authors/afdal.jpg',
