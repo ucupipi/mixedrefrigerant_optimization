@@ -296,24 +296,24 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
           }}>
             <thead>
               <tr style={{ backgroundColor: '#f1f5f9', color: '#475569', borderBottom: '2px solid #cbd5e1' }}>
-                <th style={{ padding: '10px 14px', fontWeight: 700, width: '28%' }}>Parameter Operasi</th>
-                <th style={{ padding: '10px 14px', fontWeight: 700, width: '12%' }}>Tag DCS</th>
-                <th style={{ padding: '10px 14px', fontWeight: 700, width: '26%', backgroundColor: '#f8fafc' }}>
+                <th style={{ padding: '10px 14px', fontWeight: 700, fontSize: '13px', width: '28%' }}>Parameter Operasi</th>
+                <th style={{ padding: '10px 14px', fontWeight: 700, fontSize: '13px', width: '12%' }}>Tag DCS</th>
+                <th style={{ padding: '10px 14px', fontWeight: 700, fontSize: '13px', width: '26%', backgroundColor: '#f8fafc' }}>
                   Input Saat Ini
                 </th>
-                <th style={{ padding: '10px 14px', fontWeight: 700, width: '24%', backgroundColor: '#ecfdf5', color: '#065f46' }}>
+                <th style={{ padding: '10px 14px', fontWeight: 700, fontSize: '13px', width: '24%', backgroundColor: '#ecfdf5', color: '#065f46' }}>
                   Target AI
                 </th>
-                <th style={{ padding: '10px 14px', fontWeight: 700, width: '10%' }}>Satuan</th>
+                <th style={{ padding: '10px 14px', fontWeight: 700, fontSize: '13px', width: '10%' }}>Satuan</th>
               </tr>
             </thead>
             <tbody>
               {/* Row 1: Feed Gas Flow */}
               <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                <td style={{ padding: '12px 14px', fontWeight: 600 }}>
+                <td style={{ padding: '10px 14px', fontWeight: 600 }}>
                   Flow Feed Gas MCHE (5E-1)
                 </td>
-                <td style={{ padding: '12px 14px', fontFamily: 'monospace', color: '#0284c7', fontSize: '13px' }}>
+                <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#0284c7', fontSize: '13px' }}>
                   H3FI0004
                 </td>
                 <td style={{ padding: '8px 14px', backgroundColor: '#f8fafc' }}>
@@ -331,7 +331,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                         border: '1px solid #cbd5e1',
                         borderRadius: '6px',
                         fontWeight: 700,
-                        fontSize: '14px',
+                        fontSize: '13px',
                         color: '#0f172a',
                       }}
                     />
@@ -347,7 +347,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     </span>
                   </div>
                 </td>
-                <td style={{ padding: '12px 14px', backgroundColor: '#ecfdf5', fontWeight: 700, color: '#047857' }}>
+                <td style={{ padding: '10px 14px', backgroundColor: '#ecfdf5', fontWeight: 700, color: '#047857' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span>{scenario.feed_flow_t_h.toFixed(1)}</span>
                     <span style={{
@@ -362,17 +362,17 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     </span>
                   </div>
                 </td>
-                <td style={{ padding: '12px 14px', color: '#64748b', fontWeight: 600 }}>
+                <td style={{ padding: '10px 14px', color: '#64748b', fontWeight: 600 }}>
                   t/h
                 </td>
               </tr>
 
               {/* Row 2: MCR Flow */}
               <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#fbfcfd' }}>
-                <td style={{ padding: '12px 14px', fontWeight: 600 }}>
+                <td style={{ padding: '10px 14px', fontWeight: 600 }}>
                   Flow Sirkulasi MCR
                 </td>
-                <td style={{ padding: '12px 14px', fontFamily: 'monospace', color: '#0284c7', fontSize: '13px' }}>
+                <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#0284c7', fontSize: '13px' }}>
                   H4FI001
                 </td>
                 <td style={{ padding: '8px 14px', backgroundColor: '#f8fafc' }}>
@@ -390,7 +390,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                         border: scenario.mcr_flow_t_h < 480 ? '2px solid #ef4444' : '1px solid #cbd5e1',
                         borderRadius: '6px',
                         fontWeight: 700,
-                        fontSize: '14px',
+                        fontSize: '13px',
                         color: scenario.mcr_flow_t_h < 480 ? '#b91c1c' : '#0f172a',
                       }}
                     />
@@ -408,7 +408,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     )}
                   </div>
                 </td>
-                <td style={{ padding: '12px 14px', backgroundColor: '#ecfdf5', fontWeight: 700, color: '#047857' }}>
+                <td style={{ padding: '10px 14px', backgroundColor: '#ecfdf5', fontWeight: 700, color: '#047857' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span>{recMcrFlow.toFixed(1)}</span>
                     {recMcrFlow < scenario.mcr_flow_t_h ? (
@@ -436,7 +436,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     )}
                   </div>
                 </td>
-                <td style={{ padding: '12px 14px', color: '#64748b', fontWeight: 600 }}>
+                <td style={{ padding: '10px 14px', color: '#64748b', fontWeight: 600 }}>
                   t/h
                 </td>
               </tr>
@@ -453,10 +453,10 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                   <td style={{ padding: '10px 14px', fontWeight: 500, paddingLeft: '24px' }}>
                     {comp.name}
                   </td>
-                  <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#64748b', fontSize: '12px' }}>
+                  <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#64748b', fontSize: '13px' }}>
                     {comp.tag}
                   </td>
-                  <td style={{ padding: '6px 14px', backgroundColor: '#f8fafc' }}>
+                  <td style={{ padding: '8px 14px', backgroundColor: '#f8fafc' }}>
                     <input
                       type="number"
                       step="0.05"
@@ -466,7 +466,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       onChange={(e) => onScenarioChange(comp.key, parseFloat(e.target.value) || 0)}
                       style={{
                         width: '100px',
-                        padding: '4px 8px',
+                        padding: '6px 10px',
                         border: '1px solid #cbd5e1',
                         borderRadius: '6px',
                         fontWeight: 600,
@@ -535,7 +535,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
 
           {/* Sub-Panel: Rekomendasi Injeksi Make-Up MCR */}
           <div style={{
-            marginTop: '24px',
+            marginTop: '28px',
             paddingTop: '20px',
             borderTop: '2px solid #e2e8f0',
           }}>
@@ -548,7 +548,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               gap: '10px',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+                <span style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
                   Jadwal Make-Up Refrigeran (MCR)
                 </span>
               </div>
@@ -569,22 +569,19 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
             <table style={{
               width: '100%',
               borderCollapse: 'collapse',
-              fontSize: '13px',
+              fontSize: '14px',
               textAlign: 'left',
-              border: '1px solid #e2e8f0',
-              borderRadius: '6px',
-              overflow: 'hidden',
             }}>
               <thead>
-                <tr style={{ backgroundColor: '#f8fafc', color: '#475569', borderBottom: '2px solid #cbd5e1' }}>
-                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '18%' }}>Komponen</th>
-                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '12%' }}>Tag Katup</th>
-                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '11%' }}>DCS (mol%)</th>
-                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '11%', backgroundColor: '#ecfdf5', color: '#065f46' }}>Target AI</th>
-                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '10%' }}>Selisih (Δ)</th>
-                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '18%' }}>Laju Injeksi</th>
-                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '10%', textAlign: 'center' }}>Aksi</th>
-                  <th style={{ padding: '8px 12px', fontWeight: 700, width: '20%' }}>Panduan Operator</th>
+                <tr style={{ backgroundColor: '#f1f5f9', color: '#475569', borderBottom: '2px solid #cbd5e1' }}>
+                  <th style={{ padding: '10px 14px', fontWeight: 700, width: '16%' }}>Komponen</th>
+                  <th style={{ padding: '10px 14px', fontWeight: 700, width: '10%' }}>Tag Katup</th>
+                  <th style={{ padding: '10px 14px', fontWeight: 700, width: '11%', backgroundColor: '#f8fafc' }}>DCS (mol%)</th>
+                  <th style={{ padding: '10px 14px', fontWeight: 700, width: '11%', backgroundColor: '#ecfdf5', color: '#065f46' }}>Target AI</th>
+                  <th style={{ padding: '10px 14px', fontWeight: 700, width: '10%' }}>Selisih (Δ)</th>
+                  <th style={{ padding: '10px 14px', fontWeight: 700, width: '18%' }}>Laju Injeksi</th>
+                  <th style={{ padding: '10px 14px', fontWeight: 700, width: '9%', textAlign: 'center' }}>Aksi</th>
+                  <th style={{ padding: '10px 14px', fontWeight: 700, width: '15%' }}>Panduan Operator</th>
                 </tr>
               </thead>
               <tbody>
@@ -611,35 +608,35 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     : `Katup standby (kadar sudah sesuai).`;
 
                   return (
-                    <tr key={item.component || idx} style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: idx % 2 === 0 ? '#ffffff' : '#fcfcfc' }}>
-                      <td style={{ padding: '8px 12px', fontWeight: 600, color: '#0f172a' }}>
+                    <tr key={item.component || idx} style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: idx % 2 === 0 ? '#ffffff' : '#fbfcfd' }}>
+                      <td style={{ padding: '10px 14px', fontWeight: 600, color: '#0f172a' }}>
                         {compName}
                       </td>
-                      <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: '#0284c7', fontSize: '12px' }}>
+                      <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#0284c7', fontSize: '13px' }}>
                         {item.tag_dcs}
                       </td>
-                      <td style={{ padding: '8px 12px', color: '#475569' }}>
+                      <td style={{ padding: '10px 14px', backgroundColor: '#f8fafc', color: '#475569', fontWeight: 600 }}>
                         {item.actual_molpct.toFixed(2)}
                       </td>
-                      <td style={{ padding: '8px 12px', backgroundColor: '#ecfdf5', fontWeight: 700, color: '#047857' }}>
+                      <td style={{ padding: '10px 14px', backgroundColor: '#ecfdf5', fontWeight: 700, color: '#047857' }}>
                         {item.target_molpct.toFixed(2)}
                       </td>
-                      <td style={{ padding: '8px 12px', fontWeight: 600, color: item.delta_molpct > 0 ? '#15803d' : '#64748b' }}>
+                      <td style={{ padding: '10px 14px', fontWeight: 600, color: item.delta_molpct > 0 ? '#15803d' : '#64748b' }}>
                         {item.delta_molpct > 0 ? `+${item.delta_molpct.toFixed(2)}` : item.delta_molpct.toFixed(2)}
                       </td>
-                      <td style={{ padding: '8px 12px', fontFamily: 'monospace', fontWeight: 700, color: isInject ? '#0f172a' : '#94a3b8' }}>
+                      <td style={{ padding: '10px 14px', fontFamily: 'monospace', fontWeight: 700, fontSize: '13px', color: isInject ? '#0f172a' : '#94a3b8' }}>
                         {item.recommended_flow_nm3_h.toFixed(1)} Nm³/h
-                        <span style={{ fontSize: '11px', color: '#64748b', marginLeft: '4px', fontWeight: 500 }}>
+                        <span style={{ fontSize: '12px', color: '#64748b', marginLeft: '6px', fontWeight: 500 }}>
                           ({item.recommended_flow_kg_h.toFixed(1)} kg/h)
                         </span>
                       </td>
-                      <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                      <td style={{ padding: '10px 14px', textAlign: 'center' }}>
                         <span style={{
                           backgroundColor: actionBg,
                           color: actionColor,
-                          padding: '2px 8px',
+                          padding: '3px 10px',
                           borderRadius: '12px',
-                          fontSize: '11px',
+                          fontSize: '12px',
                           fontWeight: 700,
                           display: 'inline-block',
                           border: actionBorder,
@@ -647,7 +644,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                           {actionLabel}
                         </span>
                       </td>
-                      <td style={{ padding: '8px 12px', fontSize: '12px', color: '#475569' }}>
+                      <td style={{ padding: '10px 14px', fontSize: '13px', color: '#334155' }}>
                         {cleanInstruction}
                       </td>
                     </tr>
