@@ -366,6 +366,8 @@ export function App() {
           <TabGrafik
             snapshot={snapshot}
             scenario={scenario}
+            actualDcs={actualDcs}
+            optimum={optimum}
             prediction={prediction}
             historicalPoints={historicalPoints}
             userMode={userMode}

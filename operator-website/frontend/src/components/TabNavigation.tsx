@@ -16,15 +16,15 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
     {
       id: 'input-results' as ActiveTabId,
       number: '1',
-      title: 'Input & Results',
-      subtitle: 'Workspace Skenario, KPI & Injeksi Make-Up',
+      title: 'Input & Rekomendasi',
+      subtitle: 'Input Variabel, Variabel Kunci & Value Creation',
       alert: hasConstraintViolations,
     },
     {
       id: 'process-graphics' as ActiveTabId,
       number: '2',
-      title: 'Process Graphics',
-      subtitle: '6 Grafik Proses & Profil Termal MCHE',
+      title: 'DCS PFD Mimic',
+      subtitle: 'Yokogawa Centum VP: MCHE 5E-1 (GRH0068)',
       alert: false,
     },
     {

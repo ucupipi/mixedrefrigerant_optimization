@@ -1,720 +1,638 @@
-import React from 'react';
-import type { DemoSnapshot, HistoricalPoint, PredictResponse, ScenarioInput, UserMode } from '../types';
+import React, { useState } from 'react';
+import type {
+  ActualDcsState,
+  DemoSnapshot,
+  HistoricalPoint,
+  OptimizeResponse,
+  PredictResponse,
+  ScenarioInput,
+  UserMode,
+} from '../types';
 
 interface TabGrafikProps {
   snapshot: DemoSnapshot;
   scenario: ScenarioInput;
+  actualDcs?: ActualDcsState;
+  optimum?: OptimizeResponse | null;
   prediction: PredictResponse | null;
-  historicalPoints: HistoricalPoint[];
+  historicalPoints?: HistoricalPoint[];
   userMode?: UserMode;
 }
 
+type DcsDisplayMode = 'DCS_ACTUAL' | 'AI_OPTIMIZED' | 'DELTA_DIFF';
+
+interface TagInfo {
+  tag: string;
+  name: string;
+  unit: string;
+  valDcs: number | string;
+  valAi: number | string;
+  limit?: string;
+  status?: 'SAFE' | 'WARNING' | 'ALARM';
+}
+
 export const TabGrafik: React.FC<TabGrafikProps> = ({
-  snapshot,
+  snapshot: _snapshot,
   scenario,
+  actualDcs,
+  optimum,
   prediction,
-  historicalPoints,
-  userMode = 'OPERATOR',
+  userMode: _userMode = 'OPERATOR',
 }) => {
-  const currentFeed = scenario.feed_flow_t_h;
-  const currentLng = scenario.lng_flow_t_h ?? (currentFeed * 0.9450);
-  const currentMcr = scenario.mcr_flow_t_h;
-  const currentPower = prediction ? prediction.prediction.total_shaft_power_mw : 84.15;
-  const baselinePower = prediction?.actual_power_mw ?? snapshot.baseline_model_output?.total_shaft_power_mw ?? 84.15;
+  const [displayMode, setDisplayMode] = useState<DcsDisplayMode>('AI_OPTIMIZED');
+  const [selectedTag, setSelectedTag] = useState<TagInfo | null>(null);
 
-  const currentSec = prediction?.prediction?.sec_lng_kwh_per_t ?? (currentPower * 1000 / Math.max(1, currentLng));
-  const baselineSec = baselinePower * 1000 / Math.max(1, currentLng);
+  // Dynamic values based on scenario and baseline
+  const feedFlow = displayMode === 'DCS_ACTUAL' ? (actualDcs?.feed_flow_t_h ?? 245.8) : scenario.feed_flow_t_h;
+  const lngFlow = feedFlow * 0.9450;
+  const mcrFlow = displayMode === 'DCS_ACTUAL' ? (actualDcs?.mcr_flow_t_h ?? 562.3) : scenario.mcr_flow_t_h;
 
-  const dm = prediction ? prediction.domain_check.mahalanobis_distance : 1.273;
-  const dmLimit = 3.0802;
+  // Key temperatures and pressures
+  const suctTemp = displayMode === 'DCS_ACTUAL' ? -44.8 : (optimum?.expected_suction_temp_c ?? -41.5);
+  const suctPress = displayMode === 'DCS_ACTUAL' ? 2.284 : 2.350;
+  const pdiCold = displayMode === 'DCS_ACTUAL' ? 0.067 : 0.062;
+  const pdiWarm = displayMode === 'DCS_ACTUAL' ? 0.240 : 0.215;
+  const lngTemp = displayMode === 'DCS_ACTUAL' ? -151.2 : -152.0;
 
-  // Chart dimensions helper
-  const svgWidth = 560;
-  const svgHeight = 280;
+  // Total power & SEC
+  const totalPower = prediction ? prediction.prediction.total_shaft_power_mw : 84.48;
+  const secLng = prediction?.prediction?.sec_lng_kwh_per_t ?? (totalPower * 1000 / lngFlow);
 
-  // 1. Chart 1: Feed Gas vs MCR Circulation
-  const c1Pad = { top: 25, right: 25, bottom: 45, left: 60 };
-  const c1W = svgWidth - c1Pad.left - c1Pad.right;
-  const c1H = svgHeight - c1Pad.top - c1Pad.bottom;
-  const minFeed = 100, maxFeed = 360;
-  const minMcr = 400, maxMcr = 680;
-  const sX1 = (f: number) => c1Pad.left + ((f - minFeed) / (maxFeed - minFeed)) * c1W;
-  const sY1 = (m: number) => c1Pad.top + c1H - ((m - minMcr) / (maxMcr - minMcr)) * c1H;
+  // Helper to format values according to active mode
+  const fmt = (_tagKey: string, dcsVal: number, aiVal: number, decimals: number = 1): { display: string; isAiDiff: boolean } => {
+    if (displayMode === 'DCS_ACTUAL') {
+      return { display: dcsVal.toFixed(decimals), isAiDiff: false };
+    }
+    if (displayMode === 'AI_OPTIMIZED') {
+      return { display: aiVal.toFixed(decimals), isAiDiff: Math.abs(aiVal - dcsVal) > 0.01 };
+    }
+    // DELTA_DIFF mode
+    const diff = aiVal - dcsVal;
+    const sign = diff > 0 ? '+' : '';
+    return { display: `${sign}${diff.toFixed(decimals)}`, isAiDiff: Math.abs(diff) > 0.01 };
+  };
 
-  // 2. Chart 2: Total Power vs Feed Flow (Historical vs Scenario)
-  const c2Pad = { top: 25, right: 25, bottom: 45, left: 60 };
-  const c2W = svgWidth - c2Pad.left - c2Pad.right;
-  const c2H = svgHeight - c2Pad.top - c2Pad.bottom;
-  const minF = 120, maxF = 350;
-  const minP = 55, maxP = 115;
-  const sX2 = (f: number) => c2Pad.left + ((f - minF) / (maxF - minF)) * c2W;
-  const sY2 = (p: number) => c2Pad.top + c2H - ((p - minP) / (maxP - minP)) * c2H;
-
-  // 3. Chart 3: SEC LNG vs LNG Rundown
-  const c3Pad = { top: 25, right: 25, bottom: 45, left: 60 };
-  const c3W = svgWidth - c3Pad.left - c3Pad.right;
-  const c3H = svgHeight - c3Pad.top - c3Pad.bottom;
-  const minLng = 100, maxLng = 340;
-  const minSec = 280, maxSec = 560;
-  const sX3 = (l: number) => c3Pad.left + ((l - minLng) / (maxLng - minLng)) * c3W;
-  const sY3 = (s: number) => c3Pad.top + c3H - ((s - minSec) / (maxSec - minSec)) * c3H;
-
-  // 4. Chart 4: Composition Data
-  const compLabels = ['N₂', 'CH₄ (C₁)', 'C₂H₆ (C₂)', 'C₂H₄', 'C₃H₈ (C₃)'];
-  const actualComps = [
-    snapshot.values.comp_N2?.value ?? 3.39,
-    snapshot.values.comp_C1?.value ?? 44.45,
-    snapshot.values.comp_C2?.value ?? 45.02,
-    snapshot.values.comp_C2H4?.value ?? 0.85,
-    snapshot.values.comp_C3?.value ?? 6.29,
-  ];
-  const scenarioComps = [
-    scenario.comp_N2_molpct,
-    scenario.comp_C1_molpct,
-    scenario.comp_C2_molpct,
-    scenario.comp_C2H4_molpct,
-    scenario.comp_C3_molpct,
-  ];
-
-  // 5. Chart 5: MCHE Temperature Profile (0 to 100% bundle position)
-  const c5Pad = { top: 25, right: 25, bottom: 45, left: 60 };
-  const c5W = svgWidth - c5Pad.left - c5Pad.right;
-  const c5H = svgHeight - c5Pad.top - c5Pad.bottom;
-  const minT = -170, maxT = 30;
-  const sX5 = (pct: number) => c5Pad.left + (pct / 100) * c5W;
-  const sY5 = (t: number) => c5Pad.top + c5H - ((t - minT) / (maxT - minT)) * c5H;
-
-  // Natural Gas Stream (Hot stream) cooling profile: In +20°C -> Mid -70°C -> LNG Out -158°C
-  const ngTemp = (pct: number) => 20 - (pct / 100) * 178;
-  // MCR Stream (Cold stream) vaporizing profile: Cold flash -162°C -> Warm suction -38°C
-  const mcrTemp = (pct: number) => -162 + (1 - pct / 100) * 124;
-
-  const pointsNG = [0, 15, 30, 45, 60, 75, 90, 100].map((p) => `${sX5(p)},${sY5(ngTemp(p))}`).join(' ');
-  const pointsMCR = [100, 90, 75, 60, 45, 30, 15, 0].map((p) => `${sX5(p)},${sY5(mcrTemp(p))}`).join(' ');
+  const handleTagClick = (info: TagInfo) => {
+    setSelectedTag(info);
+  };
 
   return (
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      gap: '24px',
+      gap: '16px',
       paddingBottom: '36px',
       fontFamily: "'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif",
+      color: '#0f172a',
     }}>
-      {/* Header Banner */}
+      {/* Top Controls & Status Bar */}
       <div style={{
-        backgroundColor: '#ffffff',
-        border: '1px solid #cbd5e1',
+        backgroundColor: '#1e293b',
+        color: '#ffffff',
+        padding: '12px 20px',
         borderRadius: '8px',
-        padding: '16px 20px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '12px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
       }}>
-        <div>
-          <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: '#0f172a' }}>
-            Grafik Proses & Kurva Termodinamika C3MR
-          </h2>
-          <div style={{ fontSize: '14px', color: '#64748b', marginTop: '4px' }}>
-            Visualisasi operasional Train H: interaksi hidraulika, kurva daya kompresor, SEC LNG, dan profil kriogenik MCHE.
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <span style={{
+            backgroundColor: '#0284c7',
+            color: '#ffffff',
+            padding: '3px 8px',
+            borderRadius: '4px',
+            fontWeight: 800,
+            fontSize: '12px',
+          }}>
+            DCS PFD REPLICA
+          </span>
+          <span style={{ fontSize: '15px', fontWeight: 700 }}>
+            Yokogawa CENTUM VP: GRH0068 MAIN HEAT EXCHNG (MCHE 5E-1)
+          </span>
+          <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+            Ref: Plant-3 DCS Graphic & PFD image56.png
+          </span>
+          {/* Real-time KPI Chips */}
+          <div style={{ display: 'flex', gap: '8px', marginLeft: '12px', fontSize: '11px' }}>
+            <span style={{ backgroundColor: '#0f172a', padding: '3px 8px', borderRadius: '4px', border: '1px solid #334155' }}>
+              MCR: <strong style={{ color: '#38bdf8' }}>{mcrFlow.toFixed(1)} t/h</strong>
+            </span>
+            <span style={{ backgroundColor: '#0f172a', padding: '3px 8px', borderRadius: '4px', border: '1px solid #334155' }}>
+              SEC: <strong style={{ color: '#34d399' }}>{secLng.toFixed(1)} kWh/t</strong>
+            </span>
+            <span style={{ backgroundColor: '#0f172a', padding: '3px 8px', borderRadius: '4px', border: '1px solid #334155' }}>
+              Daya: <strong style={{ color: '#fbbf24' }}>{totalPower.toFixed(2)} MW</strong>
+            </span>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <span style={{
-            fontSize: '13px',
-            padding: '4px 10px',
-            backgroundColor: '#e0f2fe',
-            color: '#0369a1',
-            borderRadius: '6px',
-            fontWeight: 600,
-          }}>
-            Mode: {userMode === 'OPERATOR' ? 'Operator' : 'Engineering'}
-          </span>
-          <span style={{
-            fontSize: '13px',
-            padding: '4px 10px',
-            backgroundColor: '#f1f5f9',
-            color: '#475569',
-            borderRadius: '6px',
-            fontWeight: 600,
-          }}>
-            N = {historicalPoints.length} Titik DCS
-          </span>
+
+        {/* View Mode Switcher */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#0f172a', padding: '4px', borderRadius: '6px' }}>
+          <button
+            onClick={() => setDisplayMode('DCS_ACTUAL')}
+            style={{
+              backgroundColor: displayMode === 'DCS_ACTUAL' ? '#334155' : 'transparent',
+              color: displayMode === 'DCS_ACTUAL' ? '#38bdf8' : '#94a3b8',
+              border: 'none',
+              borderRadius: '4px',
+              padding: '6px 12px',
+              fontSize: '12px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            🔘 DCS Aktual (Baseline)
+          </button>
+          <button
+            onClick={() => setDisplayMode('AI_OPTIMIZED')}
+            style={{
+              backgroundColor: displayMode === 'AI_OPTIMIZED' ? '#065f46' : 'transparent',
+              color: displayMode === 'AI_OPTIMIZED' ? '#34d399' : '#94a3b8',
+              border: 'none',
+              borderRadius: '4px',
+              padding: '6px 12px',
+              fontSize: '12px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            🟢 AI Optimized (Skenario)
+          </button>
+          <button
+            onClick={() => setDisplayMode('DELTA_DIFF')}
+            style={{
+              backgroundColor: displayMode === 'DELTA_DIFF' ? '#78350f' : 'transparent',
+              color: displayMode === 'DELTA_DIFF' ? '#fcd34d' : '#94a3b8',
+              border: 'none',
+              borderRadius: '4px',
+              padding: '6px 12px',
+              fontSize: '12px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            ⚡ Perbandingan (Delta Δ)
+          </button>
         </div>
       </div>
 
-      {/* Grid of 6 Process Charts (2 columns on desktop) */}
+      {/* Main Yokogawa Centum VP DCS Display Canvas */}
       <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(460px, 1fr))',
-        gap: '24px',
+        backgroundColor: '#000000',
+        borderRadius: '8px',
+        border: '3px solid #334155',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+        overflow: 'hidden',
+        position: 'relative',
       }}>
-
-        {/* CHART 1: Feed Gas Flow vs MR Circulation Flow */}
+        {/* Centum VP Window Header Bar */}
         <div style={{
-          backgroundColor: '#ffffff',
-          border: '1px solid #cbd5e1',
-          borderRadius: '8px',
-          padding: '20px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-            <div>
-              <div style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
-                1. Laju Treated Gas vs Sirkulasi MCR
-              </div>
-              <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
-                H3FI0004 [t/h] vs H4FI011B [t/h] &mdash; Batas Anti-Surge 480 t/h
-              </div>
-            </div>
-            <span style={{
-              fontSize: '12px',
-              padding: '2px 8px',
-              backgroundColor: currentMcr >= 480 ? '#dcfce7' : '#fee2e2',
-              color: currentMcr >= 480 ? '#15803d' : '#b91c1c',
-              borderRadius: '4px',
-              fontWeight: 700,
-            }}>
-              {currentMcr >= 480 ? 'DI ATAS SURGE' : 'SURGE FLOOR ACTIVE'}
-            </span>
-          </div>
-
-          <div style={{ width: '100%', overflowX: 'auto' }}>
-            <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} style={{ width: '100%', maxHeight: '280px' }}>
-              {/* Background grid */}
-              <rect x={c1Pad.left} y={c1Pad.top} width={c1W} height={c1H} fill="#f8fafc" stroke="#e2e8f0" />
-
-              {/* Anti-surge safe zone vs recycle zone */}
-              <rect
-                x={c1Pad.left}
-                y={sY1(480)}
-                width={c1W}
-                height={sY1(minMcr) - sY1(480)}
-                fill="rgba(239, 68, 68, 0.08)"
-              />
-              <line
-                x1={c1Pad.left}
-                y1={sY1(480)}
-                x2={c1Pad.left + c1W}
-                y2={sY1(480)}
-                stroke="#dc2626"
-                strokeWidth={2}
-                strokeDasharray="5 4"
-              />
-              <text x={c1Pad.left + 8} y={sY1(480) - 6} fill="#dc2626" fontSize="11" fontWeight="700">
-                Batas Anti-Surge Kompresor: 480.0 t/h
-              </text>
-
-              {/* Typical operation band (ratio ~2.2 to 2.45) */}
-              <path
-                d={`M ${sX1(140)} ${sY1(140 * 2.45)} L ${sX1(340)} ${sY1(340 * 1.95)} L ${sX1(340)} ${sY1(340 * 1.75)} L ${sX1(140)} ${sY1(480)} Z`}
-                fill="rgba(2, 132, 199, 0.08)"
-              />
-
-              {/* Grid Y lines */}
-              {[450, 500, 550, 600, 650].map((m) => (
-                <g key={m}>
-                  <line x1={c1Pad.left} y1={sY1(m)} x2={c1Pad.left + c1W} y2={sY1(m)} stroke="#e2e8f0" strokeDasharray="2 2" />
-                  <text x={c1Pad.left - 8} y={sY1(m) + 4} fill="#64748b" fontSize="11" textAnchor="end" className="font-num">
-                    {m}
-                  </text>
-                </g>
-              ))}
-
-              {/* Grid X lines */}
-              {[150, 200, 250, 300, 350].map((f) => (
-                <g key={f}>
-                  <line x1={sX1(f)} y1={c1Pad.top} x2={sX1(f)} y2={c1Pad.top + c1H} stroke="#e2e8f0" strokeDasharray="2 2" />
-                  <text x={sX1(f)} y={c1Pad.top + c1H + 16} fill="#64748b" fontSize="11" textAnchor="middle" className="font-num">
-                    {f}
-                  </text>
-                </g>
-              ))}
-
-              {/* Current Actual DCS point */}
-              <circle cx={sX1(snapshot.values.H1FI012?.value ?? currentFeed)} cy={sY1(snapshot.values.H4FI001?.value ?? 562.3)} r={6} fill="#64748b" />
-              <text x={sX1(snapshot.values.H1FI012?.value ?? currentFeed) + 10} y={sY1(snapshot.values.H4FI001?.value ?? 562.3) + 4} fill="#475569" fontSize="11" fontWeight="600">
-                Aktual DCS
-              </text>
-
-              {/* Scenario Point */}
-              <circle cx={sX1(currentFeed)} cy={sY1(currentMcr)} r={9} fill="none" stroke="#0284c7" strokeWidth={2} />
-              <circle cx={sX1(currentFeed)} cy={sY1(currentMcr)} r={5} fill="#0284c7" />
-              <text x={sX1(currentFeed) + 12} y={sY1(currentMcr) - 8} fill="#0284c7" fontSize="12" fontWeight="700">
-                Skenario ({currentFeed.toFixed(0)} t/h, {currentMcr.toFixed(1)} t/h)
-              </text>
-
-              {/* Axis labels */}
-              <text x={c1Pad.left + c1W / 2} y={svgHeight - 8} fill="#0f172a" fontSize="12" textAnchor="middle" fontWeight="600">
-                Laju Alir Treated Gas ke MCHE (t/h)
-              </text>
-              <text x={-c1Pad.top - c1H / 2} y={16} fill="#0f172a" fontSize="12" textAnchor="middle" fontWeight="600" transform="rotate(-90)">
-                Sirkulasi MCR (t/h)
-              </text>
-            </svg>
-          </div>
-        </div>
-
-        {/* CHART 2: Compressor Power vs Production Load */}
-        <div style={{
-          backgroundColor: '#ffffff',
-          border: '1px solid #cbd5e1',
-          borderRadius: '8px',
-          padding: '20px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-            <div>
-              <div style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
-                2. Daya Kompresor vs Beban Umpan Gas
-              </div>
-              <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
-                Total Daya Poros C3MR [MW] vs Laju Alir Umpan [t/h]
-              </div>
-            </div>
-            <span style={{
-              fontSize: '12px',
-              padding: '2px 8px',
-              backgroundColor: '#f1f5f9',
-              color: '#334155',
-              borderRadius: '4px',
-              fontWeight: 600,
-            }}>
-              Underload | Transisi | Baseload
-            </span>
-          </div>
-
-          <div style={{ width: '100%', overflowX: 'auto' }}>
-            <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} style={{ width: '100%', maxHeight: '280px' }}>
-              <rect x={c2Pad.left} y={c2Pad.top} width={c2W} height={c2H} fill="#f8fafc" stroke="#e2e8f0" />
-
-              {/* Regimes Background */}
-              <rect x={sX2(minF)} y={c2Pad.top} width={sX2(226.8) - sX2(minF)} height={c2H} fill="rgba(2, 132, 199, 0.04)" />
-              <rect x={sX2(226.8)} y={c2Pad.top} width={sX2(279.8) - sX2(226.8)} height={c2H} fill="rgba(217, 119, 6, 0.04)" />
-              <rect x={sX2(279.8)} y={c2Pad.top} width={sX2(maxF) - sX2(279.8)} height={c2H} fill="rgba(22, 163, 74, 0.04)" />
-
-              {/* Regime Dividing Lines */}
-              <line x1={sX2(226.8)} y1={c2Pad.top} x2={sX2(226.8)} y2={c2Pad.top + c2H} stroke="#94a3b8" strokeDasharray="3 3" />
-              <line x1={sX2(279.8)} y1={c2Pad.top} x2={sX2(279.8)} y2={c2Pad.top + c2H} stroke="#94a3b8" strokeDasharray="3 3" />
-
-              {/* Y Grid */}
-              {[60, 75, 90, 105].map((p) => (
-                <g key={p}>
-                  <line x1={c2Pad.left} y1={sY2(p)} x2={c2Pad.left + c2W} y2={sY2(p)} stroke="#e2e8f0" strokeDasharray="2 2" />
-                  <text x={c2Pad.left - 8} y={sY2(p) + 4} fill="#64748b" fontSize="11" textAnchor="end" className="font-num">
-                    {p} MW
-                  </text>
-                </g>
-              ))}
-
-              {/* X Grid */}
-              {[150, 200, 250, 300].map((f) => (
-                <g key={f}>
-                  <line x1={sX2(f)} y1={c2Pad.top} x2={sX2(f)} y2={c2Pad.top + c2H} stroke="#e2e8f0" strokeDasharray="2 2" />
-                  <text x={sX2(f)} y={c2Pad.top + c2H + 16} fill="#64748b" fontSize="11" textAnchor="middle" className="font-num">
-                    {f}
-                  </text>
-                </g>
-              ))}
-
-              {/* Historical DCS Points */}
-              {historicalPoints.map((pt, i) => (
-                <circle key={i} cx={sX2(pt.feed_flow)} cy={sY2(pt.power_mw)} r={3} fill="#94a3b8" opacity={0.65} />
-              ))}
-
-              {/* Baseline Point */}
-              <circle cx={sX2(currentFeed)} cy={sY2(baselinePower)} r={6} fill="#64748b" />
-              <text x={sX2(currentFeed) + 8} y={sY2(baselinePower) + 4} fill="#475569" fontSize="11" fontWeight="600">
-                Aktual: {baselinePower.toFixed(1)} MW
-              </text>
-
-              {/* Scenario Point */}
-              <circle cx={sX2(currentFeed)} cy={sY2(currentPower)} r={9} fill="none" stroke="#0284c7" strokeWidth={2} />
-              <circle cx={sX2(currentFeed)} cy={sY2(currentPower)} r={5} fill="#0284c7" />
-              <text x={sX2(currentFeed) + 8} y={sY2(currentPower) - 8} fill="#0284c7" fontSize="12" fontWeight="700">
-                Skenario: {currentPower.toFixed(2)} MW
-              </text>
-
-              {/* Axis Labels */}
-              <text x={c2Pad.left + c2W / 2} y={svgHeight - 8} fill="#0f172a" fontSize="12" textAnchor="middle" fontWeight="600">
-                Laju Alir Treated Gas ke MCHE (t/h)
-              </text>
-              <text x={-c2Pad.top - c2H / 2} y={16} fill="#0f172a" fontSize="12" textAnchor="middle" fontWeight="600" transform="rotate(-90)">
-                Total Daya Poros C3MR (MW)
-              </text>
-            </svg>
-          </div>
-        </div>
-
-        {/* CHART 3: SEC LNG vs LNG Production */}
-        <div style={{
-          backgroundColor: '#ffffff',
-          border: '1px solid #cbd5e1',
-          borderRadius: '8px',
-          padding: '20px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-            <div>
-              <div style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
-                3. Efisiensi Spesifik (SEC) vs Produksi LNG
-              </div>
-              <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
-                SEC [kWh/t LNG] vs Laju Alir H5FI6A [t/h LNG]
-              </div>
-            </div>
-            <span style={{
-              fontSize: '12px',
-              padding: '2px 8px',
-              backgroundColor: '#e0f2fe',
-              color: '#0369a1',
-              borderRadius: '4px',
-              fontWeight: 700,
-            }}>
-              TARGET &le; 360 kWh/t
-            </span>
-          </div>
-
-          <div style={{ width: '100%', overflowX: 'auto' }}>
-            <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} style={{ width: '100%', maxHeight: '280px' }}>
-              <rect x={c3Pad.left} y={c3Pad.top} width={c3W} height={c3H} fill="#f8fafc" stroke="#e2e8f0" />
-
-              {/* Typical non-linear SEC curve (drastic increase at turndown due to recycle) */}
-              <path
-                d={`M ${sX3(120)} ${sY3(530)} Q ${sX3(160)} ${sY3(430)} ${sX3(220)} ${sY3(360)} T ${sX3(320)} ${sY3(320)}`}
-                fill="none"
-                stroke="#cbd5e1"
-                strokeWidth={3}
-              />
-
-              {/* Y Grid */}
-              {[300, 360, 420, 480, 540].map((s) => (
-                <g key={s}>
-                  <line x1={c3Pad.left} y1={sY3(s)} x2={c3Pad.left + c3W} y2={sY3(s)} stroke="#e2e8f0" strokeDasharray="2 2" />
-                  <text x={c3Pad.left - 8} y={sY3(s) + 4} fill="#64748b" fontSize="11" textAnchor="end" className="font-num">
-                    {s}
-                  </text>
-                </g>
-              ))}
-
-              {/* X Grid */}
-              {[120, 160, 200, 240, 280, 320].map((l) => (
-                <g key={l}>
-                  <line x1={sX3(l)} y1={c3Pad.top} x2={sX3(l)} y2={c3Pad.top + c3H} stroke="#e2e8f0" strokeDasharray="2 2" />
-                  <text x={sX3(l)} y={c3Pad.top + c3H + 16} fill="#64748b" fontSize="11" textAnchor="middle" className="font-num">
-                    {l}
-                  </text>
-                </g>
-              ))}
-
-              {/* Baseline SEC point */}
-              <circle cx={sX3(currentLng)} cy={sY3(baselineSec)} r={6} fill="#64748b" />
-              <text x={sX3(currentLng) + 8} y={sY3(baselineSec) + 4} fill="#475569" fontSize="11" fontWeight="600">
-                Aktual: {baselineSec.toFixed(1)} kWh/t
-              </text>
-
-              {/* Scenario SEC point */}
-              <circle cx={sX3(currentLng)} cy={sY3(currentSec)} r={9} fill="none" stroke="#16a34a" strokeWidth={2} />
-              <circle cx={sX3(currentLng)} cy={sY3(currentSec)} r={5} fill="#16a34a" />
-              <text x={sX3(currentLng) + 8} y={sY3(currentSec) - 8} fill="#16a34a" fontSize="12" fontWeight="700">
-                Skenario: {currentSec.toFixed(1)} kWh/t
-              </text>
-
-              {/* Axis Labels */}
-              <text x={c3Pad.left + c3W / 2} y={svgHeight - 8} fill="#0f172a" fontSize="12" textAnchor="middle" fontWeight="600">
-                Laju Alir Produksi LNG Rundown H5FI6A (t/h LNG)
-              </text>
-              <text x={-c3Pad.top - c3H / 2} y={16} fill="#0f172a" fontSize="12" textAnchor="middle" fontWeight="600" transform="rotate(-90)">
-                SEC LNG (kWh/t LNG)
-              </text>
-            </svg>
-          </div>
-        </div>
-
-        {/* CHART 4: MR Composition Profile */}
-        <div style={{
-          backgroundColor: '#ffffff',
-          border: '1px solid #cbd5e1',
-          borderRadius: '8px',
-          padding: '20px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-            <div>
-              <div style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
-                4. Profil Komposisi Mixed Refrigerant
-              </div>
-              <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
-                Perbandingan Fraksi Mol [%] Aktual vs Skenario Target
-              </div>
-            </div>
-            <span style={{
-              fontSize: '12px',
-              padding: '2px 8px',
-              backgroundColor: dm <= dmLimit ? '#dcfce7' : '#fee2e2',
-              color: dm <= dmLimit ? '#15803d' : '#b91c1c',
-              borderRadius: '4px',
-              fontWeight: 700,
-            }}>
-              DM = {dm.toFixed(3)} {dm <= dmLimit ? '(VALID)' : '(EXTRAPOLASI)'}
-            </span>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '8px' }}>
-            {compLabels.map((lbl, idx) => {
-              const act = actualComps[idx];
-              const sce = scenarioComps[idx];
-              const delta = sce - act;
-              return (
-                <div key={idx}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
-                    <span style={{ color: '#0f172a', fontWeight: 700 }}>{lbl}</span>
-                    <span className="font-num" style={{ color: '#475569' }}>
-                      Aktual: <strong>{act.toFixed(2)}%</strong> &rarr; Skenario: <strong style={{ color: '#0284c7' }}>{sce.toFixed(2)}%</strong>
-                      <span style={{
-                        marginLeft: '8px',
-                        color: Math.abs(delta) < 0.01 ? '#64748b' : delta > 0 ? '#16a34a' : '#d97706',
-                        fontWeight: 700,
-                      }}>
-                        ({delta >= 0 ? '+' : ''}{delta.toFixed(2)}%)
-                      </span>
-                    </span>
-                  </div>
-
-                  {/* Dual bar representation */}
-                  <div style={{ height: '16px', backgroundColor: '#f1f5f9', borderRadius: '4px', position: 'relative', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
-                    {/* Actual bar */}
-                    <div style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      bottom: 0,
-                      width: `${Math.min(100, act * 1.8)}%`,
-                      backgroundColor: '#94a3b8',
-                      borderRadius: '3px',
-                      opacity: 0.7,
-                    }} />
-                    {/* Scenario bar */}
-                    <div style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      bottom: 0,
-                      width: `${Math.min(100, sce * 1.8)}%`,
-                      backgroundColor: '#0284c7',
-                      borderRadius: '3px',
-                      opacity: 0.85,
-                    }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <div style={{
-            marginTop: '16px',
-            padding: '10px 14px',
-            backgroundColor: '#f8fafc',
-            border: '1px solid #e2e8f0',
-            borderRadius: '6px',
-            fontSize: '12px',
-            color: '#475569',
-            display: 'flex',
-            justifyContent: 'space-between',
-          }}>
-            <span>Legend: <span style={{ color: '#94a3b8' }}>■ Aktual DCS</span> &nbsp; <span style={{ color: '#0284c7' }}>■ Skenario Target</span></span>
-            <span>Total Komposisi: <strong>{(scenarioComps.reduce((a, b) => a + b, 0)).toFixed(2)} mol%</strong></span>
-          </div>
-        </div>
-
-        {/* CHART 5: MCHE Temperature Profile */}
-        <div style={{
-          backgroundColor: '#ffffff',
-          border: '1px solid #cbd5e1',
-          borderRadius: '8px',
-          padding: '20px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-            <div>
-              <div style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
-                5. Profil Termal MCHE 5E-1 (Pinch Curve)
-              </div>
-              <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
-                Profil Pendinginan Natural Gas vs Evaporasi MCR Shell
-              </div>
-            </div>
-            <span style={{
-              fontSize: '12px',
-              padding: '2px 8px',
-              backgroundColor: '#dcfce7',
-              color: '#15803d',
-              borderRadius: '4px',
-              fontWeight: 700,
-            }}>
-              MITA &ge; 1.50 &deg;C (OK)
-            </span>
-          </div>
-
-          <div style={{ width: '100%', overflowX: 'auto' }}>
-            <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} style={{ width: '100%', maxHeight: '280px' }}>
-              <rect x={c5Pad.left} y={c5Pad.top} width={c5W} height={c5H} fill="#f8fafc" stroke="#e2e8f0" />
-
-              {/* Bundle sections */}
-              <rect x={c5Pad.left} y={c5Pad.top} width={c5W * 0.45} height={c5H} fill="rgba(217, 119, 6, 0.04)" />
-              <rect x={c5Pad.left + c5W * 0.45} y={c5Pad.top} width={c5W * 0.55} height={c5H} fill="rgba(2, 132, 199, 0.04)" />
-              <line x1={c5Pad.left + c5W * 0.45} y1={c5Pad.top} x2={c5Pad.left + c5W * 0.45} y2={c5Pad.top + c5H} stroke="#94a3b8" strokeDasharray="3 3" />
-              <text x={c5Pad.left + c5W * 0.22} y={c5Pad.top + 18} fill="#d97706" fontSize="11" fontWeight="700" textAnchor="middle">
-                Warm Bundle (3E-1)
-              </text>
-              <text x={c5Pad.left + c5W * 0.72} y={c5Pad.top + 18} fill="#0284c7" fontSize="11" fontWeight="700" textAnchor="middle">
-                Cold Bundle (3E-2)
-              </text>
-
-              {/* Y Grid */}
-              {[20, -20, -60, -100, -140, -170].map((t) => (
-                <g key={t}>
-                  <line x1={c5Pad.left} y1={sY5(t)} x2={c5Pad.left + c5W} y2={sY5(t)} stroke="#e2e8f0" strokeDasharray="2 2" />
-                  <text x={c5Pad.left - 8} y={sY5(t) + 4} fill="#64748b" fontSize="11" textAnchor="end" className="font-num">
-                    {t} &deg;C
-                  </text>
-                </g>
-              ))}
-
-              {/* X Grid (0 to 100% bundle position) */}
-              {[0, 25, 50, 75, 100].map((pct) => (
-                <g key={pct}>
-                  <line x1={sX5(pct)} y1={c5Pad.top} x2={sX5(pct)} y2={c5Pad.top + c5H} stroke="#e2e8f0" strokeDasharray="2 2" />
-                  <text x={sX5(pct)} y={c5Pad.top + c5H + 16} fill="#64748b" fontSize="11" textAnchor="middle" className="font-num">
-                    {pct}%
-                  </text>
-                </g>
-              ))}
-
-              {/* Hot Stream: Natural Gas Tube */}
-              <polyline points={pointsNG} fill="none" stroke="#ef4444" strokeWidth={3} />
-              <text x={sX5(10)} y={sY5(ngTemp(10)) - 8} fill="#dc2626" fontSize="11" fontWeight="700">
-                Natural Gas (+20 &rarr; -158 &deg;C)
-              </text>
-
-              {/* Cold Stream: Vaporizing MCR Shell */}
-              <polyline points={pointsMCR} fill="none" stroke="#0284c7" strokeWidth={3} />
-              <text x={sX5(70)} y={sY5(mcrTemp(70)) + 16} fill="#0284c7" fontSize="11" fontWeight="700">
-                MCR Shell (-162 &rarr; -38 &deg;C)
-              </text>
-
-              {/* Axis Labels */}
-              <text x={c5Pad.left + c5W / 2} y={svgHeight - 8} fill="#0f172a" fontSize="12" textAnchor="middle" fontWeight="600">
-                Posisi Bundle MCHE (0% = Warm Top &rarr; 100% = Cold Bottom)
-              </text>
-              <text x={-c5Pad.top - c5H / 2} y={16} fill="#0f172a" fontSize="12" textAnchor="middle" fontWeight="600" transform="rotate(-90)">
-                Temperatur Kriogenik (&deg;C)
-              </text>
-            </svg>
-          </div>
-        </div>
-
-        {/* CHART 6: Baseline vs Scenario Comparison */}
-        <div style={{
-          backgroundColor: '#ffffff',
-          border: '1px solid #cbd5e1',
-          borderRadius: '8px',
-          padding: '20px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+          backgroundColor: '#1b2a4a',
+          color: '#ffffff',
+          height: '36px',
+          padding: '0 12px',
           display: 'flex',
-          flexDirection: 'column',
           justifyContent: 'space-between',
+          alignItems: 'center',
+          borderBottom: '2px solid #0284c7',
+          fontSize: '12px',
+          fontFamily: "'Segoe UI', Tahoma, sans-serif",
+          userSelect: 'none',
         }}>
-          <div>
-            <div style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
-              6. Ringkasan Perbandingan KPI Proses
+          {/* Left: Alarms and Tabs */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '2px' }}>
+              <span style={{ backgroundColor: '#dc2626', color: '#fff', padding: '1px 6px', fontWeight: 800, borderRadius: '2px', fontSize: '11px' }}>0</span>
+              <span style={{ backgroundColor: '#ea580c', color: '#fff', padding: '1px 6px', fontWeight: 800, borderRadius: '2px', fontSize: '11px' }}>0</span>
+              <span style={{ backgroundColor: '#0284c7', color: '#fff', padding: '1px 6px', fontWeight: 800, borderRadius: '2px', fontSize: '11px' }}>40</span>
             </div>
-            <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px', marginBottom: '16px' }}>
-              Perbandingan Metrik Utama: Kondisi Aktual vs Hasil Prediksi Skenario
+            <div style={{
+              backgroundColor: '#0369a1',
+              color: '#ffffff',
+              padding: '4px 10px',
+              fontWeight: 700,
+              borderRadius: '3px 3px 0 0',
+              borderTop: '2px solid #38bdf8',
+            }}>
+              GRH0068 MAIN HEAT EXCHNG
             </div>
-
-            {/* Metric Comparison Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-              {/* Power */}
-              <div style={{ padding: '12px', border: '1px solid #e2e8f0', borderRadius: '6px', backgroundColor: '#f8fafc' }}>
-                <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Total Daya Poros C3MR</div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: '6px' }}>
-                  <span style={{ fontSize: '13px', color: '#64748b' }}>Aktual: {baselinePower.toFixed(2)} MW</span>
-                  <span style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>{currentPower.toFixed(2)} MW</span>
-                </div>
-                <div style={{
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  marginTop: '4px',
-                  color: currentPower <= baselinePower ? '#16a34a' : '#d97706',
-                }}>
-                  {currentPower <= baselinePower ? 'Hemat ' : 'Tambah '}
-                  {Math.abs(currentPower - baselinePower).toFixed(2)} MW ({(((currentPower - baselinePower) / baselinePower) * 100).toFixed(2)}%)
-                </div>
-              </div>
-
-              {/* SEC */}
-              <div style={{ padding: '12px', border: '1px solid #e2e8f0', borderRadius: '6px', backgroundColor: '#f8fafc' }}>
-                <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>SEC LNG</div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: '6px' }}>
-                  <span style={{ fontSize: '13px', color: '#64748b' }}>Aktual: {baselineSec.toFixed(1)}</span>
-                  <span style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>{currentSec.toFixed(1)} kWh/t</span>
-                </div>
-                <div style={{
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  marginTop: '4px',
-                  color: currentSec <= baselineSec ? '#16a34a' : '#d97706',
-                }}>
-                  {currentSec <= baselineSec ? 'Hemat ' : 'Tambah '}
-                  {Math.abs(currentSec - baselineSec).toFixed(1)} kWh/t
-                </div>
-              </div>
-
-              {/* MCR Flow */}
-              <div style={{ padding: '12px', border: '1px solid #e2e8f0', borderRadius: '6px', backgroundColor: '#f8fafc' }}>
-                <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Sirkulasi MCR</div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: '6px' }}>
-                  <span style={{ fontSize: '13px', color: '#64748b' }}>Aktual: {(snapshot.values.H4FI001?.value ?? 562.3).toFixed(1)} t/h</span>
-                  <span style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>{currentMcr.toFixed(1)} t/h</span>
-                </div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#0284c7', marginTop: '4px' }}>
-                  Anti-Surge Margin: +{(currentMcr - 480).toFixed(1)} t/h
-                </div>
-              </div>
-
-              {/* CO2 Abatement */}
-              <div style={{ padding: '12px', border: '1px solid #e2e8f0', borderRadius: '6px', backgroundColor: '#f8fafc' }}>
-                <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Potensi Reduksi Emisi CO₂</div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: '6px' }}>
-                  <span style={{ fontSize: '13px', color: '#64748b' }}>Faktor Grid: 0.82</span>
-                  <span style={{ fontSize: '16px', fontWeight: 800, color: '#16a34a' }}>
-                    {prediction?.prediction?.co2_abatement_t_day ? `${prediction.prediction.co2_abatement_t_day.toFixed(1)} t/hari` : '—'}
-                  </span>
-                </div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#16a34a', marginTop: '4px' }}>
-                  Basis Fuel Gas Kilang Badak
-                </div>
-              </div>
-            </div>
+            <span style={{ color: '#94a3b8', fontSize: '11px' }}>GRH0067 2K-1 L.O</span>
+            <span style={{ color: '#94a3b8', fontSize: '11px' }}>GRH0066 2K-1 VIBRATION</span>
+            <span style={{ color: '#94a3b8', fontSize: '11px' }}>GRH0065 FUEL GAS COMP</span>
+            <span style={{ color: '#94a3b8', fontSize: '11px' }}>GRH0064 4K-3 L.O</span>
           </div>
 
-          <div style={{
-            marginTop: '16px',
-            padding: '12px 14px',
-            backgroundColor: '#f1f5f9',
-            border: '1px solid #cbd5e1',
-            borderRadius: '6px',
-            fontSize: '13px',
-            color: '#334155',
-            lineHeight: 1.5,
-          }}>
-            <strong>Ringkasan Hasil Evaluasi:</strong> Hasil perhitungan skenario menunjukkan bahwa konfigurasi yang dimasukkan dapat mempertahankan integritas batasan keselamatan kompresor di atas floor anti-surge (480.0 t/h) dan menjaga efisiensi spesifik LNG dalam rentang reliabel model.
+          {/* Right: DCS User & Clock */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#93c5fd', fontSize: '11px' }}>
+            <span>YOKOGAWA CENTUM VP</span>
+            <span>ENGUSER (S3)</span>
+            <span style={{ color: '#ffffff', fontWeight: 700 }}>27-MAY-26 13:51</span>
           </div>
         </div>
 
+        {/* SVG Centum Graphic Area (1600 x 860) */}
+        <svg
+          viewBox="0 0 1600 860"
+          style={{
+            width: '100%',
+            height: 'auto',
+            display: 'block',
+            backgroundColor: '#000000',
+            fontFamily: "'Courier New', Courier, monospace",
+          }}
+        >
+          <defs>
+            {/* Arrowhead marker for cyan lines */}
+            <marker id="arrow-cyan" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#00ffff" />
+            </marker>
+            {/* Arrowhead marker for magenta lines */}
+            <marker id="arrow-magenta" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#e879f9" />
+            </marker>
+            {/* Arrowhead marker for yellow lines */}
+            <marker id="arrow-yellow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffff00" />
+            </marker>
+            {/* Arrowhead marker for red lines */}
+            <marker id="arrow-red" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#ff0000" />
+            </marker>
+          </defs>
+
+          {/* Title Header on Canvas */}
+          <text x="800" y="55" fill="#ffffff" fontSize="22" fontWeight="bold" textAnchor="middle" letterSpacing="3">
+            MAIN HEAT EXCHANGER
+          </text>
+          <text x="1240" y="65" fill="#1d4ed8" fontSize="14" fontWeight="bold">
+            RESET 5HC25
+          </text>
+
+          {/* =============================================================== */}
+          {/* MAIN VESSEL: MCHE 5E-1 (STEPPED SWAGE GEOMETRY)                 */}
+          {/* =============================================================== */}
+          {/* Cold Bundle Neck: x: 670 to 790, y: 130 to 360 */}
+          {/* Swage Transition: y: 360 to 410 */}
+          {/* Warm Bundle Body: x: 630 to 830, y: 410 to 720 */}
+          <path
+            d="
+              M 670,200
+              A 60,60 0 0,1 790,200
+              L 790,360
+              L 830,410
+              L 830,720
+              A 100,30 0 0,1 630,720
+              L 630,410
+              L 670,360
+              Z
+            "
+            fill="none"
+            stroke="#00ff00"
+            strokeWidth="3.5"
+          />
+
+          {/* Internal separator trays & distributor representations */}
+          {/* Cold Spray Tray */}
+          <line x1="685" y1="280" x2="775" y2="280" stroke="#00ff00" strokeWidth="2" strokeDasharray="4 3" />
+          <text x="730" y="276" fill="#00ffff" fontSize="11" textAnchor="middle">* * *</text>
+          {/* Liquid level LI2 fill rectangle */}
+          <rect x="685" y="280" width="90" height="18" fill="#0284c7" opacity="0.4" />
+
+          {/* Warm Spray Tray */}
+          <line x1="645" y1="510" x2="815" y2="510" stroke="#00ff00" strokeWidth="2" strokeDasharray="4 3" />
+          <text x="730" y="506" fill="#00ffff" fontSize="11" textAnchor="middle">* * * * *</text>
+          {/* Liquid level LI3 fill rectangle */}
+          <rect x="645" y="510" width="170" height="24" fill="#0284c7" opacity="0.4" />
+
+          {/* Sump text */}
+          <text x="730" y="695" fill="#ffffff" fontSize="20" fontWeight="bold" textAnchor="middle">
+            5E-1
+          </text>
+
+          {/* =============================================================== */}
+          {/* STREAM 1: FEED GAS INLET & LNG PRODUCT (RED & MAGENTA)          */}
+          {/* =============================================================== */}
+          {/* FEED GAS Label */}
+          <text x="140" y="725" fill="#ff0000" fontSize="14" fontWeight="bold">FEED</text>
+          <text x="140" y="742" fill="#ff0000" fontSize="14" fontWeight="bold">GAS</text>
+
+          {/* Red line from left into 5E-1 bottom tube bundle */}
+          <line x1="180" y1="735" x2="670" y2="735" stroke="#ff0000" strokeWidth="3" markerEnd="url(#arrow-red)" />
+          {/* Inside tube rising all the way to top */}
+          <path
+            d="M 670,735 L 700,735 L 700,190 L 730,190"
+            fill="none"
+            stroke="#ff0000"
+            strokeWidth="2.5"
+          />
+
+          {/* LNG Overhead Outlet line (Magenta) */}
+          <path
+            d="M 730,190 L 730,160 L 1230,160"
+            fill="none"
+            stroke="#e879f9"
+            strokeWidth="3.5"
+            markerEnd="url(#arrow-magenta)"
+          />
+
+          {/* LNG split to 5C-2 and Storage */}
+          <line x1="1230" y1="160" x2="1230" y2="290" stroke="#e879f9" strokeWidth="3" />
+          
+          {/* Valve TV1A */}
+          <path d="M 1220,290 L 1240,310 L 1240,290 L 1220,310 Z" fill="#ff1e1e" stroke="#ffffff" strokeWidth="1" />
+          <line x1="1230" y1="310" x2="1230" y2="350" stroke="#e879f9" strokeWidth="3" markerEnd="url(#arrow-magenta)" />
+          <text x="1275" y="355" fill="#00ff00" fontSize="14" fontWeight="bold">5C-2</text>
+
+          {/* Bypass line down to LNG > STRG */}
+          <line x1="1230" y1="210" x2="1320" y2="210" stroke="#e879f9" strokeWidth="2.5" />
+          <line x1="1320" y1="210" x2="1320" y2="470" stroke="#e879f9" strokeWidth="2.5" />
+          {/* Valve TV1B */}
+          <path d="M 1310,470 L 1330,490 L 1330,470 L 1310,490 Z" fill="#ff1e1e" stroke="#ffffff" strokeWidth="1" />
+          <line x1="1320" y1="490" x2="1320" y2="540" stroke="#e879f9" strokeWidth="2.5" markerEnd="url(#arrow-magenta)" />
+          <text x="1350" y="530" fill="#e879f9" fontSize="13" fontWeight="bold">LNG&gt;</text>
+          <text x="1350" y="546" fill="#e879f9" fontSize="13" fontWeight="bold">STRG</text>
+          <text x="1350" y="570" fill="#e879f9" fontSize="11">PUMP BYPASS</text>
+
+          {/* =============================================================== */}
+          {/* STREAM 2: MR VAPOR INLET (YELLOW)                               */}
+          {/* =============================================================== */}
+          <text x="140" y="515" fill="#ffff00" fontSize="14" fontWeight="bold">MR VAP</text>
+          <line x1="205" y1="510" x2="350" y2="510" stroke="#ffff00" strokeWidth="3" markerEnd="url(#arrow-yellow)" />
+          
+          {/* Tube inside warm bundle and up to Cold JT Valve HIC2 */}
+          <path
+            d="M 350,510 L 420,510 L 420,240 L 710,240"
+            fill="none"
+            stroke="#ffff00"
+            strokeWidth="2.5"
+          />
+          {/* Top Spray Valve HIC2 */}
+          <path d="M 540,230 L 560,250 L 560,230 L 540,250 Z" fill="#e69138" stroke="#ffffff" strokeWidth="1" />
+          {/* Spray downwards into cold bundle */}
+          <line x1="710" y1="240" x2="710" y2="270" stroke="#ffff00" strokeWidth="2.5" markerEnd="url(#arrow-yellow)" />
+
+          {/* =============================================================== */}
+          {/* STREAM 3: MR LIQUID INLET & WARM JT SPRAY (YELLOW)              */}
+          {/* =============================================================== */}
+          <text x="280" y="735" fill="#ffff00" fontSize="14" fontWeight="bold">MR LIQ</text>
+          <line x1="345" y1="730" x2="630" y2="730" stroke="#ffff00" strokeWidth="3" markerEnd="url(#arrow-yellow)" />
+          
+          {/* Mid spray header loop from warm tube to warm spray valve HIC3 */}
+          <path
+            d="M 630,560 L 510,560 L 510,560"
+            fill="none"
+            stroke="#ffff00"
+            strokeWidth="2.5"
+          />
+          {/* Warm Spray Valve HIC3 */}
+          <path d="M 520,550 L 540,570 L 540,550 L 520,570 Z" fill="#e69138" stroke="#ffffff" strokeWidth="1" />
+          <path d="M 540,560 L 670,560 L 670,490" fill="none" stroke="#ffff00" strokeWidth="2.5" markerEnd="url(#arrow-yellow)" />
+
+          {/* Right warm spray line */}
+          <path
+            d="M 790,560 L 1030,560 L 1030,530"
+            fill="none"
+            stroke="#ffff00"
+            strokeWidth="2.5"
+          />
+          <path d="M 1020,520 L 1040,540 L 1040,520 L 1020,540 Z" fill="#e69138" stroke="#ffffff" strokeWidth="1" />
+
+          {/* =============================================================== */}
+          {/* STREAM 4: OVERHEAD VAPOR TO LTSS (CYAN / DASHED)                */}
+          {/* =============================================================== */}
+          <path
+            d="M 730,135 L 730,105 L 180,105"
+            fill="none"
+            stroke="#00ffff"
+            strokeWidth="2.5"
+            strokeDasharray="6 3"
+          />
+          {/* Valve on LTSS line */}
+          <path d="M 280,95 L 300,115 L 300,95 L 280,115 Z" fill="#00ff00" stroke="#ffffff" strokeWidth="1" />
+          <text x="140" y="110" fill="#00ffff" fontSize="13" fontWeight="bold">LTSS</text>
+
+          {/* =============================================================== */}
+          {/* STREAM 5: SHELL LP RETURN TO 4C-7 / 4K-2 (YELLOW)               */}
+          {/* =============================================================== */}
+          <path
+            d="M 730,735 L 730,765 L 1220,765"
+            fill="none"
+            stroke="#ffff00"
+            strokeWidth="3.5"
+          />
+          {/* Shutoff Valve 4HV11 */}
+          <path d="M 1220,755 L 1240,775 L 1240,755 L 1220,775 Z" fill="#ff1e1e" stroke="#ffffff" strokeWidth="1" />
+          <line x1="1240" y1="765" x2="1340" y2="765" stroke="#ffff00" strokeWidth="3.5" markerEnd="url(#arrow-yellow)" />
+          <text x="1350" y="770" fill="#ffff00" fontSize="14" fontWeight="bold">4C-7</text>
+          <text x="1225" y="795" fill="#ffff00" fontSize="11">4HV11</text>
+
+          {/* =============================================================== */}
+          {/* DCS INSTRUMENT TAG BOXES & READINGS (INTERACTIVE)               */}
+          {/* =============================================================== */}
+
+          {/* 1. Feed Gas Inlet: PI12, TI23, TI50 */}
+          {/* PI12 */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'PI12', name: 'Feed Gas Inlet Pressure', unit: 'KGC2G', valDcs: 43.15, valAi: 43.15 })}>
+            <text x="240" y="785" fill="#00ffff" fontSize="12" fontWeight="bold">PI12</text>
+            <text x="220" y="805" fill={displayMode === 'AI_OPTIMIZED' ? '#34d399' : '#ffffff'} fontSize="16" fontWeight="bold">
+              {fmt('PI12', 43.15, 43.15, 2).display}
+            </text>
+            <text x="275" y="805" fill="#00ffff" fontSize="10">KGC2G</text>
+          </g>
+
+          {/* TI23 */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'TI23', name: 'Feed Gas Inlet Temperature', unit: '°C', valDcs: -54.8, valAi: -54.8 })}>
+            <text x="380" y="785" fill="#00ffff" fontSize="12" fontWeight="bold">TI23</text>
+            <text x="360" y="805" fill="#ffffff" fontSize="16" fontWeight="bold">-54.8</text>
+            <text x="420" y="805" fill="#00ffff" fontSize="11">°C</text>
+          </g>
+
+          {/* TI50 */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'TI50', name: 'Feed Gas Chilled Temperature', unit: '°C', valDcs: -36.0, valAi: -36.0 })}>
+            <text x="500" y="785" fill="#00ffff" fontSize="12" fontWeight="bold">TI50</text>
+            <text x="480" y="805" fill="#ffffff" fontSize="16" fontWeight="bold">-36.0</text>
+            <text x="540" y="805" fill="#00ffff" fontSize="11">°C</text>
+          </g>
+
+          {/* 2. Cold Separator Level: LI2 */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'LI2', name: 'Cold Bundle Separator Level', unit: '%', valDcs: 39.0, valAi: 39.0 })}>
+            <text x="800" y="275" fill="#00ffff" fontSize="13" fontWeight="bold">LI2</text>
+            <text x="840" y="275" fill="#ffffff" fontSize="16" fontWeight="bold">39.0</text>
+            <text x="880" y="275" fill="#00ffff" fontSize="11">%</text>
+          </g>
+
+          {/* 3. Warm Separator Level: LI3 */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'LI3', name: 'Warm Bundle Separator Level', unit: '%', valDcs: 48.5, valAi: 48.5 })}>
+            <text x="800" y="520" fill="#00ffff" fontSize="13" fontWeight="bold">LI3</text>
+            <text x="840" y="520" fill="#ffffff" fontSize="16" fontWeight="bold">48.5</text>
+            <text x="880" y="520" fill="#00ffff" fontSize="11">%</text>
+          </g>
+
+          {/* 4. Cold Differential Pressure: PDI4 */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'PDI4', name: 'Cold Bundle Differential Pressure', unit: 'KGC2G', valDcs: 0.067, valAi: 0.062, limit: '< 0.100 KGC2G' })}>
+            <text x="530" y="340" fill="#00ffff" fontSize="13" fontWeight="bold">PDI4</text>
+            <text x="500" y="365" fill={displayMode === 'AI_OPTIMIZED' ? '#34d399' : '#ffffff'} fontSize="18" fontWeight="bold">
+              {fmt('PDI4', 0.067, pdiCold, 3).display}
+            </text>
+            <text x="575" y="365" fill="#00ffff" fontSize="11">KGC2G</text>
+          </g>
+
+          {/* HIC2 Valve Position */}
+          <text x="520" y="270" fill="#00ffff" fontSize="12" fontWeight="bold">HIC2</text>
+          <text x="520" y="288" fill="#ffffff" fontSize="14" fontWeight="bold">100.0 %</text>
+
+          {/* 5. Warm Differential Pressure: PDI3 */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'PDI3', name: 'Warm Bundle Differential Pressure', unit: 'KGC2', valDcs: 0.240, valAi: 0.215, limit: '< 0.350 KGC2' })}>
+            <text x="510" y="630" fill="#00ffff" fontSize="13" fontWeight="bold">PDI3</text>
+            <text x="490" y="655" fill={displayMode === 'AI_OPTIMIZED' ? '#34d399' : '#ffffff'} fontSize="18" fontWeight="bold">
+              {fmt('PDI3', 0.240, pdiWarm, 3).display}
+            </text>
+            <text x="560" y="655" fill="#00ffff" fontSize="11">KGC2</text>
+          </g>
+
+          {/* HIC3 Valve Position */}
+          <text x="500" y="590" fill="#00ffff" fontSize="12" fontWeight="bold">HIC3</text>
+          <text x="500" y="608" fill="#ffffff" fontSize="14" fontWeight="bold">100.0 %</text>
+
+          {/* 6. LNG Rundown Outlet: TIC1A/B and TI29 */}
+          {/* TIC1A/B */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'TIC1A/B', name: 'LNG Rundown Temperature Controller', unit: '°C', valDcs: -151.2, valAi: lngTemp, limit: 'Target ≤ -150.0°C' })}>
+            <text x="1190" y="240" fill="#00ffff" fontSize="13" fontWeight="bold">TIC1A/B</text>
+            <text x="1180" y="265" fill={displayMode === 'AI_OPTIMIZED' ? '#34d399' : '#ffffff'} fontSize="18" fontWeight="bold">
+              {fmt('TIC1A/B', -151.2, lngTemp, 1).display}
+            </text>
+            <text x="1255" y="265" fill="#00ffff" fontSize="12">°C</text>
+          </g>
+
+          {/* TI29 */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'TI29', name: 'LNG Product Temperature', unit: '°C', valDcs: -153.6, valAi: -153.8 })}>
+            <text x="1100" y="240" fill="#00ffff" fontSize="12" fontWeight="bold">TI29</text>
+            <text x="1080" y="262" fill="#ffffff" fontSize="16" fontWeight="bold">-153.6</text>
+            <text x="1145" y="262" fill="#00ffff" fontSize="11">°C</text>
+          </g>
+
+          {/* 7. MR Vapor Inlet Tags: FI1, PI1, TI47 */}
+          {/* FI1 */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'FI1', name: 'MR Vapor Flow Rate', unit: 'KNM3/H', valDcs: 128.0, valAi: 128.0 })}>
+            <text x="240" y="440" fill="#00ffff" fontSize="13" fontWeight="bold">FI1</text>
+            <text x="220" y="465" fill="#ffffff" fontSize="16" fontWeight="bold">128.0</text>
+            <text x="280" y="465" fill="#00ffff" fontSize="11">KNM3/H</text>
+          </g>
+
+          {/* PI1 */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'PI1', name: 'MR Vapor Pressure', unit: 'KGC2G', valDcs: 36.90, valAi: 35.15 })}>
+            <text x="280" y="540" fill="#00ffff" fontSize="12" fontWeight="bold">PI1</text>
+            <text x="260" y="562" fill={displayMode === 'AI_OPTIMIZED' ? '#34d399' : '#ffffff'} fontSize="16" fontWeight="bold">
+              {fmt('PI1', 36.90, 35.15, 2).display}
+            </text>
+            <text x="320" y="562" fill="#00ffff" fontSize="10">KGC2G</text>
+          </g>
+
+          {/* TI47 */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'TI47', name: 'MR Vapor Temperature', unit: '°C', valDcs: -35.1, valAi: -35.1 })}>
+            <text x="280" y="620" fill="#00ffff" fontSize="12" fontWeight="bold">TI47</text>
+            <text x="260" y="642" fill="#ffffff" fontSize="16" fontWeight="bold">-35.1</text>
+            <text x="315" y="642" fill="#00ffff" fontSize="11">°C</text>
+          </g>
+
+          {/* 8. Shell Bottom Return: TI8, PI9, TI48, TI49 */}
+          {/* TI8 (Suction Temp returning to 4C-7 / 4K-2) */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'TI8', name: 'MCHE Bottom Outlet / Compressor Suction Temp', unit: '°C', valDcs: -44.8, valAi: suctTemp, limit: 'TAL Interlock ≥ -45.0°C' })}>
+            <rect x="1080" y="745" width="115" height="42" fill="#064e3b" stroke="#10b981" strokeWidth="1.5" rx="4" />
+            <text x="1090" y="762" fill="#34d399" fontSize="12" fontWeight="bold">TI8 (TAL)</text>
+            <text x="1090" y="780" fill="#ffffff" fontSize="16" fontWeight="bold">
+              {fmt('TI8', -44.8, suctTemp, 1).display} °C
+            </text>
+          </g>
+
+          {/* PI9 (Suction Pressure) */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'PI9', name: 'MCHE Bottom Outlet / Compressor Suction Pressure', unit: 'KGC2G', valDcs: 2.284, valAi: suctPress })}>
+            <text x="960" y="775" fill="#00ffff" fontSize="12" fontWeight="bold">PI9</text>
+            <text x="940" y="795" fill={displayMode === 'AI_OPTIMIZED' ? '#34d399' : '#ffffff'} fontSize="16" fontWeight="bold">
+              {fmt('PI9', 2.284, suctPress, 3).display}
+            </text>
+            <text x="1000" y="795" fill="#00ffff" fontSize="10">KGC2G</text>
+          </g>
+
+          {/* TI48 & TI49 */}
+          <text x="860" y="670" fill="#00ffff" fontSize="11">TI49: <tspan fill="#ffffff" fontWeight="bold">-43.4 °C</tspan></text>
+          <text x="860" y="690" fill="#00ffff" fontSize="11">TI48: <tspan fill="#ffffff" fontWeight="bold">-43.6 °C</tspan></text>
+
+          {/* 9. MCR Liquid Flow Rate: FIC2 */}
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'FIC2', name: 'MCR Liquid Circulation Flow', unit: 'M3/H', valDcs: 875, valAi: 810 })}>
+            <text x="1060" y="550" fill="#00ffff" fontSize="13" fontWeight="bold">FIC2</text>
+            <text x="1040" y="575" fill={displayMode === 'AI_OPTIMIZED' ? '#34d399' : '#ffffff'} fontSize="18" fontWeight="bold">
+              {fmt('FIC2', 875, 810, 0).display}
+            </text>
+            <text x="1100" y="575" fill="#00ffff" fontSize="11">M3/H</text>
+          </g>
+
+          {/* 10. Overhead Vapor Tags: PIC2, TI20, TI24 */}
+          {/* PIC2 */}
+          <text x="280" y="75" fill="#00ffff" fontSize="12" fontWeight="bold">PIC2</text>
+          <text x="280" y="92" fill="#ffffff" fontSize="15" fontWeight="bold">2.70 <tspan fill="#00ffff" fontSize="10">KGC2G</tspan></text>
+
+          {/* TI20 & TI24 */}
+          <text x="490" y="75" fill="#00ffff" fontSize="12" fontWeight="bold">TI20</text>
+          <text x="490" y="92" fill="#ffffff" fontSize="15" fontWeight="bold">-134.6 <tspan fill="#00ffff" fontSize="10">°C</tspan></text>
+          <text x="490" y="115" fill="#00ffff" fontSize="12" fontWeight="bold">TI24</text>
+          <text x="490" y="132" fill="#ffffff" fontSize="15" fontWeight="bold">-151.3 <tspan fill="#00ffff" fontSize="10">°C</tspan></text>
+
+          {/* =============================================================== */}
+          {/* BOTTOM CENTUM VP SOFTKEY BAR                                    */}
+          {/* =============================================================== */}
+          {['CG0269', 'CG0270', 'CG0271', 'CG0272', 'CG0273', 'CG0274', 'TG0129', 'TG0130'].map((btn, idx) => (
+            <g key={btn} transform={`translate(${140 + idx * 165}, 815)`}>
+              <rect width="135" height="35" fill="#334155" stroke="#64748b" strokeWidth="1" rx="2" />
+              <text x="67" y="23" fill="#f8fafc" fontSize="13" fontWeight="bold" textAnchor="middle">
+                {btn}
+              </text>
+            </g>
+          ))}
+        </svg>
+
+        {/* Selected Tag Info Overlay / Drawer */}
+        {selectedTag && (
+          <div style={{
+            position: 'absolute',
+            bottom: '70px',
+            right: '24px',
+            backgroundColor: '#0f172a',
+            border: '2px solid #0284c7',
+            borderRadius: '8px',
+            padding: '16px 20px',
+            color: '#ffffff',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.6)',
+            maxWidth: '380px',
+            fontFamily: "'Segoe UI', sans-serif",
+            zIndex: 10,
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', borderBottom: '1px solid #334155', paddingBottom: '6px' }}>
+              <span style={{ fontSize: '15px', fontWeight: 800, color: '#38bdf8' }}>{selectedTag.tag}</span>
+              <button
+                onClick={() => setSelectedTag(null)}
+                style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '16px', cursor: 'pointer', fontWeight: 700 }}
+              >
+                ✕
+              </button>
+            </div>
+            <div style={{ fontSize: '13px', color: '#e2e8f0', marginBottom: '8px' }}>{selectedTag.name}</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+              <span style={{ color: '#94a3b8' }}>DCS Baseline:</span>
+              <strong>{selectedTag.valDcs} {selectedTag.unit}</strong>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+              <span style={{ color: '#94a3b8' }}>AI Skenario:</span>
+              <strong style={{ color: '#34d399' }}>{selectedTag.valAi} {selectedTag.unit}</strong>
+            </div>
+            {selectedTag.limit && (
+              <div style={{ marginTop: '8px', paddingTop: '6px', borderTop: '1px dashed #334155', fontSize: '11px', color: '#f59e0b' }}>
+                ⚠️ Batas Operasi: {selectedTag.limit}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
