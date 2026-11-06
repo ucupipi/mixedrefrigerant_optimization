@@ -1,4 +1,5 @@
 import React from 'react';
+import { getEstimatedLngFlow } from '../utils/thermoFlash';
 import type {
   ActualDcsState,
   DemoSnapshot,
@@ -39,8 +40,10 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   onNormalizeScenario,
   onReset,
 }) => {
-  // Coupling: LNG Rundown follows feed gas rate (yield 0.9450 after 5.5% end-flash letdown)
-  const scenarioLngFlow = scenario.feed_flow_t_h * 0.9450;
+  // Coupling: LNG Rundown follows feed gas rate via PR-EOS 5C-1 Flash Drum phase equilibrium
+  const scenarioLngFlow = prediction?.flash_drum_5c1?.lng_liquid_flow_t_h 
+    ?? scenario.lng_flow_t_h 
+    ?? getEstimatedLngFlow(scenario.feed_flow_t_h);
 
   // Power and SEC calculations (Evaluated ceteris-paribus at the active feed & LNG flow)
   const baselinePower = prediction?.actual_power_mw ?? 84.48;
@@ -54,16 +57,19 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   const deltaSecLng = prediction?.prediction?.delta_sec_kwh_per_t ?? (scenarioSecLng - baselineSecLng);
   const deltaSecLngPct = baselineSecLng > 0 ? (deltaSecLng / baselineSecLng) * 100 : 0;
 
-  // Steam and Fuel Gas savings
-  const STEAM_RATE_T_PER_MWH = 4.04;
-  const FUEL_GAS_NM3_PER_T_STEAM = 97.7;
-  const FG_DENSITY_KG_NM3 = 0.75;
+  // Plant-3 Economic & Decarbonization Constants (Manual Book Modul 8 & Stage 08)
+  const STEAM_RATE_T_PER_MWH = 4.04; // Verified condensate-meter anchor (R2 = 0.9989, Stage 08)
+  const FUEL_GAS_NM3_PER_T_STEAM = 97.7; // Boiler fuel gas consumption (Nm³ fuel gas / t steam, Modul 8)
+  const FG_DENSITY_KG_NM3 = 0.75; // Standard fuel gas density (kg/Nm³)
+  const FUEL_GAS_MMBTU_PER_NM3 = 0.03535; // Heat content conversion: 35.3147 scf/Nm³ * 1001 BTU/scf / 1e6 MMBTU/BTU
+  const FUEL_GAS_PRICE_USD_PER_MMBTU = 6.0; // Plant-3 internal fuel gas transfer valuation ($/MMBTU)
+  const ANNUAL_OPERATING_HOURS = 8000; // Baseline annual plant operating hours (~91.3% availability)
 
   const deltaPowerSavingMw = Math.max(0, -deltaPower);
   const steamSaved_t_h = deltaPowerSavingMw * STEAM_RATE_T_PER_MWH;
   const fuelGasSaved_nm3_h = steamSaved_t_h * FUEL_GAS_NM3_PER_T_STEAM;
   const fuelGasSaved_t_h = (fuelGasSaved_nm3_h * FG_DENSITY_KG_NM3) / 1000;
-  const fuelGasSaved_usd_yr = (fuelGasSaved_nm3_h * 0.03535 * 6.0 * 8000) / 1_000_000;
+  const fuelGasSaved_usd_yr = (fuelGasSaved_nm3_h * FUEL_GAS_MMBTU_PER_NM3 * FUEL_GAS_PRICE_USD_PER_MMBTU * ANNUAL_OPERATING_HOURS) / 1_000_000;
 
   // Composition sum
   const compSum =
@@ -137,7 +143,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               SECTION 1
             </span>
             <span style={{ fontSize: '16px', fontWeight: 700 }}>
-              Input Operasi & Target Rekomendasi
+              Input Beban Pabrik & Rekomendasi MCR
             </span>
             <span style={{
               backgroundColor: '#1e293b',
@@ -170,7 +176,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
               }}
             >
-              ⚡ Terapkan Rekomendasi AI
+              ⚡ Terapkan Rekomendasi MCR
             </button>
             <button
               onClick={onReset}
@@ -207,7 +213,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                   Input Skenario
                 </th>
                 <th style={{ padding: '10px 14px', fontWeight: 700, width: '24%', backgroundColor: '#ecfdf5', color: '#065f46' }}>
-                  Target AI
+                  Rekomendasi Operasi / Target Skenario
                 </th>
                 <th style={{ padding: '10px 14px', fontWeight: 700, width: '10%' }}>Satuan</th>
               </tr>
@@ -254,7 +260,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 </td>
                 <td style={{ padding: '12px 14px', backgroundColor: '#ecfdf5', fontWeight: 700, color: '#047857' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span>{(optimum?.feed_t_h ?? scenario.feed_flow_t_h).toFixed(1)}</span>
+                    <span>{scenario.feed_flow_t_h.toFixed(1)}</span>
                     <span style={{
                       backgroundColor: '#e0f2fe',
                       color: '#0369a1',
@@ -262,8 +268,8 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       borderRadius: '12px',
                       fontSize: '11px',
                       fontWeight: 700,
-                    }}>
-                      Ikuti Beban
+                    }} title="Beban Tetap (Gangguan / Disturbance)">
+                      Input Skenario / Beban Tetap
                     </span>
                   </div>
                 </td>
@@ -676,10 +682,10 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       DCS -151.2°C
                     </span>
                     <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
-                      AI -152.0°C
+                      Skenario: -152.0°C
                     </span>
                     <span style={{ backgroundColor: '#10b981', color: '#ffffff', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 800 }}>
-                      TARGET
+                      BATAS: ≤ -150.0°C
                     </span>
                   </div>
                 </div>
@@ -691,7 +697,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       DCS -153.6°C
                     </span>
                     <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
-                      AI -153.8°C
+                      Skenario: -153.8°C
                     </span>
                   </div>
                 </div>
@@ -710,7 +716,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       DCS -44.8°C
                     </span>
                     <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
-                      AI -43.5°C
+                      Skenario: -43.5°C
                     </span>
                   </div>
                 </div>
@@ -722,7 +728,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
 
 
       {/* =================================================================== */}
-      {/* SECTION 3: VALUE CREATION & PENGHEMATAN ENERGI (SAVINGS)           */}
+      {/* SEKSI 3: PENGHEMATAN ENERGI & REDUKSI EMISI                        */}
       {/* =================================================================== */}
       <section style={{
         backgroundColor: '#ffffff',
@@ -753,7 +759,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               SECTION 3
             </span>
             <span style={{ fontSize: '16px', fontWeight: 700 }}>
-              Ringkasan Nilai Penghematan
+              Penghematan Energi & Emisi
             </span>
             <span style={{
               backgroundColor: '#047857',
@@ -831,7 +837,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                   DCS: {baselineSecLng.toFixed(1)}
                 </span>
                 <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
-                  AI: {scenarioSecLng.toFixed(1)} kWh/t
+                  Skenario: {scenarioSecLng.toFixed(1)} kWh/t
                 </span>
               </div>
             </div>
@@ -982,7 +988,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                   DCS: {baselinePower.toFixed(1)} MW
                 </span>
                 <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
-                  AI: {scenarioPower.toFixed(1)} MW
+                  Skenario: {scenarioPower.toFixed(1)} MW
                 </span>
               </div>
             </div>

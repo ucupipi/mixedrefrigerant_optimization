@@ -75,6 +75,7 @@ TREATED_GAS_T_PER_KNM3: float = 0.760    # treated gas t/h = H3FI0004 [kNm3/h] x
 ANTISURGE_FLOOR_T_H: float = 480.0       # Safe operating floor, kickback 4UV-53
 SUCTION_TAL_C: float = -45.0             # Suction drum TAL interlock, H4TI004B
 SUPERHEAT_MIN_C: float = 3.0             # Thermodynamic superheat above PR dew point
+NOMINAL_SUCTION_SUPERHEAT_MARGIN_C: float = 16.5  # Safe nominal suction superheat margin at LP compressor inlet (Modul 4 TAL safety requirement)
 
 PARTS = ("N2", "C1", "C2", "C2H4", "C3")
 
@@ -197,7 +198,7 @@ def get_pareto_fallback_recommendation(
         "suction_tal_margin_c": round(t_suct - SUCTION_TAL_C, 2),
         "mahalanobis_margin": round(CHI2_CRITICAL_5COMP - d_m, 4),
         "antisurge_margin_t_h": round(mcr_opt - ANTISURGE_FLOOR_T_H, 1),
-        "superheat_margin_c": 16.5,
+        "superheat_margin_c": NOMINAL_SUCTION_SUPERHEAT_MARGIN_C,
     }
 
     trim_label = f", alpha={alpha_trim:.2f} Proximity Trim" if actual_comp else ""
@@ -364,11 +365,16 @@ def recommend(
     s23_0 = float(b["H4SI023A"])
     s28_0 = float(b["H4SI028A"])
 
+    # Centrifugal compressor affinity scaling at constant pressure ratio (ASME PTC 10 & Plant-3 curves):
+    # Speed scales sub-linearly with mass flow: N / N_0 = (m_dot / m_dot_0)^GAMMA
+    GAMMA_4K2_LP_SPEED_AFFINITY = 0.198  # Calibrated from 1,475 Plant-3 DCS shifts (r=0.825)
+    GAMMA_4K3_HP_SPEED_AFFINITY = 0.219  # Calibrated from 1,475 Plant-3 DCS shifts (r=0.831)
+
     def _get_feature_vector(z: np.ndarray) -> np.ndarray:
         mcr_val = z[0]
         ratio = np.clip(mcr_val / mcr_init, 0.85, 1.15)
-        s23_val = s23_0 * (ratio ** 0.35)
-        s28_val = s28_0 * (ratio ** 0.35)
+        s23_val = s23_0 * (ratio ** GAMMA_4K2_LP_SPEED_AFFINITY)
+        s28_val = s28_0 * (ratio ** GAMMA_4K3_HP_SPEED_AFFINITY)
         ctx = [feed_flow_knm3, feed_p, p_c3_suct, p_lp_suct, p_hp_suct, p_c3_cond, s18_0, s23_val, s28_val]
         return np.concatenate([ctx, [mcr_val], z[1:]]).reshape(1, -1)
 

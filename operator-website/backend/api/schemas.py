@@ -62,7 +62,7 @@ class PredictionSummary(BaseModel):
     delta_sec_kwh_per_t: Optional[float] = Field(None, description="Selisih SEC LNG vs baseline DCS (kWh/t LNG)")
     co2_abatement_t_day: Optional[float] = Field(None, description="Estimasi pengurangan emisi CO2 boiler (t CO2/hari)")
     operating_regime: str = Field(..., description="Rezim operasi: underload / transition / baseload")
-    data_label: str = Field(default="SKENARIO WHAT-IF", description="Label asal data")
+    data_label: str = Field(default="SIMULASI SKENARIO WHAT-IF", description="Label asal data")
     battery_limit_note: str = Field(
         default="Mencakup kompresor MCR 4K-2/3 dan kompresor Propana 4K-1",
         description="Catatan batas sistem dekomposisi daya",
@@ -127,6 +127,19 @@ class MakeupAdvisorySummary(BaseModel):
     operational_notes: List[str]
 
 
+class FlashDrumSummary(BaseModel):
+    """Thermodynamic state of Flash Drum 5C-1 from PR-EOS flash engine."""
+    feed_flow_t_h: float = Field(..., description="Laju umpan gas masuk (t/h)")
+    lng_liquid_flow_t_h: float = Field(..., description="Laju alir produksi LNG rundown (t/h)")
+    efg_gas_flow_t_h: float = Field(..., description="Laju alir end-flash gas ke fuel gas header (t/h)")
+    mass_liquid_yield: float = Field(..., description="Yield massa cair LNG (wt fraction)")
+    vapor_fraction_mol: float = Field(..., description="Fraksi uap molar beta (mol/mol)")
+    t_flash_c: float = Field(..., description="Suhu kesetimbangan flash drum 5C-1 (°C)")
+    t_bubble_c: float = Field(..., description="Suhu bubble point pada tekanan bejana (°C)")
+    p_flash_kgcm2g: float = Field(default=0.30, description="Tekanan operasi flash drum 5C-1 (kg/cm2G)")
+    status: str = Field(..., description="Status evaluasi termodinamika PR-EOS")
+
+
 class PredictResponse(BaseModel):
     """Consolidated prediction response for operator dashboard."""
     prediction: PredictionSummary
@@ -136,6 +149,7 @@ class PredictResponse(BaseModel):
     makeup_advisory: MakeupAdvisorySummary
     features_computed: Dict[str, float]
     actual_power_mw: Optional[float] = Field(None, description="Prediksi model pada kondisi Aktual DCS (MW)")
+    flash_drum_5c1: Optional[FlashDrumSummary] = Field(None, description="Detail termodinamika PR-EOS Flash Drum 5C-1")
 
 
 class OptimizeRequest(BaseModel):

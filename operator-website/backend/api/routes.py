@@ -12,9 +12,17 @@ from fastapi import APIRouter, HTTPException
 import yaml
 import numpy as np
 
+import sys
+from pathlib import Path
+_backend_dir = Path(__file__).resolve().parent.parent
+for p in (str(_backend_dir), str(_backend_dir / "src")):
+    if p not in sys.path:
+        sys.path.insert(0, p)
+
 from api.schemas import (
     ConfidenceSummary,
     DomainCheckSummary,
+    FlashDrumSummary,
     MakeupAdvisorySummary,
     MakeupInjectionItem,
     OptimizeRequest,
@@ -24,6 +32,7 @@ from api.schemas import (
     PredictResponse,
     SafetyCheckSummary,
 )
+from thermo.flash_drum_vle import calculate_flash_drum_5c1
 from core.feature_builder import (
     ORDERED_FEATURES,
     build_feature_vector,
@@ -175,12 +184,33 @@ def predict_scenario(request: PredictRequest) -> PredictResponse:
 
     # 3. LNG Rundown Flow (H5FI6A) & Specific Energy Consumption SEC [kWh/t]
     feed_flow = float(req_dict.get("feed_flow_t_h", 250.0))
+    flash_summary = None
     if req_dict.get("lng_flow_t_h") is not None and float(req_dict["lng_flow_t_h"]) > 10.0:
         lng_flow_t_h = float(req_dict["lng_flow_t_h"])
         sec_lng_status = "VALID (Meter Fiskal H5FI6A)"
     elif feed_flow > 10.0:
-        lng_flow_t_h = round(feed_flow * 0.9450, 2)
-        sec_lng_status = "VALID (Neraca Massa H5FI6A = 0.9450 × Umpan)"
+        t_mche = float(req_dict.get("t_mche_out_c", -152.5))
+        p_mche = float(req_dict.get("p_mche_out_kgcm2g", 41.5))
+        p_flash = float(req_dict.get("p_flash_kgcm2g", 0.30))
+        flash_res = calculate_flash_drum_5c1(
+            feed_flow_t_h=feed_flow,
+            t_mche_out_c=t_mche,
+            p_mche_out_kgcm2g=p_mche,
+            p_flash_kgcm2g=p_flash,
+        )
+        lng_flow_t_h = round(flash_res.lng_liquid_flow_t_h, 2)
+        sec_lng_status = f"VALID (PR-EOS Flash 5C-1: Yield {flash_res.mass_liquid_yield * 100:.2f} wt%, T_flash {flash_res.t_flash_c:.1f}°C)"
+        flash_summary = FlashDrumSummary(
+            feed_flow_t_h=flash_res.feed_flow_t_h,
+            lng_liquid_flow_t_h=flash_res.lng_liquid_flow_t_h,
+            efg_gas_flow_t_h=flash_res.efg_gas_flow_t_h,
+            mass_liquid_yield=flash_res.mass_liquid_yield,
+            vapor_fraction_mol=flash_res.vapor_fraction_mol,
+            t_flash_c=flash_res.t_flash_c,
+            t_bubble_c=flash_res.t_bubble_c,
+            p_flash_kgcm2g=flash_res.p_flash_kgcm2g,
+            status=flash_res.status,
+        )
     else:
         lng_flow_t_h = None
         sec_lng_status = "N/A — data produksi LNG belum tersedia"
@@ -248,7 +278,7 @@ def predict_scenario(request: PredictRequest) -> PredictResponse:
     power_mcr_mw = round(power_pred_mw * (1.0 - frac_c3), 2)
 
     # 9. Deltas vs actual DCS state (evaluated ceteris-paribus at the scenario's feed flow
-    #    so that capacity shifts do not distort the pure AI refrigerant optimization metrics).
+    #    so that capacity shifts do not distort the MCR refrigerant optimization metrics).
     baseline = _load_baseline()
     actual_power_mw = None
     actual_feed = req_dict.get("actual_feed_flow_t_h")
@@ -277,7 +307,8 @@ def predict_scenario(request: PredictRequest) -> PredictResponse:
     if actual_lng_input is not None and float(actual_lng_input) > 10.0 and abs(baseline_feed - float(actual_feed or baseline_feed)) < 0.1:
         actual_lng_t_h = float(actual_lng_input)
     else:
-        actual_lng_t_h = round(baseline_feed * 0.9450, 2)
+        base_flash = calculate_flash_drum_5c1(feed_flow_t_h=baseline_feed)
+        actual_lng_t_h = round(base_flash.lng_liquid_flow_t_h, 2)
 
     baseline_sec_lng = (baseline_total_mw * 1000.0 / actual_lng_t_h) if actual_lng_t_h > 10.0 else 0.0
     delta_power_mw = round(power_pred_mw - baseline_total_mw, 2)
@@ -317,7 +348,7 @@ def predict_scenario(request: PredictRequest) -> PredictResponse:
             delta_sec_kwh_per_t=delta_sec,
             co2_abatement_t_day=co2_abatement_t_day,
             operating_regime=regime,
-            data_label="SKENARIO WHAT-IF (HASIL MODEL ML)",
+            data_label="SIMULASI SKENARIO WHAT-IF",
         ),
         domain_check=DomainCheckSummary(
             in_domain=bool(validation["in_domain"]),
@@ -343,6 +374,7 @@ def predict_scenario(request: PredictRequest) -> PredictResponse:
         makeup_advisory=makeup_summary,
         features_computed={k: round(float(v), 4) for k, v in feature_dict.items()},
         actual_power_mw=round(actual_power_mw, 2) if actual_power_mw is not None else None,
+        flash_drum_5c1=flash_summary,
     )
 
 

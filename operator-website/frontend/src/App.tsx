@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchDemoSnapshot, fetchHistoricalSummary, fetchSystemStatus, optimizeForFeed, predictScenario } from './api';
+import { calculateFlashDrum5C1, getEstimatedLngFlow } from './utils/thermoFlash';
 import { TabGrafik } from './components/TabGrafik';
 import { TabInputResults } from './components/TabInputResults';
 import { TabNavigation } from './components/TabNavigation';
@@ -57,7 +58,7 @@ const actualFromSnapshot = (snap: DemoSnapshot): ActualDcsState => {
   };
   const norm = normalizeComposition(raw);
   const feed = snap.values.H3FI0004?.value ?? snap.values.H1FI012?.value ?? DEFAULT_ACTUAL.feed_flow_t_h;
-  const lng = snap.values.H5FI006A?.value ?? (feed * 0.9450);
+  const lng = snap.values.H5FI006A?.value ?? getEstimatedLngFlow(feed);
   return {
     feed_flow_t_h: feed,
     lng_flow_t_h: lng,
@@ -70,9 +71,9 @@ const scenarioFromActual = (a: ActualDcsState, hours: number): ScenarioInput => 
 
 const buildRequest = (s: ScenarioInput, a: ActualDcsState): ScenarioInput => ({
   ...s,
-  lng_flow_t_h: s.lng_flow_t_h ?? (s.feed_flow_t_h * 0.9450),
+  lng_flow_t_h: s.lng_flow_t_h ?? getEstimatedLngFlow(s.feed_flow_t_h),
   actual_feed_flow_t_h: a.feed_flow_t_h,
-  actual_lng_flow_t_h: a.lng_flow_t_h ?? (a.feed_flow_t_h * 0.9450),
+  actual_lng_flow_t_h: a.lng_flow_t_h ?? getEstimatedLngFlow(a.feed_flow_t_h),
   actual_mcr_flow_t_h: a.mcr_flow_t_h,
   actual_comp_N2_molpct: a.comp_N2_molpct,
   actual_comp_C1_molpct: a.comp_C1_molpct,
@@ -120,7 +121,7 @@ const DEFAULT_PREDICTION: PredictResponse = {
     delta_sec_kwh_per_t: -23.21,
     co2_abatement_t_day: 52.4,
     operating_regime: 'underload',
-    data_label: 'SKENARIO WHAT-IF (HASIL MODEL ML)',
+    data_label: 'SIMULASI SKENARIO WHAT-IF',
     battery_limit_note: 'Mencakup kompresor MCR 4K-2/3 dan kompresor Propana 4K-1',
   },
   domain_check: {
@@ -257,7 +258,7 @@ export function App() {
 
   const handleScenarioChange = (key: keyof ScenarioInput, value: number) => {
     if (key === 'feed_flow_t_h') {
-      const lng = value * 0.9450;
+      const lng = getEstimatedLngFlow(value);
       setScenario((prev) => ({
         ...prev,
         feed_flow_t_h: value,
@@ -272,7 +273,7 @@ export function App() {
     setActualDcs((prev) => ({ ...prev, [key]: value }));
     // Feed is a disturbance: target feed follows actual feed
     if (key === 'feed_flow_t_h') {
-      const lng = value * 0.9450;
+      const lng = getEstimatedLngFlow(value);
       const updatedActual = { ...actualDcs, [key]: value, lng_flow_t_h: lng };
       setActualDcs(updatedActual);
       try {
@@ -313,7 +314,7 @@ export function App() {
       setScenario((prev) => ({
         ...prev,
         feed_flow_t_h: targetFeed,
-        lng_flow_t_h: targetFeed * 0.9450,
+        lng_flow_t_h: getEstimatedLngFlow(targetFeed),
         mcr_flow_t_h: opt.mcr_flow_t_h,
         comp_N2_molpct: opt.comp_N2_molpct,
         comp_C1_molpct: opt.comp_C1_molpct,
@@ -350,10 +351,15 @@ export function App() {
 
   const handleExportCsv = () => {
     if (!snapshot || !prediction) return;
+    const actualLng = actualDcs.lng_flow_t_h ?? getEstimatedLngFlow(actualDcs.feed_flow_t_h);
+    const scenarioFlash = calculateFlashDrum5C1(scenario.feed_flow_t_h);
+    const scenarioLng = prediction.flash_drum_5c1?.lng_liquid_flow_t_h 
+      ?? scenario.lng_flow_t_h 
+      ?? scenarioFlash.lngLiquidFlowTH;
     const rows: (string | number | undefined | null)[][] = [
-      ['Parameter', 'Tag DCS', 'Aktual DCS', 'Rekomendasi / Target', 'Satuan', 'Status'],
+      ['Parameter', 'Tag DCS', 'Aktual DCS', 'Skenario / Rekomendasi MCR', 'Satuan', 'Kategori Variabel'],
       ['Laju Alir Treated Gas ke MCHE 5E-1 (massa)', 'H3FI0004 x 0.760', actualDcs.feed_flow_t_h, scenario.feed_flow_t_h, 't/h', 'INPUT_DISTURBANCE'],
-      ['Laju Alir Produksi LNG Rundown (H5FI6A)', 'H5FI6A', (actualDcs.feed_flow_t_h * 0.9450).toFixed(1), (scenario.feed_flow_t_h * 0.9450).toFixed(1), 't/h LNG', 'COUPLED_PRODUCT'],
+      ['Laju Alir Produksi LNG Rundown (H5FI6A)', 'H5FI6A', actualLng.toFixed(1), scenarioLng.toFixed(1), 't/h LNG', 'COUPLED_PRODUCT'],
       ['Laju Alir Sirkulasi MCR (massa)', 'H4FI011B x 36.8', actualDcs.mcr_flow_t_h, scenario.mcr_flow_t_h, 't/h', 'DECISION_VARIABLE'],
       ['MCR N2', 'comp_4C-8_N2', actualDcs.comp_N2_molpct, scenario.comp_N2_molpct, 'mol%', 'DECISION_VARIABLE'],
       ['MCR CH4 (C1)', 'comp_4C-8_C1', actualDcs.comp_C1_molpct, scenario.comp_C1_molpct, 'mol%', 'DECISION_VARIABLE'],
@@ -419,7 +425,7 @@ export function App() {
           marginBottom: '20px',
         }} />
         <div style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>
-          MACHINE LEARNING BASED MIXED REFRIGERANT EFFICIENCY
+          BADAK LNG PLANT-3 TRAIN H — C3MR OPTIMIZATION
         </div>
         <div style={{ fontSize: '14px', color: '#64748b', marginTop: '6px' }}>
           Memuat data operasional DCS & inisialisasi model C3MR...

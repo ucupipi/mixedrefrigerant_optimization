@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { ActualDcsState, DemoSnapshot, HistoricalPoint, OptimizeResponse, PredictResponse, ScenarioInput } from '../types';
+import { calculateFlashDrum5C1, getEstimatedLngFlow } from '../utils/thermoFlash';
 import { TabGrafik } from './TabGrafik';
 import { TabPanduan } from './TabPanduan';
 
@@ -157,10 +158,13 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
   const deltaPct = baselinePower > 0 ? (deltaPower / baselinePower) * 100 : 0;
 
   // LNG Production Rundown (H5FI6A)
-  // Authoritative mass balance (CALC-01): 94.50% liquid yield to storage after 5.5% end-flash letdown
+  // Authoritative mass balance: PR-EOS 5C-1 Flash Drum thermodynamic phase split (~94.53 wt% liquid yield)
   // LNG strictly follows feed gas entering MCHE (H3FI0004)
-  const actualLngFlow = actualDcs.feed_flow_t_h * 0.9450;
-  const scenarioLngFlow = scenario.feed_flow_t_h * 0.9450;
+  const actualLngFlow = actualDcs.lng_flow_t_h ?? getEstimatedLngFlow(actualDcs.feed_flow_t_h);
+  const scenarioFlash = calculateFlashDrum5C1(scenario.feed_flow_t_h);
+  const scenarioLngFlow = prediction?.flash_drum_5c1?.lng_liquid_flow_t_h 
+    ?? scenario.lng_flow_t_h 
+    ?? scenarioFlash.lngLiquidFlowTH;
 
   // SEC LNG: kWh per tonne of LNG (Basis: Meter Fiskal H5FI6A)
   const secLng = prediction?.prediction.sec_lng_kwh_per_t ?? (currentPower * 1000 / Math.max(scenarioLngFlow, 1));
@@ -592,10 +596,10 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                   </td>
                   <td style={{ ...unitCell, fontWeight: 700, color: '#107c41' }}>t/h LNG</td>
                   <td style={{ ...nameCell, color: '#107c41', fontWeight: 700, fontSize: '0.76rem' }}>
-                    OTOMATIS (0.945 × Umpan)
+                    OTOMATIS (PR-EOS 5C-1 Flash)
                   </td>
                   <td style={noteCell}>
-                    Hasil hilir MCHE = 0.9450 × Treated Gas (yield cair setelah 5.5% end-flash letdown). Mengikuti laju umpan gas; denominator resmi SEC LNG.
+                    Hasil hilir MCHE dihitung via VLE PR-EOS 5C-1 Flash Drum (~94.53 wt% pada -152.5°C, 0.30 kg/cm²G). Mengikuti laju umpan gas; denominator resmi SEC LNG.
                   </td>
                 </tr>
 

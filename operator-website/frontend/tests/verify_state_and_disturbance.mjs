@@ -1,4 +1,5 @@
 import assert from 'node:assert';
+import { calculateFlashDrum5C1 } from '../src/utils/thermoFlash.ts';
 
 console.log('=== EMPIRICAL CHALLENGER 2: STATE & DISTURBANCE HARNESS ===\n');
 
@@ -103,7 +104,8 @@ const initialScenario = {
 
 // Calculation engine matching TabInputResults.tsx
 function computeSection3KPIs(scenario, prediction) {
-  const scenarioLngFlow = scenario.feed_flow_t_h * 0.9450;
+  const flashRes = calculateFlashDrum5C1(scenario.feed_flow_t_h);
+  const scenarioLngFlow = flashRes.lngLiquidFlowTH;
   const baselinePower = prediction?.actual_power_mw ?? 84.48;
   const scenarioPower = prediction?.prediction?.total_shaft_power_mw ?? baselinePower;
   const deltaPower = prediction?.prediction?.delta_power_mw ?? (scenarioPower - baselinePower);
@@ -130,7 +132,7 @@ function computeSection3KPIs(scenario, prediction) {
   const card1Unit = 'kWh/t';
   const card1Badge = deltaSecLngPct < 0 ? `HEMAT ${Math.abs(deltaSecLngPct).toFixed(1)}%` : 'OPTIMAL';
   const card1Dcs = `DCS: ${baselineSecLng.toFixed(1)}`;
-  const card1Ai = `AI: ${scenarioSecLng.toFixed(1)} kWh/t`;
+  const card1Ai = `Skenario: ${scenarioSecLng.toFixed(1)} kWh/t`;
 
   // Card 2
   const card2Value = deltaPowerSavingMw > 0 ? steamSaved_t_h.toFixed(1) : '0.0';
@@ -147,7 +149,7 @@ function computeSection3KPIs(scenario, prediction) {
   const card4Unit = 'MW';
   const card4Badge = deltaPowerPct < 0 ? `HEMAT ${Math.abs(deltaPowerPct).toFixed(1)}%` : 'BASELINE';
   const card4Dcs = `DCS: ${baselinePower.toFixed(1)} MW`;
-  const card4Ai = `AI: ${scenarioPower.toFixed(1)} MW`;
+  const card4Ai = `Skenario: ${scenarioPower.toFixed(1)} MW`;
 
   return {
     card1: { value: card1Value, unit: card1Unit, badge: card1Badge, dcs: card1Dcs, ai: card1Ai },
@@ -214,9 +216,9 @@ for (const feed of edgeFeeds) {
 console.log('>>> TEST 2 PASSED: 8 edge feed flow rates tested without any NaN/undefined.\n');
 
 // ============================================================================
-// TEST 3: Action "⚡ Terapkan Rekomendasi AI" State Dynamics
+// TEST 3: Action "⚡ Terapkan Rekomendasi MCR" State Dynamics
 // ============================================================================
-console.log('--- TEST 3: Action "⚡ Terapkan Rekomendasi AI" Simulation ---');
+console.log('--- TEST 3: Action "⚡ Terapkan Rekomendasi MCR" Simulation ---');
 // Simulating when user has typed perturbed scenario values
 let simulatedScenario = {
   ...initialScenario,
@@ -252,7 +254,7 @@ function handleApplyRecommended(scenarioState, optimumState) {
 }
 
 const scenarioAfterApply = handleApplyRecommended(simulatedScenario, opt);
-console.log('Scenario after "Terapkan Rekomendasi AI":', scenarioAfterApply);
+console.log('Scenario after "Terapkan Rekomendasi MCR":', scenarioAfterApply);
 assert.strictEqual(scenarioAfterApply.mcr_flow_t_h, 480.0);
 assert.strictEqual(scenarioAfterApply.comp_N2_molpct, 3.31);
 assert.strictEqual(scenarioAfterApply.comp_C1_molpct, 46.08);

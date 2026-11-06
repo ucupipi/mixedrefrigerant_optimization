@@ -1,4 +1,4 @@
-import React from 'react';
+ import React from 'react';
 
 interface TopNavbarProps {
   loading: boolean;
@@ -74,8 +74,6 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
             marginTop: '2px',
           }}>
             <span>C3MR Optimization Advisory</span>
-            <span style={{ color: '#475569' }}>•</span>
-            <span style={{ color: '#38bdf8', fontWeight: 600 }}>Yokogawa DCS</span>
           </div>
         </div>
       </div>

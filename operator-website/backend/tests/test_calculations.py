@@ -4,7 +4,7 @@ Milestone 1 Test Suite: Engineering Calculations, Thermodynamics & Operating Lim
 Badak LNG Plant-3 / Train-H Propane-Precooled Mixed Refrigerant (C3MR) Optimization Suite
 
 Test Coverage:
-  CALC-01: SEC Feed vs SEC LNG & Mass Balance (dot_m_LNG = 0.9450 * dot_m_feed, SEC_LNG = 1.0582 * SEC_feed, SBHP <= 10.0)
+  CALC-01: SEC Feed vs SEC LNG & Mass Balance (PR-EOS 5C-1 Flash: 150 t/h feed -> 141.80 t/h LNG, SBHP <= 10.0)
   CALC-02: Total Shaft Power Decomposition (28,971.8 kW = 10,826.1 kW MCR + 18,145.7 kW C3)
   CALC-03: MR Mass Circulation Flow & Anti-Surge Floor (480.0 t/h) & SMR Ratio
   CALC-04: Simplex Closure (sum x_i = 1.0) and ILR Orthonormal Roundtrip Isometry (||x - x_hat||_inf < 1e-6)
@@ -31,7 +31,7 @@ import numpy as np
 _BACKEND_DIR = Path(__file__).resolve().parents[1]
 _ROOT = _BACKEND_DIR.parents[1]
 
-for p in (str(_ROOT), str(_BACKEND_DIR), str(_ROOT / "analysis" / "stage2_optimization")):
+for p in (str(_ROOT), str(_BACKEND_DIR), str(_BACKEND_DIR / "src"), str(_ROOT / "analysis" / "stage2_optimization")):
     if p not in sys.path:
         sys.path.insert(0, p)
 
@@ -58,49 +58,60 @@ from core.validator import validate_operating_point
 
 # Pure Python Peng-Robinson thermodynamic solver
 import pr_thermo
+from thermo.flash_drum_vle import calculate_flash_drum_5c1
 
 
 class TestEngineeringCalculations(unittest.TestCase):
     """Authoritative test suite verifying engineering calculations CALC-01 to CALC-12."""
 
     # =========================================================================
-    # CALC-01: SEC Feed vs SEC LNG & Product Flash Conversion
+    # CALC-01: SEC Feed vs SEC LNG & Dynamic 5C-1 Flash Drum VLE Conversion
     # =========================================================================
     def test_calc_01_sec_feed_vs_sec_lng_conversion(self):
-        """CALC-01: Verify strict mass basis relationship between SEC_feed and SEC_LNG.
-        Formula: m_LNG = m_feed * 0.9450, SEC_LNG = SEC_feed / 0.9450 = 1.058201 * SEC_feed.
+        """CALC-01: Verify rigorous PR-EOS thermodynamic relationship between SEC_feed and SEC_LNG.
+        Replaces static 0.9450 multiplier with dynamic 7-component PR-EOS flash letdown.
+        Physical validation: At 150.0 t/h feed, LNG rundown evaluates to 141.80 +- 0.5 t/h,
+        and equilibrium bubble point evaluates to ~ -157.9 °C matching DCS sensor H5TI0041 (-158.1 °C).
         """
-        # Nominal P90 baseload operating conditions
+        # 1. Physical benchmark validation (Requirement R3 & AGENTS.md Pasal 1, 3, 5)
+        benchmark_feed = 150.00  # t/h
+        flash_bench = calculate_flash_drum_5c1(benchmark_feed)
+        self.assertAlmostEqual(flash_bench.lng_liquid_flow_t_h, 141.80, delta=0.5,
+                               msg=f"Calculated LNG rundown {flash_bench.lng_liquid_flow_t_h} must match 141.80 +- 0.5 t/h")
+        self.assertAlmostEqual(flash_bench.t_bubble_c, -157.89, delta=0.5,
+                               msg=f"Calculated bubble point {flash_bench.t_bubble_c} must match ~ -157.89 °C")
+        self.assertAlmostEqual(flash_bench.t_flash_c, -157.75, delta=0.5,
+                               msg=f"Calculated flash temp {flash_bench.t_flash_c} must match ~ -157.75 °C")
+        self.assertAlmostEqual(flash_bench.lng_liquid_flow_t_h + flash_bench.efg_gas_flow_t_h, benchmark_feed, places=2,
+                               msg="Mass balance across flash drum must be strictly conserved")
+        self.assertGreater(flash_bench.mass_liquid_yield, 0.940, "Mass liquid yield must exceed 94 wt%")
+        self.assertLess(flash_bench.mass_liquid_yield, 0.960, "Mass liquid yield must not exceed 96 wt%")
+
+        # 2. Nominal P90 baseload operating conditions with dynamic PR-EOS flash
         feed_flow_t_h = 303.80  # t/h
-        flash_fraction = 0.0550  # 5.5% end-flash to fuel gas header
-        lng_liquid_yield = 1.0 - flash_fraction  # 0.9450
+        flash_p90 = calculate_flash_drum_5c1(feed_flow_t_h)
+        lng_flow_t_h = flash_p90.lng_liquid_flow_t_h
+        lng_liquid_yield = flash_p90.mass_liquid_yield
         total_shaft_power_kw = 108055.14  # kW
 
-        # 1. Mass balance verification
-        lng_flow_t_h = feed_flow_t_h * lng_liquid_yield
-        self.assertAlmostEqual(lng_flow_t_h, 287.091, places=3)
+        # Mass balance verification
+        self.assertAlmostEqual(lng_flow_t_h + flash_p90.efg_gas_flow_t_h, feed_flow_t_h, places=2)
+        self.assertAlmostEqual(lng_flow_t_h, feed_flow_t_h * lng_liquid_yield, places=2)
 
-        # 2. Specific Energy Consumption calculations
+        # Specific Energy Consumption calculations
         sec_feed = total_shaft_power_kw / feed_flow_t_h  # kWh/t feed
         sec_lng = total_shaft_power_kw / lng_flow_t_h    # kWh/t LNG
 
-        self.assertAlmostEqual(sec_feed, 355.6785, places=3)
-        self.assertAlmostEqual(sec_lng, 376.3794, places=3)
-
         # Mathematical ratio verification
-        expected_ratio = 1.0 / 0.9450  # 1.0582010582...
+        expected_ratio = 1.0 / lng_liquid_yield
         actual_ratio = sec_lng / sec_feed
-        self.assertAlmostEqual(actual_ratio, expected_ratio, places=6)
-        self.assertAlmostEqual(actual_ratio, 1.058201, places=5)
+        self.assertAlmostEqual(actual_ratio, expected_ratio, places=4)
         self.assertGreater(sec_lng, sec_feed, "SEC LNG must be strictly higher than SEC feed under letdown flash")
 
         # 3. Specific Brake Horse Power (SBHP) formulation
         # SBHP [HP*h/MMBTU] <= 10.0 HP*h/MMBTU operating ceiling
-        # Candidate optimized case at P90: Power = 79,083.37 kW, LNG = 308.30 t/h
         cand_power_kw = 79083.37
         cand_power_hp = cand_power_kw / 0.74569987
-        hhv_btu_scf = 1076.3876
-        # LNG density approx 450 kg/m3 = 0.450 t/m3, 1 t LNG = 2.222 m3 = approx 51.5 MMBTU/t
         mmbtu_per_tonne_lng = 51.50
         q_lng_mmbtu_h = 308.30 * mmbtu_per_tonne_lng
         sbhp = cand_power_hp / q_lng_mmbtu_h

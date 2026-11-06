@@ -234,7 +234,7 @@ export const SpreadsheetTable: React.FC<SpreadsheetTableProps> = ({
               opacity: loading ? 0.7 : 1,
             }}
           >
-            {loading ? 'Menghitung...' : '⚡ Hitung Prediksi (Model ML)'}
+            {loading ? 'Menghitung...' : '⚡ Hitung Prediksi C3MR'}
           </button>
 
           <button

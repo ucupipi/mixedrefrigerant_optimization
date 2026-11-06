@@ -180,7 +180,7 @@ export const TabPanduan: React.FC<TabPanduanProps> = ({ userMode = 'OPERATOR' })
                   unit: 't/h LNG',
                   type: 'TERKOPEL (Read-Only)',
                   typeColor: '#64748b',
-                  rule: 'Otomatis dihitung = 0.9450 × Feed Gas (yield 94.5% setelah end-flash letdown). Denominator resmi SEC LNG.',
+                  rule: 'Dihitung via kesetimbangan termodinamika VLE 7-komponen PR-EOS flash drum 5C-1 (yield nominal ~94.53 wt% pada -152.5°C, 0.30 kg/cm²G). Denominator resmi SEC LNG.',
                 },
                 {
                   param: 'Laju Alir Sirkulasi MCR',

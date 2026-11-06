@@ -144,6 +144,18 @@ export interface MakeupAdvisory {
   operational_notes: string[];
 }
 
+export interface FlashDrumSummary {
+  feed_flow_t_h: number;
+  lng_liquid_flow_t_h: number;
+  efg_gas_flow_t_h: number;
+  mass_liquid_yield: number;
+  vapor_fraction_mol: number;
+  t_flash_c: number;
+  t_bubble_c: number;
+  p_flash_kgcm2g: number;
+  status: string;
+}
+
 export interface PredictResponse {
   prediction: PredictionSummary;
   domain_check: DomainCheck;
@@ -152,6 +164,7 @@ export interface PredictResponse {
   makeup_advisory: MakeupAdvisory;
   features_computed: Record<string, number>;
   actual_power_mw?: number | null;
+  flash_drum_5c1?: FlashDrumSummary | null;
 }
 
 export interface HistoricalPoint {

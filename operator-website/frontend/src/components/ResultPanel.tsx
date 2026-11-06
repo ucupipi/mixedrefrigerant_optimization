@@ -23,10 +23,10 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
         color: '#94a3b8'
       }}>
         <div style={{ fontSize: '1rem', fontWeight: 600, color: '#38bdf8' }}>
-          Menghitung Prediksi Model Machine Learning...
+          Menghitung Rekomendasi MCR...
         </div>
         <div style={{ fontSize: '0.8rem', marginTop: '6px' }}>
-          Transformasi simpleks ILR 5-komponen & inferensi Ridge+GBDT hybrid
+          Transformasi simpleks ILR 5-komponen & inferensi termodinamika C3MR
         </div>
       </div>
     );
