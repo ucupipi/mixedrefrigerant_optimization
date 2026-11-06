@@ -42,12 +42,12 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
   const [displayMode, setDisplayMode] = useState<DcsDisplayMode>('AI_OPTIMIZED');
   const [selectedTag, setSelectedTag] = useState<TagInfo | null>(null);
 
-  // Dynamic values based on scenario and baseline
+  // Flow values
   const feedFlowDcs = actualDcs?.feed_flow_t_h ?? 245.8;
   const feedFlowAi = scenario.feed_flow_t_h;
   const feedFlow = displayMode === 'DCS_ACTUAL' ? feedFlowDcs : feedFlowAi;
 
-  const lngFlowDcs = (actualDcs?.lng_flow_t_h) ?? (feedFlowDcs * 0.9450);
+  const lngFlowDcs = actualDcs?.lng_flow_t_h ?? (feedFlowDcs * 0.9450);
   const lngFlowAi = feedFlowAi * 0.9450;
   const lngFlow = displayMode === 'DCS_ACTUAL' ? lngFlowDcs : lngFlowAi;
 
@@ -55,29 +55,78 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
   const mcrFlowAi = optimum?.mcr_flow_t_h ?? scenario.mcr_flow_t_h;
   const mcrFlow = displayMode === 'DCS_ACTUAL' ? mcrFlowDcs : mcrFlowAi;
 
-  // Key temperatures and pressures
-  const suctTemp = displayMode === 'DCS_ACTUAL' ? -44.8 : (optimum?.expected_suction_temp_c ?? -41.5);
-  const suctPress = displayMode === 'DCS_ACTUAL' ? 2.284 : 2.350;
-  const pdiCold = displayMode === 'DCS_ACTUAL' ? 0.067 : 0.062;
-  const pdiWarm = displayMode === 'DCS_ACTUAL' ? 0.240 : 0.215;
-  const lngTemp = displayMode === 'DCS_ACTUAL' ? -151.2 : -152.0;
+  const fic2Dcs = 875;
+  const fic2Ai = 810;
+
+  // Temperature values: Ground-truth from DCS baseline vs AI optimized / surrogate
+  const tiLngDcs = -151.2;
+  const tiLngAi = -152.0;
+
+  const tiSuctDcs = -44.8;
+  const tiSuctAi = optimum?.expected_suction_temp_c ?? -41.5;
+
+  const ti25Dcs = -130.6; // Cold Bundle MRV Outlet
+  const ti25Ai = _snapshot?.values?.t_mche_cold_mrv_out_c?.value ?? -123.5;
+
+  const ti26Dcs = -126.4; // Warm Bundle MRV Outlet
+  const ti26Ai = _snapshot?.values?.t_mche_warm_mrv_out_c?.value ?? -122.4;
+
+  const ti21Dcs = -128.5; // Shell Mid Intermediate
+  const ti21Ai = _snapshot?.values?.t_mche_shell_mid_c?.value ?? -127.8;
+
+  const ti47Dcs = -35.1; // MCR Vapor Inlet
+  const ti47Ai = _snapshot?.values?.t_mche_warm_mrv_in_c?.value ?? -32.7;
+
+  const ti23Dcs = -54.8; // Feed Gas Inlet
+  const ti23Ai = -53.5;
+
+  // Pressure values
+  const pi9Dcs = 2.284;
+  const pi9Ai = 2.350;
+
+  const pi1Dcs = 36.90;
+  const pi1Ai = 35.15;
+
+  const pi12Dcs = 43.15;
+  const pi12Ai = 43.15;
+
+  const pdiColdDcs = 0.067;
+  const pdiColdAi = _snapshot?.values?.dp_mche_cold_kgcm2?.value ?? 0.062;
+
+  const pdiWarmDcs = 0.240;
+  const pdiWarmAi = _snapshot?.values?.dp_mche_warm_kgcm2?.value ?? 0.215;
 
   // Total power & SEC
   const totalPower = prediction ? prediction.prediction.total_shaft_power_mw : 84.48;
   const secLng = prediction?.prediction?.sec_lng_kwh_per_t ?? (totalPower * 1000 / lngFlow);
 
-  // Helper to format values according to active mode
-  const fmt = (_tagKey: string, dcsVal: number, aiVal: number, decimals: number = 1): { display: string; isAiDiff: boolean } => {
+  // Helper to format values and compute active color according to active mode
+  const fmt = (
+    _tagKey: string,
+    dcsVal: number,
+    aiVal: number,
+    decimals: number = 1
+  ): { display: string; color: string; isAiDiff: boolean } => {
     if (displayMode === 'DCS_ACTUAL') {
-      return { display: dcsVal.toFixed(decimals), isAiDiff: false };
+      return { display: dcsVal.toFixed(decimals), color: '#38bdf8', isAiDiff: false };
     }
     if (displayMode === 'AI_OPTIMIZED') {
-      return { display: aiVal.toFixed(decimals), isAiDiff: Math.abs(aiVal - dcsVal) > 0.01 };
+      const hasDiff = Math.abs(aiVal - dcsVal) > 0.005;
+      return {
+        display: aiVal.toFixed(decimals),
+        color: hasDiff ? '#34d399' : '#ffffff',
+        isAiDiff: hasDiff,
+      };
     }
     // DELTA_DIFF mode
     const diff = aiVal - dcsVal;
     const sign = diff > 0 ? '+' : '';
-    return { display: `${sign}${diff.toFixed(decimals)}`, isAiDiff: Math.abs(diff) > 0.01 };
+    const hasDiff = Math.abs(diff) > 0.005;
+    return {
+      display: `${sign}${diff.toFixed(decimals)}`,
+      color: hasDiff ? '#fcd34d' : '#94a3b8',
+      isAiDiff: hasDiff,
+    };
   };
 
   const handleTagClick = (info: TagInfo) => {
@@ -507,18 +556,18 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           </g>
 
           {/* PI12: Tekanan Umpan Masuk */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5PI0012', name: 'Feed Gas Inlet Pressure ke 5E-1', unit: 'KGC2G', valDcs: 43.15, valAi: 43.15 })}>
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5PI0012', name: 'Feed Gas Inlet Pressure ke 5E-1', unit: 'KGC2G', valDcs: pi12Dcs.toFixed(2), valAi: pi12Ai.toFixed(2) })}>
             <text x="390" y="878" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">PI12</text>
-            <text x="390" y="897" fill={displayMode === 'AI_OPTIMIZED' ? '#34d399' : '#ffffff'} fontSize="15" textAnchor="middle" fontWeight="bold">
-              {fmt('PI12', 43.15, 43.15, 2).display} <tspan fill="#00ffff" fontSize="10">KGC2G</tspan>
+            <text x="390" y="897" fill={fmt('PI12', pi12Dcs, pi12Ai, 2).color} fontSize="15" textAnchor="middle" fontWeight="bold">
+              {fmt('PI12', pi12Dcs, pi12Ai, 2).display} <tspan fill="#00ffff" fontSize="10">KGC2G</tspan>
             </text>
           </g>
 
           {/* TI23: Suhu Umpan Masuk */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0023', name: 'Feed Gas Inlet Temperature ke 5E-1', unit: '°C', valDcs: -54.8, valAi: -54.8 })}>
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0023', name: 'Feed Gas Inlet Temperature ke 5E-1', unit: '°C', valDcs: ti23Dcs.toFixed(1), valAi: ti23Ai.toFixed(1) })}>
             <text x="540" y="878" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">TI23</text>
-            <text x="540" y="897" fill="#ffffff" fontSize="15" textAnchor="middle" fontWeight="bold">
-              -54.8 <tspan fill="#00ffff" fontSize="10">°C</tspan>
+            <text x="540" y="897" fill={fmt('TI23', ti23Dcs, ti23Ai, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
+              {fmt('TI23', ti23Dcs, ti23Ai, 1).display} <tspan fill="#00ffff" fontSize="10">°C</tspan>
             </text>
           </g>
 
@@ -527,82 +576,90 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H4FI011B', name: 'Laju Alir Sirkulasi MCR Total', unit: 't/h', valDcs: mcrFlowDcs.toFixed(1), valAi: mcrFlowAi.toFixed(1) })}>
             <rect x="270" y="495" width="140" height="42" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
             <text x="340" y="512" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">FI1 (MCR Flow)</text>
-            <text x="340" y="531" fill={displayMode === 'AI_OPTIMIZED' ? '#34d399' : '#ffffff'} fontSize="16" textAnchor="middle" fontWeight="bold">
+            <text x="340" y="531" fill={fmt('FI1', mcrFlowDcs, mcrFlowAi, 1).color} fontSize="16" textAnchor="middle" fontWeight="bold">
               {fmt('FI1', mcrFlowDcs, mcrFlowAi, 1).display} <tspan fill="#00ffff" fontSize="11">t/h</tspan>
             </text>
           </g>
 
           {/* PI1: Tekanan MCR Masuk */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5PI0001', name: 'MCR Vapor Pressure', unit: 'KGC2G', valDcs: 36.90, valAi: 35.15 })}>
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5PI0001', name: 'MCR Vapor Pressure', unit: 'KGC2G', valDcs: pi1Dcs.toFixed(2), valAi: pi1Ai.toFixed(2) })}>
             <text x="380" y="618" fill="#00ffff" fontSize="12" fontWeight="bold">PI1</text>
-            <text x="380" y="638" fill={displayMode === 'AI_OPTIMIZED' ? '#34d399' : '#ffffff'} fontSize="15" fontWeight="bold">
-              {fmt('PI1', 36.90, 35.15, 2).display} <tspan fill="#00ffff" fontSize="10">KGC2G</tspan>
+            <text x="380" y="638" fill={fmt('PI1', pi1Dcs, pi1Ai, 2).color} fontSize="15" fontWeight="bold">
+              {fmt('PI1', pi1Dcs, pi1Ai, 2).display} <tspan fill="#00ffff" fontSize="10">KGC2G</tspan>
             </text>
           </g>
 
           {/* TI47: Suhu MCR Masuk */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0047', name: 'MCR Vapor Inlet Temperature', unit: '°C', valDcs: -35.1, valAi: -35.1 })}>
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0047', name: 'MCR Vapor Inlet Temperature', unit: '°C', valDcs: ti47Dcs.toFixed(1), valAi: ti47Ai.toFixed(1) })}>
             <text x="380" y="670" fill="#00ffff" fontSize="12" fontWeight="bold">TI47</text>
-            <text x="380" y="690" fill="#ffffff" fontSize="15" fontWeight="bold">-35.1 <tspan fill="#00ffff" fontSize="10">°C</tspan></text>
+            <text x="380" y="690" fill={fmt('TI47', ti47Dcs, ti47Ai, 1).color} fontSize="15" fontWeight="bold">
+              {fmt('TI47', ti47Dcs, ti47Ai, 1).display} <tspan fill="#00ffff" fontSize="10">°C</tspan>
+            </text>
           </g>
 
           {/* 3. MCHE Differential Pressure: PDI4 (Cold) & PDI3 (Warm) */}
           {/* PDI4 (Cold Bundle DP) */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5PDI004', name: 'Cold Bundle Differential Pressure', unit: 'KGC2G', valDcs: 0.067, valAi: pdiCold, limit: '< 0.100 KGC2G' })}>
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5PDI004', name: 'Cold Bundle Differential Pressure', unit: 'KGC2G', valDcs: pdiColdDcs.toFixed(3), valAi: pdiColdAi.toFixed(3), limit: '< 0.100 KGC2G' })}>
             <rect x="620" y="385" width="130" height="42" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
             <text x="685" y="402" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">PDI4 (Cold DP)</text>
-            <text x="685" y="421" fill={displayMode === 'AI_OPTIMIZED' ? '#34d399' : '#ffffff'} fontSize="16" textAnchor="middle" fontWeight="bold">
-              {fmt('PDI4', 0.067, pdiCold, 3).display} <tspan fill="#00ffff" fontSize="10">KGC2G</tspan>
+            <text x="685" y="421" fill={fmt('PDI4', pdiColdDcs, pdiColdAi, 3).color} fontSize="16" textAnchor="middle" fontWeight="bold">
+              {fmt('PDI4', pdiColdDcs, pdiColdAi, 3).display} <tspan fill="#00ffff" fontSize="10">KGC2G</tspan>
             </text>
           </g>
 
           {/* PDI3 (Warm Bundle DP) */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5PDI003', name: 'Warm Bundle Differential Pressure', unit: 'KGC2', valDcs: 0.240, valAi: pdiWarm, limit: '< 0.350 KGC2' })}>
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5PDI003', name: 'Warm Bundle Differential Pressure', unit: 'KGC2', valDcs: pdiWarmDcs.toFixed(3), valAi: pdiWarmAi.toFixed(3), limit: '< 0.350 KGC2' })}>
             <rect x="620" y="640" width="130" height="42" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
             <text x="685" y="657" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">PDI3 (Warm DP)</text>
-            <text x="685" y="676" fill={displayMode === 'AI_OPTIMIZED' ? '#34d399' : '#ffffff'} fontSize="16" textAnchor="middle" fontWeight="bold">
-              {fmt('PDI3', 0.240, pdiWarm, 3).display} <tspan fill="#00ffff" fontSize="10">KGC2</tspan>
+            <text x="685" y="676" fill={fmt('PDI3', pdiWarmDcs, pdiWarmAi, 3).color} fontSize="16" textAnchor="middle" fontWeight="bold">
+              {fmt('PDI3', pdiWarmDcs, pdiWarmAi, 3).display} <tspan fill="#00ffff" fontSize="10">KGC2</tspan>
             </text>
           </g>
 
           {/* 4. Internal Profile Temperatures: TI25 (Cold), TI26 (Warm), TI21 (Mid) */}
           {/* TI25 (Cold Bundle MRV Outlet) */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0025', name: 'Suhu Keluar MRV Cold Bundle', unit: '°C', valDcs: -130.6, valAi: -123.5 })}>
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0025', name: 'Suhu Keluar MRV Cold Bundle', unit: '°C', valDcs: ti25Dcs.toFixed(1), valAi: ti25Ai.toFixed(1) })}>
             <text x="590" y="450" fill="#00ffff" fontSize="12" fontWeight="bold">TI25</text>
-            <text x="635" y="450" fill="#ffffff" fontSize="14" fontWeight="bold">-130.6 <tspan fill="#00ffff" fontSize="10">°C</tspan></text>
+            <text x="635" y="450" fill={fmt('TI25', ti25Dcs, ti25Ai, 1).color} fontSize="14" fontWeight="bold">
+              {fmt('TI25', ti25Dcs, ti25Ai, 1).display} <tspan fill="#00ffff" fontSize="10">°C</tspan>
+            </text>
             <line x1="710" y1="446" x2="794" y2="446" stroke="#0284c7" strokeWidth="1.5" strokeDasharray="3 3" />
           </g>
 
           {/* TI26 (Warm Bundle MRV Outlet) */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0026', name: 'Suhu Keluar MRV Warm Bundle', unit: '°C', valDcs: -126.4, valAi: -122.4 })}>
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0026', name: 'Suhu Keluar MRV Warm Bundle', unit: '°C', valDcs: ti26Dcs.toFixed(1), valAi: ti26Ai.toFixed(1) })}>
             <text x="590" y="480" fill="#00ffff" fontSize="12" fontWeight="bold">TI26</text>
-            <text x="635" y="480" fill="#ffffff" fontSize="14" fontWeight="bold">-126.4 <tspan fill="#00ffff" fontSize="10">°C</tspan></text>
+            <text x="635" y="480" fill={fmt('TI26', ti26Dcs, ti26Ai, 1).color} fontSize="14" fontWeight="bold">
+              {fmt('TI26', ti26Dcs, ti26Ai, 1).display} <tspan fill="#00ffff" fontSize="10">°C</tspan>
+            </text>
             <line x1="710" y1="476" x2="775" y2="476" stroke="#0284c7" strokeWidth="1.5" strokeDasharray="3 3" />
           </g>
 
           {/* TI21 (Shell Mid Intermediate Temperature) */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0021', name: 'Suhu Shell Tengah MCHE', unit: '°C', valDcs: -128.5, valAi: -127.8 })}>
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TI0021', name: 'Suhu Shell Tengah MCHE', unit: '°C', valDcs: ti21Dcs.toFixed(1), valAi: ti21Ai.toFixed(1) })}>
             <text x="1010" y="450" fill="#00ffff" fontSize="12" fontWeight="bold">TI21</text>
-            <text x="1055" y="450" fill="#ffffff" fontSize="14" fontWeight="bold">-128.5 <tspan fill="#00ffff" fontSize="10">°C</tspan></text>
+            <text x="1055" y="450" fill={fmt('TI21', ti21Dcs, ti21Ai, 1).color} fontSize="14" fontWeight="bold">
+              {fmt('TI21', ti21Dcs, ti21Ai, 1).display} <tspan fill="#00ffff" fontSize="10">°C</tspan>
+            </text>
             <line x1="915" y1="446" x2="1005" y2="446" stroke="#0284c7" strokeWidth="1.5" strokeDasharray="3 3" />
           </g>
 
           {/* FIC2: MCR Liquid Circulation Flow */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5FIC002', name: 'MCR Liquid Circulation Flow', unit: 'M3/H', valDcs: 875, valAi: 810 })}>
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5FIC002', name: 'MCR Liquid Circulation Flow', unit: 'M3/H', valDcs: fic2Dcs.toFixed(0), valAi: fic2Ai.toFixed(0) })}>
             <rect x="1150" y="630" width="120" height="40" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
             <text x="1210" y="647" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">FIC2 (MRL)</text>
-            <text x="1210" y="665" fill={displayMode === 'AI_OPTIMIZED' ? '#34d399' : '#ffffff'} fontSize="16" textAnchor="middle" fontWeight="bold">
-              {fmt('FIC2', 875, 810, 0).display} <tspan fill="#00ffff" fontSize="10">M3/H</tspan>
+            <text x="1210" y="665" fill={fmt('FIC2', fic2Dcs, fic2Ai, 0).color} fontSize="16" textAnchor="middle" fontWeight="bold">
+              {fmt('FIC2', fic2Dcs, fic2Ai, 0).display} <tspan fill="#00ffff" fontSize="10">M3/H</tspan>
             </text>
           </g>
 
           {/* 5. LNG Rundown Tags: TIC1A/B (Temp) & FI6A (Production Flow) */}
           {/* TIC1A/B: Suhu LNG Rundown */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TIC01A', name: 'LNG Rundown Temperature Controller', unit: '°C', valDcs: -151.2, valAi: lngTemp, limit: 'Target ≤ -150.0°C' })}>
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5TIC01A', name: 'LNG Rundown Temperature Controller', unit: '°C', valDcs: tiLngDcs.toFixed(1), valAi: tiLngAi.toFixed(1), limit: 'Target ≤ -150.0°C' })}>
             <rect x="1340" y="270" width="135" height="42" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
             <text x="1407" y="287" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">TIC1A/B (LNG)</text>
-            <text x="1407" y="306" fill={displayMode === 'AI_OPTIMIZED' ? '#34d399' : '#ffffff'} fontSize="17" textAnchor="middle" fontWeight="bold">
-              {fmt('TIC1A/B', -151.2, lngTemp, 1).display} <tspan fill="#00ffff" fontSize="11">°C</tspan>
+            <text x="1407" y="306" fill={fmt('TIC1A/B', tiLngDcs, tiLngAi, 1).color} fontSize="17" textAnchor="middle" fontWeight="bold">
+              {fmt('TIC1A/B', tiLngDcs, tiLngAi, 1).display} <tspan fill="#00ffff" fontSize="11">°C</tspan>
             </text>
           </g>
 
@@ -610,27 +667,27 @@ export const TabGrafik: React.FC<TabGrafikProps> = ({
           <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H5FI006A', name: 'Laju Alir Produksi LNG Rundown ke Tangki (5C-2)', unit: 't/h', valDcs: lngFlowDcs.toFixed(1), valAi: lngFlowAi.toFixed(1) })}>
             <rect x="1660" y="360" width="125" height="40" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
             <text x="1722" y="377" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">FI6A (LNG Flow)</text>
-            <text x="1722" y="394" fill={displayMode === 'AI_OPTIMIZED' ? '#34d399' : '#ffffff'} fontSize="15" textAnchor="middle" fontWeight="bold">
+            <text x="1722" y="394" fill={fmt('FI6A', lngFlowDcs, lngFlowAi, 1).color} fontSize="15" textAnchor="middle" fontWeight="bold">
               {fmt('FI6A', lngFlowDcs, lngFlowAi, 1).display} <tspan fill="#00ffff" fontSize="10">t/h</tspan>
             </text>
           </g>
 
           {/* 6. Compressor Suction Return Tags: PI9 (Pressure) & TI8 (TAL Interlock) */}
           {/* PI9: Tekanan Suction Kompresor MCR */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H4PI014B', name: 'MCHE Bottom Outlet / Compressor Suction Pressure', unit: 'KGC2G', valDcs: 2.284, valAi: suctPress })}>
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H4PI014B', name: 'MCHE Bottom Outlet / Compressor Suction Pressure', unit: 'KGC2G', valDcs: pi9Dcs.toFixed(3), valAi: pi9Ai.toFixed(3) })}>
             <rect x="995" y="835" width="120" height="40" fill="#0f172a" stroke="#0284c7" strokeWidth="1" rx="4" />
             <text x="1055" y="852" fill="#00ffff" fontSize="12" textAnchor="middle" fontWeight="bold">PI9 (Suct Press)</text>
-            <text x="1055" y="869" fill={displayMode === 'AI_OPTIMIZED' ? '#34d399' : '#ffffff'} fontSize="15" textAnchor="middle" fontWeight="bold">
-              {fmt('PI9', 2.284, suctPress, 3).display} <tspan fill="#00ffff" fontSize="10">KGC2G</tspan>
+            <text x="1055" y="869" fill={fmt('PI9', pi9Dcs, pi9Ai, 3).color} fontSize="15" textAnchor="middle" fontWeight="bold">
+              {fmt('PI9', pi9Dcs, pi9Ai, 3).display} <tspan fill="#00ffff" fontSize="10">KGC2G</tspan>
             </text>
           </g>
 
           {/* TI8: Suhu Suction Drum / TAL Interlock */}
-          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H4TI004B', name: 'MCHE Bottom Outlet / Compressor Suction Temp', unit: '°C', valDcs: -44.8, valAi: suctTemp, limit: 'TAL Interlock ≥ -45.0°C' })}>
+          <g style={{ cursor: 'pointer' }} onClick={() => handleTagClick({ tag: 'H4TI004B', name: 'MCHE Bottom Outlet / Compressor Suction Temp', unit: '°C', valDcs: tiSuctDcs.toFixed(1), valAi: tiSuctAi.toFixed(1), limit: 'TAL Interlock ≥ -45.0°C' })}>
             <rect x="1260" y="835" width="170" height="40" fill="#064e3b" stroke="#10b981" strokeWidth="1.5" rx="4" />
             <text x="1345" y="852" fill="#34d399" fontSize="12" textAnchor="middle" fontWeight="bold">TI8 (TAL Interlock)</text>
-            <text x="1345" y="869" fill="#ffffff" fontSize="16" textAnchor="middle" fontWeight="bold">
-              {fmt('TI8', -44.8, suctTemp, 1).display} <tspan fill="#00ffff" fontSize="11">°C</tspan>
+            <text x="1345" y="869" fill={fmt('TI8', tiSuctDcs, tiSuctAi, 1).color} fontSize="16" textAnchor="middle" fontWeight="bold">
+              {fmt('TI8', tiSuctDcs, tiSuctAi, 1).display} <tspan fill="#00ffff" fontSize="11">°C</tspan>
             </text>
           </g>
         </svg>

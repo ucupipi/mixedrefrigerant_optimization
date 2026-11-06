@@ -247,13 +247,13 @@ def predict_scenario(request: PredictRequest) -> PredictResponse:
     power_c3_mw = round(power_pred_mw * frac_c3, 2)
     power_mcr_mw = round(power_pred_mw * (1.0 - frac_c3), 2)
 
-    # 9. Deltas vs actual DCS state. When the operator supplies the actual state, the
-    #    baseline is the SAME surrogate evaluated at that state, so model bias cancels in
-    #    the delta. Otherwise fall back to the demo snapshot baseline.
+    # 9. Deltas vs actual DCS state (evaluated ceteris-paribus at the scenario's feed flow
+    #    so that capacity shifts do not distort the pure AI refrigerant optimization metrics).
     baseline = _load_baseline()
     actual_power_mw = None
     actual_feed = req_dict.get("actual_feed_flow_t_h")
     if actual_feed is not None and req_dict.get("actual_mcr_flow_t_h") is not None:
+        # 9a. Compute actual power at the current DCS feed flow (for display of current state)
         actual_req = dict(req_dict)
         actual_req["feed_flow_t_h"] = float(actual_feed)
         actual_req["mcr_flow_t_h"] = float(req_dict["actual_mcr_flow_t_h"])
@@ -261,14 +261,20 @@ def predict_scenario(request: PredictRequest) -> PredictResponse:
             actual_req[f"comp_{comp_key}_molpct"] = actual_comp[comp_key]
         actual_vec, _ = build_feature_vector(actual_req)
         actual_power_mw = float(np.clip(float(model.predict(actual_vec)[0]), 40.0, 150.0))
-        baseline_total_mw = actual_power_mw
-        baseline_feed = float(actual_feed)
+
+        # 9b. Compute ceteris-paribus baseline at the SAME feed flow as the scenario (feed_flow)
+        #     using unoptimized DCS baseline composition & baseline MCR flow
+        base_same_feed_req = dict(actual_req)
+        base_same_feed_req["feed_flow_t_h"] = feed_flow
+        base_same_feed_vec, _ = build_feature_vector(base_same_feed_req)
+        baseline_total_mw = float(np.clip(float(model.predict(base_same_feed_vec)[0]), 40.0, 150.0))
+        baseline_feed = feed_flow
     else:
         baseline_total_mw = baseline["total_mw"]
         baseline_feed = baseline["feed_t_h"]
 
     actual_lng_input = req_dict.get("actual_lng_flow_t_h")
-    if actual_lng_input is not None and float(actual_lng_input) > 10.0:
+    if actual_lng_input is not None and float(actual_lng_input) > 10.0 and abs(baseline_feed - float(actual_feed or baseline_feed)) < 0.1:
         actual_lng_t_h = float(actual_lng_input)
     else:
         actual_lng_t_h = round(baseline_feed * 0.9450, 2)

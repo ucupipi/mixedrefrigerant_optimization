@@ -47,17 +47,17 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
           letterSpacing: '0.5px',
           boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
         }}>
-          3H
+          ML
         </div>
         <div>
           <div style={{
-            fontSize: '21px',
+            fontSize: '18px',
             fontWeight: 700,
             color: '#f8fafc',
             letterSpacing: '0.3px',
             lineHeight: 1.2,
           }}>
-            BADAK LNG PLANT-3 TRAIN H
+            MACHINE LEARNING BASED MIXED REFRIGERANT EFFICIENCY
           </div>
           <div style={{
             fontSize: '13px',
@@ -65,7 +65,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
             marginTop: '2px',
             fontWeight: 500,
           }}>
-            Workspace Pendukung Keputusan Operasi C3MR (MCHE 5E-1 & Kompresor 4K)
+            Workspace Pendukung Keputusan Operasi Optimasi Siklus C3MR
           </div>
         </div>
       </div>

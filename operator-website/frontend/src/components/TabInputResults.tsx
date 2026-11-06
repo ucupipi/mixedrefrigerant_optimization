@@ -40,18 +40,18 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   onReset,
 }) => {
   // Coupling: LNG Rundown follows feed gas rate (yield 0.9450 after 5.5% end-flash letdown)
-  const actualLngFlow = actualDcs.feed_flow_t_h * 0.9450;
   const scenarioLngFlow = scenario.feed_flow_t_h * 0.9450;
 
-  // Power and SEC calculations
+  // Power and SEC calculations (Evaluated ceteris-paribus at the active feed & LNG flow)
   const baselinePower = prediction?.actual_power_mw ?? 84.48;
   const scenarioPower = prediction?.prediction?.total_shaft_power_mw ?? baselinePower;
-  const deltaPower = scenarioPower - baselinePower;
-  const deltaPowerPct = baselinePower > 0 ? (deltaPower / baselinePower) * 100 : 0;
+  const deltaPower = prediction?.prediction?.delta_power_mw ?? (scenarioPower - baselinePower);
+  const deltaPowerPct = prediction?.prediction?.delta_power_pct ?? (baselinePower > 0 ? (deltaPower / baselinePower) * 100 : 0);
 
-  const baselineSecLng = actualLngFlow > 0 ? (baselinePower * 1000) / actualLngFlow : 363.69;
-  const scenarioSecLng = scenarioLngFlow > 0 ? (scenarioPower * 1000) / scenarioLngFlow : baselineSecLng;
-  const deltaSecLng = scenarioSecLng - baselineSecLng;
+  const activeLngFlow = Math.max(scenarioLngFlow, 10.0);
+  const baselineSecLng = (baselinePower * 1000) / activeLngFlow;
+  const scenarioSecLng = prediction?.prediction?.sec_lng_kwh_per_t ?? ((scenarioPower * 1000) / activeLngFlow);
+  const deltaSecLng = prediction?.prediction?.delta_sec_kwh_per_t ?? (scenarioSecLng - baselineSecLng);
   const deltaSecLngPct = baselineSecLng > 0 ? (deltaSecLng / baselineSecLng) * 100 : 0;
 
   // Steam and Fuel Gas savings

@@ -148,6 +148,11 @@ export function App() {
     setActualDcs((prev) => ({ ...prev, [key]: value }));
     // Feed is a disturbance: target feed follows actual feed
     if (key === 'feed_flow_t_h') {
+      setActualDcs((prev) => ({
+        ...prev,
+        feed_flow_t_h: value,
+        lng_flow_t_h: value * 0.9450,
+      }));
       setScenario((prev) => ({
         ...prev,
         feed_flow_t_h: value,
@@ -275,7 +280,7 @@ export function App() {
           marginBottom: '20px',
         }} />
         <div style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>
-          Badak LNG Plant-3 Train H
+          MACHINE LEARNING BASED MIXED REFRIGERANT EFFICIENCY
         </div>
         <div style={{ fontSize: '14px', color: '#64748b', marginTop: '6px' }}>
           Memuat data operasional DCS & inisialisasi model C3MR...
