@@ -11,30 +11,31 @@ from typing import Any, Optional
 import joblib
 import joblib.numpy_pickle
 
+# Scikit-learn Cython loss compatibility shim across Python/sklearn versions (e.g. Python 3.14/sklearn 1.9)
+if "_loss" not in sys.modules:
+    try:
+        import sklearn._loss._loss as _loss_submod
+        sys.modules["_loss"] = _loss_submod
+    except Exception:
+        try:
+            import sklearn._loss as _loss_mod
+            sys.modules["_loss"] = _loss_mod
+        except Exception:
+            pass
+
 # Unpickling compatibility hook for HistGradientBoosting Cython loss across Python/sklearn versions
-_orig_find_class = joblib.numpy_pickle.NumpyUnpickler.find_class
+_orig_joblib_find_class = joblib.numpy_pickle.NumpyUnpickler.find_class
 
 def _patch_unpickler_find_class(self, module: str, name: str) -> Any:
     if module == "_loss" or module.endswith("._loss"):
-        try:
-            import sklearn._loss._loss as mod
-            if hasattr(mod, name):
-                return getattr(mod, name)
-        except Exception:
-            pass
-        try:
-            import sklearn._loss as mod
-            if hasattr(mod, name):
-                return getattr(mod, name)
-        except Exception:
-            pass
-        try:
-            import sklearn._loss.loss as mod
-            if hasattr(mod, name):
-                return getattr(mod, name)
-        except Exception:
-            pass
-    return _orig_find_class(self, module, name)
+        for mod_name in ["sklearn._loss._loss", "sklearn._loss", "sklearn._loss.loss"]:
+            try:
+                mod = __import__(mod_name, fromlist=[name])
+                if hasattr(mod, name):
+                    return getattr(mod, name)
+            except Exception:
+                continue
+    return _orig_joblib_find_class(self, module, name)
 
 joblib.numpy_pickle.NumpyUnpickler.find_class = _patch_unpickler_find_class
 
