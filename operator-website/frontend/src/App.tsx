@@ -86,43 +86,43 @@ const buildRequest = (s: ScenarioInput, a: ActualDcsState): ScenarioInput => ({
 
 const DEFAULT_RECOMMENDED: OptimizeResponse = {
   feed_t_h: 245.8,
-  mcr_flow_t_h: 480.0,
+  mcr_flow_t_h: 523.0,
   comp_N2_molpct: 3.31,
   comp_C1_molpct: 46.08,
   comp_C2_molpct: 45.15,
   comp_C2H4_molpct: 0.05,
   comp_C3_molpct: 5.41,
   mahalanobis_distance: 0.858,
-  expected_suction_temp_c: -38.7,
+  expected_suction_temp_c: -37.4,
   suction_tal_ok: true,
-  antisurge_floor_applied: true,
+  antisurge_floor_applied: false,
   envelope_shrink_applied: false,
   extrapolated: false,
   feed_span_t_h: [141.2, 296.4],
   source: 'Live SLSQP Solver (PR-EOS + GBRT Surrogate)',
   solver_converged: true,
   constraint_residuals: {
-    suction_tal_margin_c: 6.31,
+    suction_tal_margin_c: 7.60,
     mahalanobis_margin: 2.222,
-    antisurge_margin_t_h: 0.0,
-    superheat_margin_c: 20.76,
+    antisurge_margin_t_h: 43.0,
+    superheat_margin_c: 20.80,
   },
 };
 
 const DEFAULT_PREDICTION: PredictResponse = {
   prediction: {
-    total_shaft_power_mw: 79.09,
-    power_mcr_mw: 48.24,
-    power_c3_mw: 30.85,
-    delta_power_mw: -5.39,
-    delta_power_pct: -6.38,
-    sec_kwh_per_t: 340.49,
-    specific_shaft_power_feed_kwh_per_t: 321.77,
-    sec_lng_kwh_per_t: 340.49,
+    total_shaft_power_mw: 73.57,
+    power_mcr_mw: 46.07,
+    power_c3_mw: 27.50,
+    delta_power_mw: 0.0,
+    delta_power_pct: 0.0,
+    sec_kwh_per_t: 316.57,
+    specific_shaft_power_feed_kwh_per_t: 299.31,
+    sec_lng_kwh_per_t: 316.57,
     sec_lng_status: 'OK',
-    delta_sec_kwh_per_t: -23.21,
-    co2_abatement_t_day: 52.4,
-    operating_regime: 'underload',
+    delta_sec_kwh_per_t: 0.0,
+    co2_abatement_t_day: null,
+    operating_regime: 'transition',
     data_label: 'WHAT-IF SCENARIO SIMULATION',
     battery_limit_note: 'Includes MCR compressors 4K-2/3 and Propane precooling compressor 4K-1',
   },
@@ -169,16 +169,7 @@ export function App() {
   const [actualDcs, setActualDcs] = useState<ActualDcsState>(DEFAULT_ACTUAL);
   const [optimum, setOptimum] = useState<OptimizeResponse | null>(DEFAULT_RECOMMENDED);
   const [strategy, setStrategy] = useState<'CONDITION_DEPENDENT' | 'FIXED_RECIPE' | 'MINIMUM_INTERVENTION'>('CONDITION_DEPENDENT');
-  const [scenario, setScenario] = useState<ScenarioInput>({
-    ...DEFAULT_ACTUAL,
-    mcr_flow_t_h: DEFAULT_RECOMMENDED.mcr_flow_t_h,
-    comp_N2_molpct: DEFAULT_RECOMMENDED.comp_N2_molpct,
-    comp_C1_molpct: DEFAULT_RECOMMENDED.comp_C1_molpct,
-    comp_C2_molpct: DEFAULT_RECOMMENDED.comp_C2_molpct,
-    comp_C2H4_molpct: DEFAULT_RECOMMENDED.comp_C2H4_molpct,
-    comp_C3_molpct: DEFAULT_RECOMMENDED.comp_C3_molpct,
-    transition_hours: 2.0,
-  });
+  const [scenario, setScenario] = useState<ScenarioInput>(scenarioFromActual(DEFAULT_ACTUAL, 2.0));
   const [prediction, setPrediction] = useState<PredictResponse | null>(DEFAULT_PREDICTION);
   const [feedGasComp, setFeedGasComp] = useState<FeedGasComposition>(DEFAULT_FEED_GAS);
   const [historicalPoints, setHistoricalPoints] = useState<HistoricalPoint[]>(DEFAULT_HISTORICAL_SUMMARY.points);
@@ -218,22 +209,11 @@ export function App() {
         setSnapshot(snap);
         const act = actualFromSnapshot(snap);
         setActualDcs(act);
+        setScenario(scenarioFromActual(act, 2.0));
 
         try {
           const opt = await optimizeForFeed(act.feed_flow_t_h, act, 0.30, strategy);
           setOptimum(opt);
-          setScenario({
-            ...act,
-            feed_flow_t_h: act.feed_flow_t_h,
-            lng_flow_t_h: act.lng_flow_t_h,
-            mcr_flow_t_h: opt.mcr_flow_t_h,
-            comp_N2_molpct: opt.comp_N2_molpct,
-            comp_C1_molpct: opt.comp_C1_molpct,
-            comp_C2_molpct: opt.comp_C2_molpct,
-            comp_C2H4_molpct: opt.comp_C2H4_molpct,
-            comp_C3_molpct: opt.comp_C3_molpct,
-            transition_hours: 2.0,
-          });
         } catch (optErr: any) {
           if (optErr?.name !== 'AbortError') {
             console.warn('Initial optimize fallback used:', optErr);

@@ -5,13 +5,13 @@ import {
   getEstimatedLngFlow,
 } from '../utils/thermoFlash';
 import {
-  calculateMakeupAdvisory,
   computeClientPrediction,
 } from '../utils/physicsEngine';
 import type { FeedGasComposition } from '../utils/thermoFlash';
 import type {
   ActualDcsState,
   DemoSnapshot,
+  MakeupAdvisory,
   MakeupInjectionItem,
   OptimizationStrategy,
   OptimizeResponse,
@@ -118,11 +118,11 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
 
   // Detect if Current Input is sitting at unoptimized DCS baseline (before clicking Apply AI Target)
   const isAtDcsBaseline =
-    Math.abs(rawDeltaPower) < 0.05 &&
+    Math.abs(rawDeltaPower) <= 0.05 &&
     Math.abs(scenario.mcr_flow_t_h - recMcrFlow) > 0.5;
 
-  const scenarioPower = isAtDcsBaseline ? aiTargetPower : rawScenarioPower;
-  const deltaPower = isAtDcsBaseline ? aiTargetDeltaPower : rawDeltaPower;
+  const scenarioPower = rawScenarioPower;
+  const deltaPower = rawDeltaPower;
   const deltaPowerPct = baselinePower > 0 ? (deltaPower / baselinePower) * 100 : 0;
 
   const activeLngFlow = Math.max(scenarioLngFlow, 10.0);
@@ -139,7 +139,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   const FUEL_GAS_PRICE_USD_PER_MMBTU = 6.0; // Plant-5 Train H (Liquefaction) internal fuel gas transfer valuation ($/MMBTU)
   const ANNUAL_OPERATING_HOURS = 8000; // Baseline annual plant operating hours (~91.3% availability)
 
-  const deltaPowerSavingMw = Math.max(0, -deltaPower);
+  const deltaPowerSavingMw = deltaPower < -0.05 ? Math.max(0, -deltaPower) : 0;
   const steamSaved_t_h = deltaPowerSavingMw * STEAM_RATE_T_PER_MWH;
   const fuelGasSaved_nm3_h = steamSaved_t_h * FUEL_GAS_NM3_PER_T_STEAM;
   const fuelGasSaved_t_h = (fuelGasSaved_nm3_h * FG_DENSITY_KG_NM3) / 1000;
@@ -148,8 +148,11 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   const potentialAiPowerSavingMw = Math.max(0, -aiTargetDeltaPower);
   const potentialAiSecSavingKwh = activeLngFlow > 0 ? (potentialAiPowerSavingMw * 1000) / activeLngFlow : 0;
 
-  // Make-Up MCR Schedule items: when Current Input composition equals DCS composition, evaluate against AI Target
-  // so the Make-Up Schedule table's "AI Target" column always displays the true AI Target and required make-up rates.
+  // Make-Up MCR Schedule items:
+  // Evaluate 4 online make-up headers (N2: H4FIC006, C1: H4FIC005, C2: H4FI00C8, C3: H4FIC007)
+  // comparing DCS baseline against AI Target (or custom operator composition when manually modified).
+  // Strictly injects only positive-deficit components (Δ > +0.02 mol%) on the 24,000 kg loop inventory,
+  // preventing unphysical 1600% dilution expansion from trace C2H4 differences.
   const isScenarioAtDcsComp =
     Math.abs(scenario.comp_N2_molpct - _actualDcs.comp_N2_molpct) < 0.02 &&
     Math.abs(scenario.comp_C1_molpct - _actualDcs.comp_C1_molpct) < 0.02 &&
@@ -157,25 +160,148 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
     Math.abs(scenario.comp_C2H4_molpct - _actualDcs.comp_C2H4_molpct) < 0.02 &&
     Math.abs(scenario.comp_C3_molpct - _actualDcs.comp_C3_molpct) < 0.02;
 
-  const activeMakeupAdvisory = isScenarioAtDcsComp
-    ? calculateMakeupAdvisory(
-        {
-          N2: _actualDcs.comp_N2_molpct,
-          C1: _actualDcs.comp_C1_molpct,
-          C2: _actualDcs.comp_C2_molpct,
-          C2H4: _actualDcs.comp_C2H4_molpct,
-          C3: _actualDcs.comp_C3_molpct,
-        },
-        {
-          N2: recN2,
-          C1: recC1,
-          C2: recC2,
-          C2H4: recC2H4,
-          C3: recC3,
-        },
-        scenario.transition_hours ?? 2.0
-      )
-    : (prediction?.makeup_advisory ?? aiTargetPrediction.makeup_advisory);
+  const activeMakeupAdvisory: MakeupAdvisory = (() => {
+    const tHours = Math.max(0.5, scenario.transition_hours ?? 2.0);
+    const invKg = 24000.0;
+    const tgtN2 = isScenarioAtDcsComp ? recN2 : scenario.comp_N2_molpct;
+    const tgtC1 = isScenarioAtDcsComp ? recC1 : scenario.comp_C1_molpct;
+    const tgtC2 = isScenarioAtDcsComp ? recC2 : scenario.comp_C2_molpct;
+    const tgtC3 = isScenarioAtDcsComp ? recC3 : scenario.comp_C3_molpct;
+
+    const actMap: Record<string, number> = {
+      N2: _actualDcs.comp_N2_molpct,
+      C1: _actualDcs.comp_C1_molpct,
+      C2: _actualDcs.comp_C2_molpct,
+      C2H4: _actualDcs.comp_C2H4_molpct,
+      C3: _actualDcs.comp_C3_molpct,
+    };
+    const tgtMap: Record<string, number> = {
+      N2: tgtN2,
+      C1: tgtC1,
+      C2: tgtC2,
+      C3: tgtC3,
+    };
+    const mwMap: Record<string, number> = {
+      N2: 28.0134,
+      C1: 16.0425,
+      C2: 30.069,
+      C2H4: 28.0532,
+      C3: 44.0956,
+    };
+    const streamPurity: Record<string, number> = {
+      N2: 0.999,
+      C1: 0.945,
+      C2: 0.96,
+      C3: 0.985,
+    };
+    const streamMwMap: Record<string, number> = {
+      N2: 28.001,
+      C1: 16.925,
+      C2: 30.015,
+      C3: 43.885,
+    };
+    const headerMeta: Array<{ comp: string; tag: string; alt: string | null; desc: string }> = [
+      { comp: 'N2', tag: 'H4FIC006', alt: null, desc: 'Nitrogen (N2)' },
+      { comp: 'C1', tag: 'H4FIC005', alt: 'H4FIC009', desc: 'Methane (C1)' },
+      { comp: 'C2', tag: 'H4FI00C8', alt: null, desc: 'Ethane (C2)' },
+      { comp: 'C3', tag: 'H4FIC007', alt: null, desc: 'Propane (C3)' },
+    ];
+
+    const avgMw =
+      (actMap.N2 * mwMap.N2 +
+        actMap.C1 * mwMap.C1 +
+        actMap.C2 * mwMap.C2 +
+        actMap.C2H4 * mwMap.C2H4 +
+        actMap.C3 * mwMap.C3) /
+      100.0;
+    const n0Kmol = invKg / Math.max(avgMw, 15.0);
+
+    let totalNm3H = 0.0;
+    let totalKgH = 0.0;
+    let totalTH = 0.0;
+    let totalScfd = 0.0;
+
+    const items: MakeupInjectionItem[] = headerMeta.map(({ comp, tag, alt, desc }) => {
+      const actPct = Math.round(actMap[comp] * 100) / 100;
+      const tgtPct = Math.round(tgtMap[comp] * 100) / 100;
+      const deltaPct = Math.round((tgtPct - actPct) * 100) / 100;
+
+      let flowNm3H = 0.0;
+      let flowKgH = 0.0;
+      let flowTH = 0.0;
+      let flowScfd = 0.0;
+      let neededKmol = 0.0;
+      let neededKg = 0.0;
+      let action = 'STABIL / SEIMBANG';
+      let instruction = `[ADVISORY] Valve ${tag} on standby (component is within target tolerance).`;
+
+      if (deltaPct > 0.02) {
+        neededKmol = (n0Kmol * (deltaPct / 100.0)) / streamPurity[comp];
+        neededKg = neededKmol * streamMwMap[comp];
+        const neededNm3 = neededKmol * 22.414;
+        flowNm3H = Math.round((neededNm3 / tHours) * 10) / 10;
+        flowKgH = Math.round((neededKg / tHours) * 10) / 10;
+        flowTH = Math.round((flowKgH / 1000.0) * 10000) / 10000;
+        flowScfd = Math.round(flowNm3H * 895.83 * 10) / 10;
+        action = 'INJEKSI';
+        instruction = `[ADVISORY] Set valve ${tag} (${desc}) to ${flowNm3H.toFixed(1)} Nm3/h (${flowKgH.toFixed(1)} kg/h / ${Math.round(flowScfd).toLocaleString('en-US')} scfd).`;
+      } else if (deltaPct < -0.02) {
+        action = 'TAHAN / STOP';
+        instruction = `[ADVISORY] Keep valve ${tag} closed (component exceeds target by ${Math.abs(deltaPct).toFixed(2)} mol%; will dilute as deficit headers inject).`;
+      }
+
+      totalNm3H += flowNm3H;
+      totalKgH += flowKgH;
+      totalTH += flowTH;
+      totalScfd += flowScfd;
+
+      return {
+        component: comp,
+        tag_dcs: tag,
+        alternate_tag_dcs: alt,
+        description: desc,
+        unit: 'Nm3/h',
+        actual_molpct: actPct,
+        target_molpct: tgtPct,
+        delta_molpct: deltaPct,
+        needed_kmol: Math.round(neededKmol * 10000) / 10000,
+        needed_kg: Math.round(neededKg * 100) / 100,
+        recommended_flow_nm3_h: flowNm3H,
+        recommended_flow_kg_h: flowKgH,
+        recommended_flow_t_h: flowTH,
+        recommended_flow_scfd: flowScfd,
+        stream_purity_used: streamPurity[comp],
+        stream_mw: streamMwMap[comp],
+        action,
+        instruction,
+      };
+    });
+
+    totalNm3H = Math.round(totalNm3H * 10) / 10;
+    totalKgH = Math.round(totalKgH * 10) / 10;
+    totalTH = Math.round(totalTH * 10000) / 10000;
+    totalScfd = Math.round(totalScfd * 10) / 10;
+
+    return {
+      status: 'EVALUATED',
+      explanation: `Closed-loop make-up schedule evaluated for a ${tHours.toFixed(1)}-hour transition on 24,000 kg MCR loop inventory. Total deficit make-up rate: ${totalNm3H.toFixed(1)} Nm3/h (${totalKgH.toFixed(1)} kg/h / ${Math.round(totalScfd).toLocaleString('en-US')} scfd).`,
+      transition_hours: tHours,
+      estimated_inventory_kg: invKg,
+      estimated_initial_moles_kmol: Math.round(n0Kmol * 100) / 100,
+      estimated_final_moles_kmol: Math.round(n0Kmol * 100) / 100,
+      expansion_ratio: 1.0,
+      use_stream_purity: true,
+      c1_controller_tag: 'H4FIC005',
+      total_makeup_flow_nm3_h: totalNm3H,
+      total_makeup_flow_kg_h: totalKgH,
+      total_makeup_flow_t_h: totalTH,
+      total_makeup_flow_scfd: totalScfd,
+      items,
+      operational_notes: [],
+      engineering_notes: [],
+      calculation_timestamp: new Date().toISOString(),
+    };
+  })();
 
   const makeupStatus = activeMakeupAdvisory?.status ?? (activeMakeupAdvisory ? 'EVALUATED' : 'NOT EVALUATED');
   const isUnevaluated = makeupStatus === 'NOT EVALUATED';
@@ -1363,8 +1489,8 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
                       DCS -151.2°C
                     </span>
-                    <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
-                      Scenario: -152.0°C
+                    <span style={{ backgroundColor: isAtDcsBaseline ? '#e2e8f0' : '#dcfce7', color: isAtDcsBaseline ? '#334155' : '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
+                      Scenario: {isAtDcsBaseline ? '-151.2°C' : '-152.0°C'}
                     </span>
                     <span style={{ backgroundColor: '#10b981', color: '#ffffff', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 800 }}>
                       LIMIT: ≤ -150.0°C
@@ -1378,8 +1504,8 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
                       DCS -153.6°C
                     </span>
-                    <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
-                      Scenario: -153.8°C
+                    <span style={{ backgroundColor: isAtDcsBaseline ? '#e2e8f0' : '#dcfce7', color: isAtDcsBaseline ? '#334155' : '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
+                      Scenario: {isAtDcsBaseline ? '-153.6°C' : '-153.8°C'}
                     </span>
                   </div>
                 </div>
@@ -1397,8 +1523,8 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
                       DCS -44.8°C
                     </span>
-                    <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
-                      Scenario: -43.5°C
+                    <span style={{ backgroundColor: isAtDcsBaseline ? '#e2e8f0' : '#dcfce7', color: isAtDcsBaseline ? '#334155' : '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
+                      Scenario: {isAtDcsBaseline ? '-44.8°C' : '-43.5°C'}
                     </span>
                   </div>
                 </div>
@@ -1499,40 +1625,58 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
 
           {/* 4 KPI Cards Grid */}
           {(() => {
-            const isSaving = deltaPowerSavingMw > 0;
+            const isSaving = deltaPower < -0.05;
+            const isNeutral = Math.abs(deltaPower) <= 0.05;
 
-            const dispSecVal = deltaPowerSavingMw > 0
+            const dispSecVal = isSaving
               ? Math.abs(deltaSecLng).toFixed(1)
-              : `+${deltaSecLng.toFixed(1)}`;
-            const dispSecBadge = deltaPowerSavingMw > 0
+              : isNeutral
+                ? '0.0'
+                : `+${deltaSecLng.toFixed(1)}`;
+            const dispSecBadge = isSaving
               ? `Save ${Math.abs(deltaSecLngPct).toFixed(1)}%`
-              : `+${Math.abs(deltaSecLngPct).toFixed(1)}% above baseline`;
+              : isNeutral
+                ? 'At DCS Baseline'
+                : `+${Math.abs(deltaSecLngPct).toFixed(1)}% above baseline`;
 
-            const dispSteamVal = deltaPowerSavingMw > 0
+            const dispSteamVal = isSaving
               ? steamSaved_t_h.toFixed(1)
-              : `+${(deltaPower * STEAM_RATE_T_PER_MWH).toFixed(1)}`;
-            const dispSteamBadge = isSaving ? 'Load Reduced' : 'Load Increased';
+              : isNeutral
+                ? '0.0'
+                : `+${(deltaPower * STEAM_RATE_T_PER_MWH).toFixed(1)}`;
+            const dispSteamBadge = isSaving ? 'Load Reduced' : isNeutral ? 'At DCS Baseline' : 'Load Increased';
 
-            const dispFgVal = deltaPowerSavingMw > 0
+            const dispFgVal = isSaving
               ? fuelGasSaved_t_h.toFixed(1)
-              : `+${(((deltaPower * STEAM_RATE_T_PER_MWH * FUEL_GAS_NM3_PER_T_STEAM * FG_DENSITY_KG_NM3) / 1000)).toFixed(1)}`;
+              : isNeutral
+                ? '0.0'
+                : `+${(((deltaPower * STEAM_RATE_T_PER_MWH * FUEL_GAS_NM3_PER_T_STEAM * FG_DENSITY_KG_NM3) / 1000)).toFixed(1)}`;
             const dispFgBadge = isSaving
               ? `Save USD ${fuelGasSaved_usd_yr.toFixed(2)} M/Yr`
-              : 'Cost Increased';
+              : isNeutral
+                ? 'At DCS Baseline'
+                : 'Cost Increased';
 
-            const dispPowerVal = deltaPowerSavingMw > 0
+            const dispPowerVal = isSaving
               ? deltaPowerSavingMw.toFixed(2)
-              : `+${deltaPower.toFixed(2)}`;
-            const dispPowerBadge = deltaPowerSavingMw > 0
+              : isNeutral
+                ? '0.00'
+                : `+${deltaPower.toFixed(2)}`;
+            const dispPowerBadge = isSaving
               ? `Save ${Math.abs(deltaPowerPct).toFixed(1)}%`
-              : `+${Math.abs(deltaPowerPct).toFixed(1)}% above baseline`;
+              : isNeutral
+                ? 'At DCS Baseline'
+                : `+${Math.abs(deltaPowerPct).toFixed(1)}% above baseline`;
 
-            const cardBg = isSaving ? '#f0fdf4' : '#fffbeb';
-            const cardBorder = isSaving ? '2px solid #86efac' : '2px solid #fcd34d';
-            const cardValColor = isSaving ? '#15803d' : '#b45309';
-            const cardUnitColor = isSaving ? '#166534' : '#92400e';
-            const badgeBg = isSaving ? '#bbf7d0' : '#fef3c7';
-            const badgeColor = isSaving ? '#166534' : '#b45309';
+            const cardBg = isSaving ? '#f0fdf4' : isNeutral ? '#f8fafc' : '#fffbeb';
+            const cardBorder = isSaving ? '2px solid #86efac' : isNeutral ? '2px solid #cbd5e1' : '2px solid #fcd34d';
+            const cardValColor = isSaving ? '#15803d' : isNeutral ? '#334155' : '#b45309';
+            const cardUnitColor = isSaving ? '#166534' : isNeutral ? '#475569' : '#92400e';
+            const badgeBg = isSaving ? '#bbf7d0' : isNeutral ? '#e2e8f0' : '#fef3c7';
+            const badgeColor = isSaving ? '#166534' : isNeutral ? '#475569' : '#b45309';
+            const dividerColor = isSaving ? '#bbf7d0' : isNeutral ? '#e2e8f0' : '#fde68a';
+            const scenarioPillBg = isSaving ? '#dcfce7' : isNeutral ? '#e2e8f0' : '#fef3c7';
+            const scenarioPillColor = isSaving ? '#15803d' : isNeutral ? '#334155' : '#b45309';
 
             return (
               <div className="kpi-cards-grid" style={{
@@ -1576,7 +1720,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                   <div style={{
                     marginTop: '14px',
                     paddingTop: '10px',
-                    borderTop: `1px solid ${isSaving ? '#bbf7d0' : '#fde68a'}`,
+                    borderTop: `1px solid ${dividerColor}`,
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
@@ -1585,8 +1729,8 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     <span style={{ backgroundColor: '#e2e8f0', color: '#334155', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
                       DCS: {baselineSecLng.toFixed(1)}
                     </span>
-                    <span style={{ backgroundColor: isSaving ? '#dcfce7' : '#fef3c7', color: isSaving ? '#15803d' : '#b45309', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
-                      {isAtDcsBaseline ? 'AI Target' : 'Scenario'}: {scenarioSecLng.toFixed(1)} kWh/t
+                    <span style={{ backgroundColor: scenarioPillBg, color: scenarioPillColor, padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
+                      Scenario: {scenarioSecLng.toFixed(1)} kWh/t
                     </span>
                   </div>
                 </div>
@@ -1627,7 +1771,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                   <div style={{
                     marginTop: '14px',
                     paddingTop: '10px',
-                    borderTop: `1px solid ${isSaving ? '#bbf7d0' : '#fde68a'}`,
+                    borderTop: `1px solid ${dividerColor}`,
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
@@ -1635,8 +1779,8 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     <span style={{ backgroundColor: '#e2e8f0', color: '#334155', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
                       Utility Steam
                     </span>
-                    <span style={{ backgroundColor: isSaving ? '#dcfce7' : '#fef3c7', color: isSaving ? '#15803d' : '#b45309', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
-                      {isSaving ? 'More Efficient' : 'Load Increased'}
+                    <span style={{ backgroundColor: scenarioPillBg, color: scenarioPillColor, padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
+                      {isSaving ? 'More Efficient' : isNeutral ? 'Baseline Operation' : 'Load Increased'}
                     </span>
                   </div>
                 </div>
@@ -1663,8 +1807,8 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     </div>
                     <div>
                       <span style={{
-                        backgroundColor: isSaving ? '#fef3c7' : '#fee2e2',
-                        color: isSaving ? '#92400e' : '#b91c1c',
+                        backgroundColor: isSaving ? '#fef3c7' : isNeutral ? '#e2e8f0' : '#fee2e2',
+                        color: isSaving ? '#92400e' : isNeutral ? '#475569' : '#b91c1c',
                         padding: '3px 8px',
                         borderRadius: '12px',
                         fontSize: '11px',
@@ -1677,7 +1821,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                   <div style={{
                     marginTop: '14px',
                     paddingTop: '10px',
-                    borderTop: `1px solid ${isSaving ? '#bbf7d0' : '#fde68a'}`,
+                    borderTop: `1px solid ${dividerColor}`,
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
@@ -1685,8 +1829,8 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     <span style={{ backgroundColor: '#e2e8f0', color: '#334155', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
                       Turbine Fuel
                     </span>
-                    <span style={{ backgroundColor: isSaving ? '#dcfce7' : '#fef3c7', color: isSaving ? '#15803d' : '#b45309', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
-                      {isSaving ? 'Emissions Reduced' : 'Emissions Increased'}
+                    <span style={{ backgroundColor: scenarioPillBg, color: scenarioPillColor, padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
+                      {isSaving ? 'Emissions Reduced' : isNeutral ? 'Baseline Operation' : 'Emissions Increased'}
                     </span>
                   </div>
                 </div>
@@ -1727,7 +1871,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                   <div style={{
                     marginTop: '14px',
                     paddingTop: '10px',
-                    borderTop: `1px solid ${isSaving ? '#bbf7d0' : '#fde68a'}`,
+                    borderTop: `1px solid ${dividerColor}`,
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
@@ -1736,8 +1880,8 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     <span style={{ backgroundColor: '#e2e8f0', color: '#334155', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
                       DCS: {baselinePower.toFixed(1)} MW
                     </span>
-                    <span style={{ backgroundColor: isSaving ? '#dcfce7' : '#fef3c7', color: isSaving ? '#15803d' : '#b45309', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
-                      {isAtDcsBaseline ? 'AI Target' : 'Scenario'}: {scenarioPower.toFixed(1)} MW
+                    <span style={{ backgroundColor: scenarioPillBg, color: scenarioPillColor, padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
+                      Scenario: {scenarioPower.toFixed(1)} MW
                     </span>
                   </div>
                 </div>
