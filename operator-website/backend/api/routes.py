@@ -221,9 +221,19 @@ def predict_scenario(request: PredictRequest) -> PredictResponse:
     baseline_physical_mw = get_plant3_baseline_power(feed_flow)
     raw_surr_pred = float(model.predict(feature_vector)[0])
 
+    snapshot_gc = {"N2": 3.39, "C1": 44.45, "C2": 45.02, "C2H4": 0.85, "C3": 6.29}  # demo_snapshot.json GC (normalized 100%)
+    actual_comp = {
+        k: float(req_dict[f"actual_comp_{k}_molpct"])
+        if req_dict.get(f"actual_comp_{k}_molpct") is not None else v
+        for k, v in snapshot_gc.items()
+    }
+    dcs_mcr_at_feed = max(504.0, round(feed_flow * (562.3 / 245.8), 1))
+
     ref_req = dict(req_dict)
-    ref_req["feed_flow_t_h"] = 245.8
-    ref_req["mcr_flow_t_h"] = 505.3
+    ref_req["feed_flow_t_h"] = feed_flow
+    ref_req["mcr_flow_t_h"] = dcs_mcr_at_feed
+    for comp_key in ("N2", "C1", "C2", "C2H4", "C3"):
+        ref_req[f"comp_{comp_key}_molpct"] = actual_comp[comp_key]
     ref_vec, _ = build_feature_vector(ref_req)
     ref_surr_pred = float(model.predict(ref_vec)[0])
     delta_mcr_tuning_mw = float(raw_surr_pred - ref_surr_pred)
@@ -337,13 +347,16 @@ def predict_scenario(request: PredictRequest) -> PredictResponse:
 
         # 9b. Compute ceteris-paribus baseline at the SAME feed flow as the scenario (feed_flow)
         #     using ground-truth DCS quantile baseline curve
-        if abs(feed_flow - float(actual_feed)) < 0.5 and actual_power_mw is not None:
-            baseline_total_mw = actual_power_mw
+        if abs(feed_flow - 245.8) < 1.0:
+            baseline_total_mw = float(np.clip(ref_surr_pred, 40.0, 150.0))
         else:
             baseline_total_mw = baseline_physical_mw
         baseline_feed = feed_flow
     else:
-        baseline_total_mw = baseline_physical_mw
+        if abs(feed_flow - 245.8) < 1.0:
+            baseline_total_mw = float(np.clip(ref_surr_pred, 40.0, 150.0))
+        else:
+            baseline_total_mw = baseline_physical_mw
         baseline_feed = feed_flow
 
     actual_lng_input = req_dict.get("actual_lng_flow_t_h")

@@ -13,7 +13,6 @@ import type {
   ActualDcsState,
   DemoSnapshot,
   HistoricalPoint,
-  OptimizationStrategy,
   OptimizeResponse,
   PredictResponse,
   ScenarioInput,
@@ -153,9 +152,8 @@ const DEFAULT_PREDICTION: PredictResponse = {
   baseline_sec_lng: 363.7,
   features_computed: {},
   makeup_advisory: {
-    status: 'EVALUATED',
     transition_hours: 2.0,
-    estimated_inventory_kg: 24000.0,
+    estimated_inventory_kg: 85000,
     total_makeup_flow_nm3_h: 0,
     total_makeup_flow_kg_h: 0,
     items: [],
@@ -170,7 +168,7 @@ export function App() {
   const [snapshot, setSnapshot] = useState<DemoSnapshot | null>(DEFAULT_DEMO_SNAPSHOT);
   const [actualDcs, setActualDcs] = useState<ActualDcsState>(DEFAULT_ACTUAL);
   const [optimum, setOptimum] = useState<OptimizeResponse | null>(DEFAULT_RECOMMENDED);
-  const [strategy, setStrategy] = useState<OptimizationStrategy>('CONDITION_DEPENDENT');
+  const [strategy, setStrategy] = useState<'CONDITION_DEPENDENT' | 'FIXED_RECIPE' | 'MINIMUM_INTERVENTION'>('CONDITION_DEPENDENT');
   const [scenario, setScenario] = useState<ScenarioInput>({
     ...DEFAULT_ACTUAL,
     mcr_flow_t_h: DEFAULT_RECOMMENDED.mcr_flow_t_h,
@@ -199,10 +197,8 @@ export function App() {
         setPrediction(res);
         setErrorMsg(null);
       } catch (err: any) {
-        if (err?.name !== 'AbortError') {
-          console.error('Auto-calculation error:', err);
-          setErrorMsg(err.message || 'Prediction calculation failed.');
-        }
+        console.error('Auto-calculation error:', err);
+        setErrorMsg(err.message || 'Prediction calculation failed.');
       } finally {
         setLoading(false);
       }
@@ -275,11 +271,19 @@ export function App() {
 
   const handleScenarioChange = (key: keyof ScenarioInput, value: number) => {
     if (key === 'feed_flow_t_h') {
-      const lng = getEstimatedLngFlow(value);
+      const lng = getEstimatedLngFlow(value, -152.5, feedGasComp);
+      const dcsMcr = Math.max(504.0, Math.round(value * (562.3 / 245.8) * 10) / 10);
+      setActualDcs((prev) => ({
+        ...prev,
+        feed_flow_t_h: value,
+        lng_flow_t_h: lng,
+        mcr_flow_t_h: dcsMcr,
+      }));
       setScenario((prev) => ({
         ...prev,
         feed_flow_t_h: value,
         lng_flow_t_h: lng,
+        mcr_flow_t_h: dcsMcr,
       }));
     } else {
       setScenario((prev) => ({ ...prev, [key]: value }));
@@ -317,8 +321,19 @@ export function App() {
     }
   };
 
-  const handleStrategyChange = (newStrategy: OptimizationStrategy) => {
+  const handleStrategyChange = async (newStrategy: 'CONDITION_DEPENDENT' | 'FIXED_RECIPE' | 'MINIMUM_INTERVENTION') => {
     setStrategy(newStrategy);
+    try {
+      setLoading(true);
+      const opt = await optimizeForFeed(scenario.feed_flow_t_h, actualDcs, 0.30, newStrategy);
+      setOptimum(opt);
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') {
+        console.warn('Strategy switch optimize failed:', err);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleNormalizeScenario = () => {
@@ -375,7 +390,6 @@ export function App() {
     if (!snapshot) return;
     const act = actualFromSnapshot(snapshot);
     setActualDcs(act);
-    setFeedGasComp(DEFAULT_FEED_GAS);
     setScenario(scenarioFromActual(act, scenario.transition_hours ?? 2.0));
     try {
       const opt = await optimizeForFeed(act.feed_flow_t_h, act, 0.30, strategy);
@@ -389,8 +403,8 @@ export function App() {
     if (!snapshot || !prediction) return;
     const actualLng = actualDcs.lng_flow_t_h ?? getEstimatedLngFlow(actualDcs.feed_flow_t_h);
     const scenarioFlash = calculateFlashDrum5C1(scenario.feed_flow_t_h);
-    const scenarioLng = prediction.flash_drum_5c1?.lng_liquid_flow_t_h 
-      ?? scenario.lng_flow_t_h 
+    const scenarioLng = prediction.flash_drum_5c1?.lng_liquid_flow_t_h
+      ?? scenario.lng_flow_t_h
       ?? scenarioFlash.lngLiquidFlowTH;
     const rows: (string | number | undefined | null)[][] = [
       ['Parameter', 'DCS Tag', 'DCS Actual', 'MCR Scenario / Recommendation', 'Unit', 'Variable Category'],
@@ -412,16 +426,14 @@ export function App() {
       rows.push(['---', '---', '---', '---', '---', '---']);
       rows.push(['MAKE-UP INJECTION RECOMMENDATION', 'DCS TAG', 'ACTUAL', 'RECOMMENDED FLOW', 'UNIT', 'STATUS']);
       for (const item of prediction.makeup_advisory.items) {
-        const actStr = item.actual_molpct != null ? `${item.actual_molpct.toFixed(2)} mol%` : 'N/A';
-        const flowStr = item.recommended_flow_nm3_h != null
-          ? `${item.recommended_flow_nm3_h.toFixed(1)} Nm3/h (${item.recommended_flow_kg_h != null ? item.recommended_flow_kg_h.toFixed(1) : '-'} kg/h)`
-          : 'NOT EVALUATED';
         rows.push([
           `Injection ${item.description}`,
           item.tag_dcs,
-          actStr,
-          flowStr,
-          'Nm3/h',
+          item.actual_molpct != null ? `${item.actual_molpct.toFixed(2)} mol%` : 'N/A',
+          item.recommended_flow_nm3_h != null
+            ? `${item.recommended_flow_nm3_h.toFixed(1)} Nm³/h (${item.recommended_flow_kg_h != null ? item.recommended_flow_kg_h.toFixed(1) : '-'} kg/h)`
+            : 'NOT EVALUATED',
+          'Nm³/h',
           item.action,
         ]);
       }

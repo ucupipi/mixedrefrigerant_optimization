@@ -1234,7 +1234,26 @@ export function computeClientPrediction(
   const baselinePhysicalMw = getPlant3BaselinePower(feedFlow);
   const rawSurrPred = evaluateRidgeSurrogate(featureVector);
 
-  const refReq: Record<string, any> = { ...reqDict, feed_flow_t_h: 245.8, mcr_flow_t_h: 505.3 };
+  const snapshotGc: Record<string, number> = { N2: 3.39, C1: 44.45, C2: 45.02, C2H4: 0.85, C3: 6.29 };
+  const actualComp: Record<string, number> = {
+    N2: Number(reqDict.actual_comp_N2_molpct ?? snapshotGc.N2),
+    C1: Number(reqDict.actual_comp_C1_molpct ?? snapshotGc.C1),
+    C2: Number(reqDict.actual_comp_C2_molpct ?? snapshotGc.C2),
+    C2H4: Number(reqDict.actual_comp_C2H4_molpct ?? snapshotGc.C2H4),
+    C3: Number(reqDict.actual_comp_C3_molpct ?? snapshotGc.C3),
+  };
+  const dcsMcrAtFeed = Math.max(504.0, Math.round(feedFlow * (562.3 / 245.8) * 10) / 10);
+
+  const refReq: Record<string, any> = {
+    ...reqDict,
+    feed_flow_t_h: feedFlow,
+    mcr_flow_t_h: dcsMcrAtFeed,
+    comp_N2_molpct: actualComp.N2,
+    comp_C1_molpct: actualComp.C1,
+    comp_C2_molpct: actualComp.C2,
+    comp_C2H4_molpct: actualComp.C2H4,
+    comp_C3_molpct: actualComp.C3,
+  };
   const { featureVector: refVec } = buildFeatureVector(refReq);
   const refSurrPred = evaluateRidgeSurrogate(refVec);
   const deltaMcrTuningMw = rawSurrPred - refSurrPred;
@@ -1294,17 +1313,8 @@ export function computeClientPrediction(
   const actualFeed = reqDict.actual_feed_flow_t_h;
   const actualMcr = reqDict.actual_mcr_flow_t_h;
   let actualPowerMw: number | null = null;
-  let baselineTotalMw = baselinePhysicalMw;
+  const baselineTotalMw = Math.abs(feedFlow - 245.8) < 1.0 ? clip(refSurrPred, 40.0, 150.0) : baselinePhysicalMw;
   const baselineFeed = feedFlow;
-
-  const snapshotGc: Record<string, number> = { N2: 3.38, C1: 44.37, C2: 44.94, C2H4: 0.85, C3: 6.28 };
-  const actualComp: Record<string, number> = {
-    N2: Number(reqDict.actual_comp_N2_molpct ?? snapshotGc.N2),
-    C1: Number(reqDict.actual_comp_C1_molpct ?? snapshotGc.C1),
-    C2: Number(reqDict.actual_comp_C2_molpct ?? snapshotGc.C2),
-    C2H4: Number(reqDict.actual_comp_C2H4_molpct ?? snapshotGc.C2H4),
-    C3: Number(reqDict.actual_comp_C3_molpct ?? snapshotGc.C3),
-  };
 
   if (actualFeed !== undefined && actualMcr !== undefined) {
     const actualReq: Record<string, any> = {
@@ -1319,12 +1329,6 @@ export function computeClientPrediction(
     };
     const { featureVector: actVec } = buildFeatureVector(actualReq);
     actualPowerMw = clip(evaluateRidgeSurrogate(actVec), 40.0, 150.0);
-
-    if (Math.abs(feedFlow - Number(actualFeed)) < 0.5 && actualPowerMw !== null) {
-      baselineTotalMw = actualPowerMw;
-    } else {
-      baselineTotalMw = baselinePhysicalMw;
-    }
   }
 
   let actualLngTH: number;

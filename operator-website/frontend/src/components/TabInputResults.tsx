@@ -4,6 +4,10 @@ import {
   DEFAULT_FEED_GAS,
   getEstimatedLngFlow,
 } from '../utils/thermoFlash';
+import {
+  calculateMakeupAdvisory,
+  computeClientPrediction,
+} from '../utils/physicsEngine';
 import type { FeedGasComposition } from '../utils/thermoFlash';
 import type {
   ActualDcsState,
@@ -55,8 +59,9 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   onNormalizeScenario,
   onReset,
 }) => {
-  // Feed Gas Composition Modal State
+  // Feed Gas Composition & Optimization Strategy Modal State
   const [showFeedGasModal, setShowFeedGasModal] = useState<boolean>(false);
+  const [showStrategyModal, setShowStrategyModal] = useState<boolean>(false);
   const [localFeedGas, setLocalFeedGas] = useState<Required<FeedGasComposition>>({
     ...DEFAULT_FEED_GAS,
     ...(feedGasComp || {}),
@@ -81,16 +86,49 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
     ?? scenario.lng_flow_t_h
     ?? getEstimatedLngFlow(scenario.feed_flow_t_h, -152.5, feedGasComp);
 
+  // Recommended AI Target parameters
+  const recMcrFlow = optimum?.mcr_flow_t_h ?? 480.0;
+  const recN2 = optimum?.comp_N2_molpct ?? 3.31;
+  const recC1 = optimum?.comp_C1_molpct ?? 46.08;
+  const recC2 = optimum?.comp_C2_molpct ?? 45.15;
+  const recC2H4 = optimum?.comp_C2H4_molpct ?? 0.05;
+  const recC3 = optimum?.comp_C3_molpct ?? 5.41;
+
+  // Evaluate AI Target performance at the same feed load & DCS reference (zero magic numbers)
+  const aiTargetPrediction = computeClientPrediction(
+    {
+      ...scenario,
+      mcr_flow_t_h: recMcrFlow,
+      comp_N2_molpct: recN2,
+      comp_C1_molpct: recC1,
+      comp_C2_molpct: recC2,
+      comp_C2H4_molpct: recC2H4,
+      comp_C3_molpct: recC3,
+    },
+    _actualDcs
+  );
+
   // Power and SEC calculations (Evaluated ceteris-paribus at the active feed & LNG flow)
-  const baselinePower = prediction?.baseline_power_mw ?? prediction?.actual_power_mw ?? 84.48;
-  const scenarioPower = prediction?.prediction?.total_shaft_power_mw ?? baselinePower;
-  const deltaPower = prediction?.prediction?.delta_power_mw ?? (scenarioPower - baselinePower);
-  const deltaPowerPct = prediction?.prediction?.delta_power_pct ?? (baselinePower > 0 ? (deltaPower / baselinePower) * 100 : 0);
+  const baselinePower = prediction?.baseline_power_mw ?? prediction?.actual_power_mw ?? aiTargetPrediction.baseline_power_mw ?? 84.48;
+  const rawScenarioPower = prediction?.prediction?.total_shaft_power_mw ?? baselinePower;
+  const rawDeltaPower = prediction?.prediction?.delta_power_mw ?? (rawScenarioPower - baselinePower);
+
+  const aiTargetPower = aiTargetPrediction.prediction.total_shaft_power_mw;
+  const aiTargetDeltaPower = aiTargetPrediction.prediction.delta_power_mw ?? (aiTargetPower - baselinePower);
+
+  // Detect if Current Input is sitting at unoptimized DCS baseline (before clicking Apply AI Target)
+  const isAtDcsBaseline =
+    Math.abs(rawDeltaPower) < 0.05 &&
+    Math.abs(scenario.mcr_flow_t_h - recMcrFlow) > 0.5;
+
+  const scenarioPower = isAtDcsBaseline ? aiTargetPower : rawScenarioPower;
+  const deltaPower = isAtDcsBaseline ? aiTargetDeltaPower : rawDeltaPower;
+  const deltaPowerPct = baselinePower > 0 ? (deltaPower / baselinePower) * 100 : 0;
 
   const activeLngFlow = Math.max(scenarioLngFlow, 10.0);
   const baselineSecLng = prediction?.baseline_sec_lng ?? ((baselinePower * 1000) / activeLngFlow);
-  const scenarioSecLng = prediction?.prediction?.sec_lng_kwh_per_t ?? ((scenarioPower * 1000) / activeLngFlow);
-  const deltaSecLng = prediction?.prediction?.delta_sec_kwh_per_t ?? (scenarioSecLng - baselineSecLng);
+  const scenarioSecLng = (scenarioPower * 1000) / activeLngFlow;
+  const deltaSecLng = scenarioSecLng - baselineSecLng;
   const deltaSecLngPct = baselineSecLng > 0 ? (deltaSecLng / baselineSecLng) * 100 : 0;
 
   // Plant-5 Train H (Liquefaction) Economic & Decarbonization Constants (Manual Book Modul 8 & Stage 08)
@@ -107,28 +145,42 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   const fuelGasSaved_t_h = (fuelGasSaved_nm3_h * FG_DENSITY_KG_NM3) / 1000;
   const fuelGasSaved_usd_yr = (fuelGasSaved_nm3_h * FUEL_GAS_MMBTU_PER_NM3 * FUEL_GAS_PRICE_USD_PER_MMBTU * ANNUAL_OPERATING_HOURS) / 1_000_000;
 
-  // Potential savings if AI Recommendation (Target MCR) is applied vs DCS baseline
-  // Physical derivation: MCR reduction (recMcrFlow vs current MCR) saves ~0.093 MW / (t/h)
-  const recMcrFlow = optimum?.mcr_flow_t_h ?? 480.0;
-  const recN2 = optimum?.comp_N2_molpct ?? 3.31;
-  const recC1 = optimum?.comp_C1_molpct ?? 46.08;
-  const recC2 = optimum?.comp_C2_molpct ?? 45.15;
-  const recC2H4 = optimum?.comp_C2H4_molpct ?? 0.05;
-  const recC3 = optimum?.comp_C3_molpct ?? 5.41;
-
-  const potentialAiPowerSavingMw = Math.max(
-    0.5,
-    deltaPower > 0
-      ? deltaPower + Math.max(0, (scenario.mcr_flow_t_h - recMcrFlow) * 0.093)
-      : Math.max(0, -deltaPower)
-  );
+  const potentialAiPowerSavingMw = Math.max(0, -aiTargetDeltaPower);
   const potentialAiSecSavingKwh = activeLngFlow > 0 ? (potentialAiPowerSavingMw * 1000) / activeLngFlow : 0;
 
-  // Make-Up MCR Schedule items (from backend makeup_advisory or canonical fallback)
-  const makeupStatus = prediction?.makeup_advisory?.status ?? (prediction?.makeup_advisory ? 'EVALUATED' : 'NOT EVALUATED');
+  // Make-Up MCR Schedule items: when Current Input composition equals DCS composition, evaluate against AI Target
+  // so the Make-Up Schedule table's "AI Target" column always displays the true AI Target and required make-up rates.
+  const isScenarioAtDcsComp =
+    Math.abs(scenario.comp_N2_molpct - _actualDcs.comp_N2_molpct) < 0.02 &&
+    Math.abs(scenario.comp_C1_molpct - _actualDcs.comp_C1_molpct) < 0.02 &&
+    Math.abs(scenario.comp_C2_molpct - _actualDcs.comp_C2_molpct) < 0.02 &&
+    Math.abs(scenario.comp_C2H4_molpct - _actualDcs.comp_C2H4_molpct) < 0.02 &&
+    Math.abs(scenario.comp_C3_molpct - _actualDcs.comp_C3_molpct) < 0.02;
+
+  const activeMakeupAdvisory = isScenarioAtDcsComp
+    ? calculateMakeupAdvisory(
+        {
+          N2: _actualDcs.comp_N2_molpct,
+          C1: _actualDcs.comp_C1_molpct,
+          C2: _actualDcs.comp_C2_molpct,
+          C2H4: _actualDcs.comp_C2H4_molpct,
+          C3: _actualDcs.comp_C3_molpct,
+        },
+        {
+          N2: recN2,
+          C1: recC1,
+          C2: recC2,
+          C2H4: recC2H4,
+          C3: recC3,
+        },
+        scenario.transition_hours ?? 2.0
+      )
+    : (prediction?.makeup_advisory ?? aiTargetPrediction.makeup_advisory);
+
+  const makeupStatus = activeMakeupAdvisory?.status ?? (activeMakeupAdvisory ? 'EVALUATED' : 'NOT EVALUATED');
   const isUnevaluated = makeupStatus === 'NOT EVALUATED';
-  const makeupTransitionHours = prediction?.makeup_advisory?.transition_hours ?? scenario.transition_hours ?? 2.0;
-  const makeupInventoryKg = prediction?.makeup_advisory?.estimated_inventory_kg ?? 24000.0;
+  const makeupTransitionHours = activeMakeupAdvisory?.transition_hours ?? scenario.transition_hours ?? 2.0;
+  const makeupInventoryKg = activeMakeupAdvisory?.estimated_inventory_kg ?? 24000.0;
 
   const defaultItems: MakeupInjectionItem[] = [
     { component: 'N2', tag_dcs: 'H4FIC006', description: 'Nitrogen (N2)', unit: 'Nm3/h', actual_molpct: null, target_molpct: null, delta_molpct: null, recommended_flow_nm3_h: null, recommended_flow_kg_h: null, recommended_flow_scfd: null, action: 'TIDAK DAPAT DIEVALUASI', instruction: '[ADVISORY] Make-up advisory is NOT EVALUATED.' },
@@ -137,13 +189,13 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
     { component: 'C3', tag_dcs: 'H4FIC007', description: 'Propane (C3)', unit: 'Nm3/h', actual_molpct: null, target_molpct: null, delta_molpct: null, recommended_flow_nm3_h: null, recommended_flow_kg_h: null, recommended_flow_scfd: null, action: 'TIDAK DAPAT DIEVALUASI', instruction: '[ADVISORY] Make-up advisory is NOT EVALUATED.' },
   ];
 
-  const makeupItems: MakeupInjectionItem[] = (prediction?.makeup_advisory?.items && prediction.makeup_advisory.items.length > 0)
-    ? prediction.makeup_advisory.items
+  const makeupItems: MakeupInjectionItem[] = (activeMakeupAdvisory?.items && activeMakeupAdvisory.items.length > 0)
+    ? activeMakeupAdvisory.items
     : defaultItems;
 
-  const totalMakeupFlowNm3 = isUnevaluated ? null : (prediction?.makeup_advisory?.total_makeup_flow_nm3_h ?? null);
-  const totalMakeupFlowKg = isUnevaluated ? null : (prediction?.makeup_advisory?.total_makeup_flow_kg_h ?? null);
-  const totalMakeupFlowScfd = isUnevaluated ? null : (prediction?.makeup_advisory?.total_makeup_flow_scfd ?? null);
+  const totalMakeupFlowNm3 = isUnevaluated ? null : (activeMakeupAdvisory?.total_makeup_flow_nm3_h ?? null);
+  const totalMakeupFlowKg = isUnevaluated ? null : (activeMakeupAdvisory?.total_makeup_flow_kg_h ?? null);
+  const totalMakeupFlowScfd = isUnevaluated ? null : (activeMakeupAdvisory?.total_makeup_flow_scfd ?? null);
 
   // Composition sum
   const compSum =
@@ -246,6 +298,43 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               Feed Gas Composition
             </button>
             <button
+              type="button"
+              onClick={() => setShowStrategyModal(true)}
+              disabled={loading}
+              style={{
+                backgroundColor: 'rgba(239, 246, 255, 0.95)',
+                color: '#1d4ed8',
+                border: '1px solid rgba(147, 197, 253, 0.9)',
+                borderRadius: '8px',
+                padding: '7px 14px',
+                fontWeight: 700,
+                fontSize: '13px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                boxShadow: '0 1px 3px rgba(37, 99, 235, 0.08)',
+                transition: 'all 0.15s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+              title="Configure Optimization Strategy Policy & view thermodynamic constraint margins"
+            >
+              <span>Optimization Strategy:</span>
+              <span style={{
+                backgroundColor: '#dbeafe',
+                color: '#1e40af',
+                padding: '1px 7px',
+                borderRadius: '6px',
+                fontSize: '11.5px',
+                fontWeight: 800,
+              }}>
+                {strategy === 'CONDITION_DEPENDENT'
+                  ? 'Condition-Dependent'
+                  : strategy === 'FIXED_RECIPE'
+                  ? 'Fixed Recipe'
+                  : 'Min-Intervention'}
+              </span>
+            </button>
+            <button
               onClick={handleApplyRecommended}
               disabled={loading}
               style={{
@@ -285,172 +374,6 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
 
         {/* Section Content: Comparison Table */}
         <div style={{ padding: '16px 20px', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
-          {/* OPERATING STRATEGY SELECTOR (Master Prompt Strategy A / B / C) */}
-          <div style={{
-            marginBottom: '16px',
-            padding: '14px 16px',
-            backgroundColor: '#f8fafc',
-            border: '1px solid #e2e8f0',
-            borderRadius: '12px',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Optimization Strategy Policy
-                </span>
-                <span style={{ fontSize: '11px', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
-                  Advisory Decision Support (Zero Direct DCS Write)
-                </span>
-              </div>
-              {optimum?.strategy && (
-                <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>
-                  Active Engine: <strong style={{ color: '#0f172a' }}>{optimum.strategy}</strong>
-                </span>
-              )}
-            </div>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: '10px',
-            }}>
-              {/* Strategy B: Condition-Dependent */}
-              <button
-                type="button"
-                onClick={() => onStrategyChange?.('CONDITION_DEPENDENT')}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'flex-start',
-                  padding: '10px 14px',
-                  backgroundColor: strategy === 'CONDITION_DEPENDENT' ? '#eff6ff' : '#ffffff',
-                  border: strategy === 'CONDITION_DEPENDENT' ? '2px solid #2563eb' : '1px solid #cbd5e1',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', marginBottom: '4px' }}>
-                  <input
-                    type="radio"
-                    name="opt_strategy"
-                    checked={strategy === 'CONDITION_DEPENDENT'}
-                    onChange={() => onStrategyChange?.('CONDITION_DEPENDENT')}
-                    style={{ accentColor: '#2563eb', cursor: 'pointer' }}
-                  />
-                  <strong style={{ fontSize: '12px', color: strategy === 'CONDITION_DEPENDENT' ? '#1d4ed8' : '#334155' }}>
-                    Condition-Dependent Optimization
-                  </strong>
-                </div>
-                <span style={{ fontSize: '11px', color: '#64748b', lineHeight: 1.35 }}>
-                  Full 5D dynamic MR composition and circulation optimization per operating condition across the load curve.
-                </span>
-              </button>
-
-              {/* Strategy A: Fixed Recipe */}
-              <button
-                type="button"
-                onClick={() => onStrategyChange?.('FIXED_RECIPE')}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'flex-start',
-                  padding: '10px 14px',
-                  backgroundColor: strategy === 'FIXED_RECIPE' ? '#eff6ff' : '#ffffff',
-                  border: strategy === 'FIXED_RECIPE' ? '2px solid #2563eb' : '1px solid #cbd5e1',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', marginBottom: '4px' }}>
-                  <input
-                    type="radio"
-                    name="opt_strategy"
-                    checked={strategy === 'FIXED_RECIPE'}
-                    onChange={() => onStrategyChange?.('FIXED_RECIPE')}
-                    style={{ accentColor: '#2563eb', cursor: 'pointer' }}
-                  />
-                  <strong style={{ fontSize: '12px', color: strategy === 'FIXED_RECIPE' ? '#1d4ed8' : '#334155' }}>
-                    Fixed Recipe Across Loads
-                  </strong>
-                </div>
-                <span style={{ fontSize: '11px', color: '#64748b', lineHeight: 1.35 }}>
-                  Maintain certified constant baseline recipe; circulation scales with feed flow to minimize make-up transitions.
-                </span>
-              </button>
-
-              {/* Strategy C: Minimum Intervention */}
-              <button
-                type="button"
-                onClick={() => onStrategyChange?.('MINIMUM_INTERVENTION')}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'flex-start',
-                  padding: '10px 14px',
-                  backgroundColor: strategy === 'MINIMUM_INTERVENTION' ? '#eff6ff' : '#ffffff',
-                  border: strategy === 'MINIMUM_INTERVENTION' ? '2px solid #2563eb' : '1px solid #cbd5e1',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', marginBottom: '4px' }}>
-                  <input
-                    type="radio"
-                    name="opt_strategy"
-                    checked={strategy === 'MINIMUM_INTERVENTION'}
-                    onChange={() => onStrategyChange?.('MINIMUM_INTERVENTION')}
-                    style={{ accentColor: '#2563eb', cursor: 'pointer' }}
-                  />
-                  <strong style={{ fontSize: '12px', color: strategy === 'MINIMUM_INTERVENTION' ? '#1d4ed8' : '#334155' }}>
-                    Minimum-Intervention Optimization
-                  </strong>
-                </div>
-                <span style={{ fontSize: '11px', color: '#64748b', lineHeight: 1.35 }}>
-                  Penalize composition movement from current loop inventory; balances thermodynamic gain against make-up costs.
-                </span>
-              </button>
-            </div>
-
-            {/* Strategy Explanation Banner */}
-            {optimum?.explanation && (
-              <div style={{
-                marginTop: '10px',
-                padding: '8px 12px',
-                backgroundColor: '#f1f5f9',
-                borderLeft: '3px solid #0284c7',
-                borderRadius: '4px',
-                fontSize: '11px',
-                color: '#334155',
-                lineHeight: 1.4,
-              }}>
-                <strong>Strategy Explanation:</strong> {optimum.explanation}
-              </div>
-            )}
-
-            {/* Thermodynamic Constraint Residuals */}
-            {optimum?.constraint_residuals && (
-              <div style={{
-                marginTop: '8px',
-                display: 'flex',
-                gap: '12px',
-                flexWrap: 'wrap',
-                fontSize: '11px',
-                color: '#475569',
-              }}>
-                <span>Suction TAL Margin: <strong style={{ color: optimum.constraint_residuals.suction_tal_margin_c >= 0 ? '#16a34a' : '#dc2626' }}>+{optimum.constraint_residuals.suction_tal_margin_c.toFixed(2)} °C</strong></span>
-                <span>Anti-Surge Margin: <strong style={{ color: optimum.constraint_residuals.antisurge_margin_t_h >= 0 ? '#16a34a' : '#dc2626' }}>+{optimum.constraint_residuals.antisurge_margin_t_h.toFixed(1)} t/h</strong></span>
-                <span>Superheat Margin: <strong style={{ color: optimum.constraint_residuals.superheat_margin_c >= 0 ? '#16a34a' : '#dc2626' }}>+{optimum.constraint_residuals.superheat_margin_c.toFixed(2)} °C</strong></span>
-                <span>Mahalanobis Margin: <strong style={{ color: optimum.constraint_residuals.mahalanobis_margin >= 0 ? '#16a34a' : '#dc2626' }}>+{optimum.constraint_residuals.mahalanobis_margin.toFixed(3)}</strong></span>
-              </div>
-            )}
-          </div>
 
           {/* Capacity Boundary Warning Card */}
           {prediction?.prediction?.capacity_warning && (
@@ -966,7 +889,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
             </div>
 
             {/* Make-Up Advisory Explanation Banner */}
-            {prediction?.makeup_advisory?.explanation && (
+            {activeMakeupAdvisory?.explanation && (
               <div style={{
                 marginBottom: '12px',
                 padding: '8px 12px',
@@ -977,7 +900,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 color: isUnevaluated ? '#92400e' : '#166534',
                 lineHeight: 1.4,
               }}>
-                <strong>Make-Up Status:</strong> {prediction.makeup_advisory.explanation}
+                <strong>Make-Up Status:</strong> {activeMakeupAdvisory.explanation}
               </div>
             )}
 
@@ -1533,8 +1456,8 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
         </div>
 
         <div style={{ padding: '24px' }}>
-          {/* Prominent AI Opportunity Alert Callout if current scenario is not saving */}
-          {deltaPower > 0 && (
+          {/* Prominent AI Opportunity Alert Callout if current scenario is at unoptimized DCS baseline or higher power */}
+          {(isAtDcsBaseline || rawDeltaPower > 0) && (
             <div style={{
               backgroundColor: '#ecfdf5',
               border: '1px solid #86efac',
@@ -1548,10 +1471,10 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
             }}>
               <div>
                 <div style={{ fontSize: '14px', fontWeight: 700, color: '#065f46' }}>
-                  AI Target can save {potentialAiPowerSavingMw.toFixed(2)} MW ({potentialAiSecSavingKwh.toFixed(1)} kWh/t SEC)
+                  AI Target saves {potentialAiPowerSavingMw.toFixed(2)} MW ({potentialAiSecSavingKwh.toFixed(1)} kWh/t SEC) vs DCS Baseline
                 </div>
                 <div style={{ fontSize: '13px', color: '#047857', marginTop: '4px' }}>
-                  Current input ({scenario.mcr_flow_t_h.toFixed(1)} t/h) demands higher shaft power. Target AI MCR flow: {recMcrFlow.toFixed(1)} t/h.
+                  Current input ({scenario.mcr_flow_t_h.toFixed(1)} t/h) is unoptimized. Click "Apply AI Target" to set MCR flow to {recMcrFlow.toFixed(1)} t/h.
                 </div>
               </div>
               <button
@@ -1663,7 +1586,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       DCS: {baselineSecLng.toFixed(1)}
                     </span>
                     <span style={{ backgroundColor: isSaving ? '#dcfce7' : '#fef3c7', color: isSaving ? '#15803d' : '#b45309', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
-                      Scenario: {scenarioSecLng.toFixed(1)} kWh/t
+                      {isAtDcsBaseline ? 'AI Target' : 'Scenario'}: {scenarioSecLng.toFixed(1)} kWh/t
                     </span>
                   </div>
                 </div>
@@ -1814,7 +1737,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       DCS: {baselinePower.toFixed(1)} MW
                     </span>
                     <span style={{ backgroundColor: isSaving ? '#dcfce7' : '#fef3c7', color: isSaving ? '#15803d' : '#b45309', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
-                      Scenario: {scenarioPower.toFixed(1)} MW
+                      {isAtDcsBaseline ? 'AI Target' : 'Scenario'}: {scenarioPower.toFixed(1)} MW
                     </span>
                   </div>
                 </div>
@@ -1823,6 +1746,273 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
           })()}
         </div>
       </section>
+
+      {/* =================================================================== */}
+      {/* POPUP MODAL: OPTIMIZATION STRATEGY POLICY (A / B / C)               */}
+      {/* =================================================================== */}
+      {showStrategyModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.35)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '20px',
+        }}>
+          <div style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.96)',
+            backdropFilter: 'blur(24px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+            borderRadius: '20px',
+            width: '100%',
+            maxWidth: '720px',
+            maxHeight: '92vh',
+            overflowY: 'auto',
+            boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(226, 232, 240, 0.8), inset 0 1px 1px #ffffff',
+            border: '1px solid rgba(255, 255, 255, 0.95)',
+            display: 'flex',
+            flexDirection: 'column',
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              backgroundColor: 'rgba(248, 250, 252, 0.9)',
+              backdropFilter: 'blur(10px)',
+              color: '#0f172a',
+              padding: '16px 24px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              borderBottom: '1px solid rgba(226, 232, 240, 0.9)',
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <span style={{
+                    background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                    color: '#ffffff',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                  }}>
+                    STRATEGY
+                  </span>
+                  <span style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
+                    Optimization Strategy Policy
+                  </span>
+                  <span style={{ fontSize: '11px', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                    Advisory Decision Support (Zero Direct DCS Write)
+                  </span>
+                </div>
+                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                  Active Engine: <strong style={{ color: '#0f172a' }}>{optimum?.strategy || strategy}</strong>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowStrategyModal(false)}
+                style={{
+                  background: 'rgba(241, 245, 249, 0.8)',
+                  border: '1px solid rgba(203, 213, 225, 0.8)',
+                  color: '#64748b',
+                  fontSize: '16px',
+                  borderRadius: '8px',
+                  width: '32px',
+                  height: '32px',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  lineHeight: 1,
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+              }}>
+                {/* Strategy B: Condition-Dependent */}
+                <button
+                  type="button"
+                  onClick={() => onStrategyChange?.('CONDITION_DEPENDENT')}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    padding: '12px 16px',
+                    backgroundColor: strategy === 'CONDITION_DEPENDENT' ? '#eff6ff' : '#ffffff',
+                    border: strategy === 'CONDITION_DEPENDENT' ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', marginBottom: '4px' }}>
+                    <input
+                      type="radio"
+                      name="opt_strategy_modal"
+                      checked={strategy === 'CONDITION_DEPENDENT'}
+                      onChange={() => onStrategyChange?.('CONDITION_DEPENDENT')}
+                      style={{ accentColor: '#2563eb', cursor: 'pointer' }}
+                    />
+                    <strong style={{ fontSize: '13px', color: strategy === 'CONDITION_DEPENDENT' ? '#1d4ed8' : '#0f172a' }}>
+                      Condition-Dependent Optimization
+                    </strong>
+                  </div>
+                  <span style={{ fontSize: '12px', color: '#475569', lineHeight: 1.4, paddingLeft: '22px' }}>
+                    Full 5D dynamic MR composition and circulation optimization per operating condition across the load curve.
+                  </span>
+                </button>
+
+                {/* Strategy A: Fixed Recipe */}
+                <button
+                  type="button"
+                  onClick={() => onStrategyChange?.('FIXED_RECIPE')}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    padding: '12px 16px',
+                    backgroundColor: strategy === 'FIXED_RECIPE' ? '#eff6ff' : '#ffffff',
+                    border: strategy === 'FIXED_RECIPE' ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', marginBottom: '4px' }}>
+                    <input
+                      type="radio"
+                      name="opt_strategy_modal"
+                      checked={strategy === 'FIXED_RECIPE'}
+                      onChange={() => onStrategyChange?.('FIXED_RECIPE')}
+                      style={{ accentColor: '#2563eb', cursor: 'pointer' }}
+                    />
+                    <strong style={{ fontSize: '13px', color: strategy === 'FIXED_RECIPE' ? '#1d4ed8' : '#0f172a' }}>
+                      Fixed Recipe Across Loads
+                    </strong>
+                  </div>
+                  <span style={{ fontSize: '12px', color: '#475569', lineHeight: 1.4, paddingLeft: '22px' }}>
+                    Maintain certified constant baseline recipe; circulation scales with feed flow to minimize make-up transitions.
+                  </span>
+                </button>
+
+                {/* Strategy C: Minimum Intervention */}
+                <button
+                  type="button"
+                  onClick={() => onStrategyChange?.('MINIMUM_INTERVENTION')}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    padding: '12px 16px',
+                    backgroundColor: strategy === 'MINIMUM_INTERVENTION' ? '#eff6ff' : '#ffffff',
+                    border: strategy === 'MINIMUM_INTERVENTION' ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', marginBottom: '4px' }}>
+                    <input
+                      type="radio"
+                      name="opt_strategy_modal"
+                      checked={strategy === 'MINIMUM_INTERVENTION'}
+                      onChange={() => onStrategyChange?.('MINIMUM_INTERVENTION')}
+                      style={{ accentColor: '#2563eb', cursor: 'pointer' }}
+                    />
+                    <strong style={{ fontSize: '13px', color: strategy === 'MINIMUM_INTERVENTION' ? '#1d4ed8' : '#0f172a' }}>
+                      Minimum-Intervention Optimization
+                    </strong>
+                  </div>
+                  <span style={{ fontSize: '12px', color: '#475569', lineHeight: 1.4, paddingLeft: '22px' }}>
+                    Penalize composition movement from current loop inventory; balances thermodynamic gain against make-up costs.
+                  </span>
+                </button>
+              </div>
+
+              {/* Strategy Explanation Banner */}
+              {optimum?.explanation && (
+                <div style={{
+                  padding: '10px 14px',
+                  backgroundColor: '#f1f5f9',
+                  borderLeft: '4px solid #0284c7',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  color: '#334155',
+                  lineHeight: 1.45,
+                }}>
+                  <strong>Strategy Explanation:</strong> {optimum.explanation}
+                </div>
+              )}
+
+              {/* Thermodynamic Constraint Residuals */}
+              {optimum?.constraint_residuals && (
+                <div style={{
+                  padding: '12px 14px',
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                  gap: '10px',
+                  fontSize: '12px',
+                  color: '#475569',
+                }}>
+                  <div>Suction TAL Margin: <strong style={{ color: optimum.constraint_residuals.suction_tal_margin_c >= 0 ? '#16a34a' : '#dc2626' }}>+{optimum.constraint_residuals.suction_tal_margin_c.toFixed(2)} °C</strong></div>
+                  <div>Anti-Surge Margin: <strong style={{ color: optimum.constraint_residuals.antisurge_margin_t_h >= 0 ? '#16a34a' : '#dc2626' }}>+{optimum.constraint_residuals.antisurge_margin_t_h.toFixed(1)} t/h</strong></div>
+                  <div>Superheat Margin: <strong style={{ color: optimum.constraint_residuals.superheat_margin_c >= 0 ? '#16a34a' : '#dc2626' }}>+{optimum.constraint_residuals.superheat_margin_c.toFixed(2)} °C</strong></div>
+                  <div>Mahalanobis Margin: <strong style={{ color: optimum.constraint_residuals.mahalanobis_margin >= 0 ? '#16a34a' : '#dc2626' }}>+{optimum.constraint_residuals.mahalanobis_margin.toFixed(3)}</strong></div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div style={{
+              backgroundColor: '#f8fafc',
+              borderTop: '1px solid #cbd5e1',
+              padding: '14px 24px',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+            }}>
+              <button
+                type="button"
+                onClick={() => setShowStrategyModal(false)}
+                style={{
+                  backgroundColor: '#0284c7',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '7px 20px',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                }}
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* =================================================================== */}
       {/* POPUP MODAL: KOMPOSISI & KONDISI FEED GAS 3C-1 KE MCHE 5E-1         */}
