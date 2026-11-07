@@ -1,0 +1,227 @@
+{
+  "source_mode": "DEMO",
+  "disclaimer": "DEMO — BUKAN DATA DCS LIVE. Data ini adalah snapshot operasional tipikal untuk pengujian antarmuka dan simulasi what-if.",
+  "timestamp": "2026-08-15T07:00:00+07:00",
+  "shift_info": "Shift Pagi (07:00 - 15:00), Train H",
+  "operating_regime": "underload",
+  "values": {
+    "H1FI012": {
+      "name": "Laju Alir Treated Gas ke MCHE 5E-1 (massa)",
+      "tag": "H3FI0004",
+      "value": 245.8,
+      "unit": "t/h",
+      "editable": true,
+      "category": "feed_gas"
+    },
+    "H3FI0004": {
+      "name": "Laju Alir Treated Gas ke MCHE 5E-1 (massa)",
+      "tag": "H3FI0004",
+      "value": 245.8,
+      "unit": "t/h",
+      "editable": true,
+      "category": "feed_gas"
+    },
+    "H5FI006A": {
+      "name": "Laju Alir Produksi LNG Rundown ke Tangki (H5FI6A)",
+      "tag": "H5FI6A",
+      "value": 232.3,
+      "unit": "t/h",
+      "editable": true,
+      "category": "feed_gas",
+      "notes": "Meter fiskal H5FI6A / H5FI006A (516.2 m3/h x 0.450 t/m3 = 232.3 t/h, yield 94.50% umpan)"
+    },
+    "H4FI001": {
+      "name": "Laju Alir Sirkulasi MCR (massa, discharge 4K-3)",
+      "tag": "H4FI011B",
+      "value": 562.3,
+      "unit": "t/h",
+      "editable": true,
+      "category": "compressor_mcr"
+    },
+    "comp_N2": {
+      "name": "MCR Nitrogen (N2)",
+      "tag": "comp_4C-8_N2",
+      "value": 3.38,
+      "unit": "mol%",
+      "editable": true,
+      "category": "mcr_composition"
+    },
+    "comp_C1": {
+      "name": "MCR Metana (CH4)",
+      "tag": "comp_4C-8_C1",
+      "value": 44.37,
+      "unit": "mol%",
+      "editable": true,
+      "category": "mcr_composition"
+    },
+    "comp_C2": {
+      "name": "MCR Etana (C2H6)",
+      "tag": "comp_4C-8_C2",
+      "value": 44.94,
+      "unit": "mol%",
+      "editable": true,
+      "category": "mcr_composition"
+    },
+    "comp_C2H4": {
+      "name": "MCR Etilena (C2H4)",
+      "tag": "comp_4C-8_C2H4",
+      "value": 0.85,
+      "unit": "mol%",
+      "editable": true,
+      "category": "mcr_composition"
+    },
+    "comp_C3": {
+      "name": "MCR Propana (C3H8)",
+      "tag": "comp_4C-8_C3",
+      "value": 6.28,
+      "unit": "mol%",
+      "editable": true,
+      "category": "mcr_composition"
+    },
+    "H4TI004B": {
+      "name": "Suhu Suction Drum 4C-8",
+      "tag": "H4TI004B",
+      "value": -40.5,
+      "unit": "°C",
+      "editable": false,
+      "category": "safety_boundary"
+    },
+    "p_4k2_suct_kgcm2a": {
+      "name": "Tekanan Suction 4K-2 (LP)",
+      "tag": "H4PI014B",
+      "value": 3.235,
+      "unit": "kg/cm2A",
+      "editable": false,
+      "category": "compressor_mcr"
+    },
+    "p_4k2_disch_kgcm2a": {
+      "name": "Tekanan Discharge 4K-2 (LP)",
+      "tag": "H4PI015A",
+      "value": 13.697,
+      "unit": "kg/cm2A",
+      "editable": false,
+      "category": "compressor_mcr"
+    },
+    "p_4k3_suct_kgcm2a": {
+      "name": "Tekanan Suction 4K-3 (HP)",
+      "tag": "H4PI016B",
+      "value": 13.417,
+      "unit": "kg/cm2A",
+      "editable": false,
+      "category": "compressor_mcr"
+    },
+    "p_4k3_disch_kgcm2a": {
+      "name": "Tekanan Discharge 4K-3 (HP)",
+      "tag": "H4PI017B",
+      "value": 43.881,
+      "unit": "kg/cm2A",
+      "editable": false,
+      "category": "compressor_mcr"
+    },
+    "p_c3_suct_kgcm2a": {
+      "name": "Tekanan Suction Propana 4K-1",
+      "tag": "H4PIC002",
+      "value": 1.045,
+      "unit": "kg/cm2A",
+      "editable": false,
+      "category": "compressor_c3"
+    },
+    "p_c3_disch_kgcm2a": {
+      "name": "Tekanan Discharge Propana 4K-1",
+      "tag": "H4PI006B",
+      "value": 14.164,
+      "unit": "kg/cm2A",
+      "editable": false,
+      "category": "compressor_c3"
+    },
+    "t_mche_warm_mrv_out_c": {
+      "name": "Suhu Keluar MRV Warm Bundle",
+      "tag": "H5TI0026",
+      "value": -122.4,
+      "unit": "°C",
+      "editable": false,
+      "category": "mche"
+    },
+    "t_mche_shell_mid_c": {
+      "name": "Suhu Shell Tengah MCHE",
+      "tag": "H5TI0021",
+      "value": -127.8,
+      "unit": "°C",
+      "editable": false,
+      "category": "mche"
+    },
+    "t_mche_warm_mrv_in_c": {
+      "name": "Suhu Masuk MRV Warm End",
+      "tag": "H5TI0047",
+      "value": -32.7,
+      "unit": "°C",
+      "editable": false,
+      "category": "mche"
+    },
+    "t_mche_cold_mrv_out_c": {
+      "name": "Suhu Keluar MRV Cold Bundle",
+      "tag": "H5TI0025",
+      "value": -123.5,
+      "unit": "°C",
+      "editable": false,
+      "category": "mche"
+    },
+    "t_lng_rundown_c": {
+      "name": "Suhu LNG Rundown ke Tangki",
+      "tag": "H5TI0029",
+      "value": -148.0,
+      "unit": "°C",
+      "editable": false,
+      "category": "mche"
+    },
+    "t_fg_cb_in_c": {
+      "name": "Suhu Masuk Feed Gas ke Cold Bundle",
+      "tag": "H5TI0027",
+      "value": -121.8,
+      "unit": "°C",
+      "editable": false,
+      "category": "mche"
+    },
+    "dp_mche_warm_kgcm2": {
+      "name": "Beda Tekanan Warm Bundle MCHE",
+      "tag": "H5PDI003",
+      "value": 0.213,
+      "unit": "kg/cm2",
+      "editable": false,
+      "category": "mche"
+    },
+    "dp_mche_cold_kgcm2": {
+      "name": "Beda Tekanan Cold Bundle MCHE",
+      "tag": "H5PDI004",
+      "value": 0.079,
+      "unit": "kg/cm2",
+      "editable": false,
+      "category": "mche"
+    },
+    "valve_4uv53_pct": {
+      "name": "Bukaan Katup Kickback 4UV-53",
+      "tag": "4UV-53",
+      "value": 14.5,
+      "unit": "%",
+      "editable": false,
+      "category": "safety_boundary"
+    },
+    "valve_4tv510_pct": {
+      "name": "Bukaan Katup Reheat 4TV-510",
+      "tag": "4TV-510",
+      "value": 4.2,
+      "unit": "%",
+      "editable": false,
+      "category": "safety_boundary"
+    }
+  },
+  "baseline_model_output": {
+    "total_shaft_power_mw": 84.15,
+    "sec_kwh_per_t": 362.28,
+    "sec_lng_kwh_per_t": 362.28,
+    "specific_shaft_power_feed_kwh_per_t": 342.35,
+    "mcr_shaft_power_mw": "Belum tersedia sebagai model terpisah",
+    "c3_shaft_power_mw": "Belum tersedia sebagai model terpisah"
+  }
+}
+

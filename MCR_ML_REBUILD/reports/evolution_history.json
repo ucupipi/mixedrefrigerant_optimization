@@ -1,0 +1,212 @@
+{
+  "architecture": "A-Evolve (Solve -> Observe -> Evolve -> Gate -> Reload)",
+  "operating_regime": "underload",
+  "generations_executed": 3,
+  "rollbacks_triggered": 3,
+  "rollback_tested": true,
+  "gates_verified": true,
+  "best_candidate": {
+    "generation": 0,
+    "learning_rate": 0.05,
+    "max_leaf_nodes": 31,
+    "l2_regularization": 0.1,
+    "xi_coords": [
+      -1.3717274050134725,
+      1.6572327920448013,
+      2.3783073258204857,
+      -1.2259143960741277
+    ],
+    "comp_mol_frac": [
+      0.02296580554808885,
+      0.4471302567864624,
+      0.45995200960955196,
+      0.010500785612419782,
+      0.05945114244347698
+    ],
+    "mcr_flow_t_h": 480.0,
+    "mita_c": 2.182086155539075,
+    "suction_temp_c": -41.61463198841736,
+    "mahalanobis_d": 0.0,
+    "surrogate_mae_mw": 0.26312519282511787,
+    "surrogate_nmae_pct": 0.307183782771251,
+    "surrogate_r2": 0.9955185548339633,
+    "monotonic_valid": true,
+    "mcr_power_saved_mw": 10.742,
+    "c3_power_saved_mw": 18.0046,
+    "total_power_saved_mw": 28.7466,
+    "gate_passed": true,
+    "rejection_reasons": [],
+    "operating_regime": "underload",
+    "dp_warm_kg_cm2": 0.19037,
+    "dp_cold_kg_cm2": 0.06841,
+    "dp_ratio_warm_cold": 2.7828,
+    "rundown_lng_temp_c": -152.2249,
+    "n2_overcooling_safe": true,
+    "chinese_hat_dp_safe": true
+  },
+  "trajectory": [
+    {
+      "generation": 0,
+      "learning_rate": 0.05,
+      "max_leaf_nodes": 31,
+      "l2_regularization": 0.1,
+      "xi_coords": [
+        -1.3717274050134725,
+        1.6572327920448013,
+        2.3783073258204857,
+        -1.2259143960741277
+      ],
+      "comp_mol_frac": [
+        0.02296580554808885,
+        0.4471302567864624,
+        0.45995200960955196,
+        0.010500785612419782,
+        0.05945114244347698
+      ],
+      "mcr_flow_t_h": 480.0,
+      "mita_c": 2.182086155539075,
+      "suction_temp_c": -41.61463198841736,
+      "mahalanobis_d": 0.0,
+      "surrogate_mae_mw": 0.26312519282511787,
+      "surrogate_nmae_pct": 0.307183782771251,
+      "surrogate_r2": 0.9955185548339633,
+      "monotonic_valid": true,
+      "mcr_power_saved_mw": 10.742,
+      "c3_power_saved_mw": 18.0046,
+      "total_power_saved_mw": 28.7466,
+      "gate_passed": true,
+      "rejection_reasons": [],
+      "operating_regime": "underload",
+      "dp_warm_kg_cm2": 0.19037,
+      "dp_cold_kg_cm2": 0.06841,
+      "dp_ratio_warm_cold": 2.7828,
+      "rundown_lng_temp_c": -152.2249,
+      "n2_overcooling_safe": true,
+      "chinese_hat_dp_safe": true
+    },
+    {
+      "generation": 1,
+      "learning_rate": 0.0435068375662024,
+      "max_leaf_nodes": 25,
+      "l2_regularization": 0.5,
+      "xi_coords": [
+        -1.2525835117573052,
+        1.7880224574489585,
+        2.622347168693058,
+        -1.6017726694795107
+      ],
+      "comp_mol_frac": [
+        0.022972057300851716,
+        0.43842220654097835,
+        0.4732810466256337,
+        0.006143280166472965,
+        0.059181409366063205
+      ],
+      "mcr_flow_t_h": 480.0,
+      "mita_c": 2.1428999294343924,
+      "suction_temp_c": -41.60707946224977,
+      "mahalanobis_d": 4.6460981784546735,
+      "surrogate_mae_mw": 0.2726664177277929,
+      "surrogate_nmae_pct": 0.3183226232844168,
+      "surrogate_r2": 0.9953080524711092,
+      "monotonic_valid": true,
+      "mcr_power_saved_mw": 10.7394,
+      "c3_power_saved_mw": 18.0002,
+      "total_power_saved_mw": 28.7396,
+      "gate_passed": false,
+      "rejection_reasons": [
+        "Mahalanobis D_M=4.6461 > 3.080216 simplex boundary"
+      ],
+      "operating_regime": "underload",
+      "dp_warm_kg_cm2": 0.1888,
+      "dp_cold_kg_cm2": 0.06797,
+      "dp_ratio_warm_cold": 2.7777,
+      "rundown_lng_temp_c": -152.2259,
+      "n2_overcooling_safe": true,
+      "chinese_hat_dp_safe": true
+    },
+    {
+      "generation": 2,
+      "learning_rate": 0.05,
+      "max_leaf_nodes": 31,
+      "l2_regularization": 0.1,
+      "xi_coords": [
+        -1.3717274050134725,
+        1.6572327920448013,
+        2.3783073258204857,
+        -3.7259143960741277
+      ],
+      "comp_mol_frac": [
+        0.01794075854325525,
+        0.34929564989969164,
+        0.3593119313237714,
+        0.001400391534788147,
+        0.27205126869849366
+      ],
+      "mcr_flow_t_h": 465.0,
+      "mita_c": 1.8499999999999872,
+      "suction_temp_c": -43.8,
+      "mahalanobis_d": 45.67151378022505,
+      "surrogate_mae_mw": 0.26312519282511787,
+      "surrogate_nmae_pct": 0.307183782771251,
+      "surrogate_r2": 0.9955185548339633,
+      "monotonic_valid": true,
+      "mcr_power_saved_mw": 10.6955,
+      "c3_power_saved_mw": 17.9267,
+      "total_power_saved_mw": 28.6222,
+      "gate_passed": false,
+      "rejection_reasons": [
+        "MCR flow=465.0 t/h < 480.0 t/h anti-surge floor",
+        "Mahalanobis D_M=45.6715 > 3.080216 simplex boundary"
+      ],
+      "operating_regime": "underload",
+      "dp_warm_kg_cm2": 0.17185,
+      "dp_cold_kg_cm2": 0.06326,
+      "dp_ratio_warm_cold": 2.7166,
+      "rundown_lng_temp_c": -152.2053,
+      "n2_overcooling_safe": true,
+      "chinese_hat_dp_safe": true
+    },
+    {
+      "generation": 3,
+      "learning_rate": 0.05682823982157763,
+      "max_leaf_nodes": 25,
+      "l2_regularization": 0.5,
+      "xi_coords": [
+        -1.2602546421483047,
+        1.813602031167364,
+        2.582259790608557,
+        -1.6033018380177206
+      ],
+      "comp_mol_frac": [
+        0.02296739064753502,
+        0.4520118370789213,
+        0.45849409654096346,
+        0.006244071033824442,
+        0.060282604698755904
+      ],
+      "mcr_flow_t_h": 480.0,
+      "mita_c": 2.2040532668551336,
+      "suction_temp_c": -41.63791293156517,
+      "mahalanobis_d": 3.5473070501192416,
+      "surrogate_mae_mw": 0.27074053019658084,
+      "surrogate_nmae_pct": 0.3160742585015627,
+      "surrogate_r2": 0.9953759942901815,
+      "monotonic_valid": true,
+      "mcr_power_saved_mw": 10.7567,
+      "c3_power_saved_mw": 18.0294,
+      "total_power_saved_mw": 28.7861,
+      "gate_passed": false,
+      "rejection_reasons": [
+        "Mahalanobis D_M=3.5473 > 3.080216 simplex boundary"
+      ],
+      "operating_regime": "underload",
+      "dp_warm_kg_cm2": 0.19125,
+      "dp_cold_kg_cm2": 0.06865,
+      "dp_ratio_warm_cold": 2.7859,
+      "rundown_lng_temp_c": -152.2252,
+      "n2_overcooling_safe": true,
+      "chinese_hat_dp_safe": true
+    }
+  ]
+}

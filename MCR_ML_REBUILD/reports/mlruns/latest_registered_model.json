@@ -1,0 +1,6 @@
+{
+  "model_name": "badak-c3mr-monotonic-surrogate",
+  "artifact_name": "c3mr_power_surrogate.joblib",
+  "sha256": "b18fe3033eb35692994130abff0e2fb1949c349f1bf812814bf4d8093ce01f16",
+  "stage": "Production"
+}

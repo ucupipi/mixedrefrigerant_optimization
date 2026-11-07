@@ -87,7 +87,20 @@ htmlcov/
 !operator-website/backend/requirements.txt
 !requirements.txt
 
-# Exclude root-level large directories (operator-website is self-contained)
+# Allow reproducible MCR_ML_REBUILD shift-level datasets & figures (< 3.5 MB)
+!MCR_ML_REBUILD/data/interim/composition_*.parquet
+!MCR_ML_REBUILD/data/processed/master_shift_level.parquet
+!MCR_ML_REBUILD/data/processed/features_unleakaged.parquet
+!MCR_ML_REBUILD/data/processed/target_energy.parquet
+!MCR_ML_REBUILD/reports/figures/*.png
+MCR_ML_REBUILD/data/raw/
+MCR_ML_REBUILD/data/interim/process_parameters_*.parquet
+MCR_ML_REBUILD/data/processed/*_minute*.parquet
+MCR_ML_REBUILD/docs/manuscripts/
+MCR_ML_REBUILD/**/*.egg-info/
+MCR_ML_REBUILD/reports/mlruns/badak_lng_c3mr_rebuild/
+
+# Exclude root-level large directories (operator-website and MCR_ML_REBUILD are tracked)
 /data/
 /audit/
 /audit_deliverables/
@@ -103,7 +116,6 @@ htmlcov/
 /deployment/
 /REPRODUCIBLE_PACKAGE_C3MR/
 /MR_OPTIMIZATION_REBUILD/
-/MCR_ML_REBUILD/
 /analysis/
 /ara/
 /metadata/

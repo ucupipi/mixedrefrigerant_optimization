@@ -1,103 +1,60 @@
-# BADAK LNG PLANT-3 TRAIN H — C3MR OPERATOR DECISION-SUPPORT SUITE
+# Badak LNG Plant-5 Train H (Liquefaction) C3MR Operator Decision-Support & Make-Up Advisory Suite
 
-A high-integrity, physics-constrained machine learning decision-support website for Badak LNG Plant-3 Train H Mixed Refrigerant (C3MR) cycle.
-
----
-
-## 1. System Overview & Safety Principles
-
-- **Mode:** **READ-ONLY Decision-Support & What-If Simulation**
-- **Strict Plant Protection:** Zero control command write-back to Yokogawa Centum DCS, PLC, or Triconex SIS/ESD. No setpoint modifications.
-- **Primary Users:** Control Room Boardmen, Field Operators, Process Engineers, Turbomachinery Specialists.
-- **Model Foundation:** `PhysicsResidualSurrogate` (Ridge isentropic work scaling + regularized GBDT residual) trained on 1,475 discrete historical plant shifts ($R^2 = 0.8365$, $\text{MAE} = 0.802\text{ MW}$, $\text{NMAE} = 0.931\%$).
-- **Aitchison Compositional Geometry:** 5-component simplex $S^5$ ($N_2, C_1, C_2, C_2H_4, C_3$) via 4D Isometric Log-Ratio (ILR) with Mahalanobis envelope check ($D_M \le 3.0802$).
+Read-only operator decision-support and engineering scenario analysis web application for the Propane-Precooled Mixed Refrigerant (C3MR) liquefaction process at **PT Badak NGL (Bontang, East Kalimantan), Plant-5 Train H (Liquefaction)**.
 
 ---
 
-## 2. Directory Structure
+## 1. Operating Boundary & Safety Invariants
 
-```text
-operator-website/
-├── backend/
-│   ├── main.py                  # FastAPI application entry point
-│   ├── requirements.txt         # Pinned backend dependencies
-│   ├── api/
-│   │   ├── routes.py            # Read-only REST API endpoints
-│   │   └── schemas.py           # Pydantic request/response schemas
-│   ├── core/
-│   │   ├── model_loader.py      # Surrogate model singleton & cache
-│   │   ├── feature_builder.py   # 20-feature physics extraction
-│   │   ├── validator.py         # Interlocks, bounds & Mahalanobis audit
-│   │   └── ilr_engine.py        # 5-component SBP contrast & ILR mapping
-│   └── data/
-│       └── demo_snapshot.json   # Baseline plant snapshot (DEMO labeled)
-├── frontend/
-│   ├── package.json             # React 19 + TypeScript + Vite
-│   ├── src/
-│   │   ├── App.tsx              # Application layout & state coordination
-│   │   ├── api.ts               # HTTP client service
-│   │   ├── types.ts             # Strongly typed data models
-│   │   └── components/
-│   │       ├── Header.tsx           # DCS status banner & DEMO indicator
-│   │       ├── TabNavigation.tsx    # 3-tab navigation bar
-│   │       ├── SpreadsheetTable.tsx # Tab 01: Spreadsheet-style editor
-│   │       ├── ResultPanel.tsx      # Tab 01: Power, SEC & safety card
-│   │       ├── TabGrafik.tsx        # Tab 02: Power curve, bars & envelope
-│   │       └── TabPanduan.tsx       # Tab 03: Bahasa Indonesia operator manual
-│   └── dist/                    # Production static build
-├── config/
-│   └── variable_registry.yaml   # Verified tag, unit & role registry
-├── docs/
-│   ├── ml_integration_audit.md  # Audit of models, features & targets
-│   └── operator_quick_guide.md  # Operator handbook (Bahasa Indonesia)
-├── GATES.md                     # Acceptance ledger (7 automated gates)
-├── start_backend.bat            # One-click backend launcher
-├── start_frontend.bat           # One-click frontend launcher
-└── start_app.bat                # Unified dual-process launcher
+- **Advisory Mode Only**: This software is strictly a read-only operator decision-support and engineering scenario tool. It contains zero network drivers, OPC-UA write clients, Modbus coils, or communication paths capable of writing setpoints or commands to the Yokogawa Centum VP DCS, SIS, PLC, or field control valves (`4UV-53`, `4TV-510`, `H4FIC006`, `H4FIC005`, `H4FI00C8`, `H4FIC007`).
+- **Interconnected with `MCR_ML_REBUILD/`**: Consumes the leakage-free monotonic surrogate models (`c3mr_power_surrogate_real.joblib`, `surrogate_total_steam_t_h.joblib`, `surrogate_H4TI004B.joblib`), Aitchison ILR covariance envelope (`mcr_ilr_envelope.joblib`), pure-Python Peng-Robinson EOS (`flash_drum_vle.py`, `pr_thermo.py`), and assumption guardrails established in [`../MCR_ML_REBUILD/`](../MCR_ML_REBUILD/).
+- **Once-Through Seawater Cooling**: All propane condensers (`3E-10`), compressor intercoolers/aftercoolers (`4E-5`, `4E-6`), and steam surface condensers operate with Teluk Bontang seawater cooling ($T_{CW,\text{in}} = 30.0^\circ\text{C}$, $T_{\text{cond}} = 40.5^\circ\text{C}$, $P_{\text{C3,disch}} = 14.164\text{ kg/cm}^2\text{A}$).
+
+---
+
+## 2. Core Engineering Capabilities
+
+1. **Explicit Multi-Strategy C3MR Optimization (`backend/core/optimizer_engine.py`)**:
+   - **Strategy B (`CONDITION_DEPENDENT`)**: Active 5D SLSQP optimization ($\dot{m}_{\text{MR}}, \xi_1, \xi_2, \xi_3, \xi_4$) minimizing total turbine steam consumption subject to suction drum TAL ($T_{\text{suct}} \ge -45.0^\circ\text{C}$), PR-EOS dew-point superheat ($\Delta T_{\text{sh}} \ge 3.0^\circ\text{C}$), compressor anti-surge floor ($\dot{m}_{\text{MR}} \ge 480.0\text{ t/h}$), and Mahalanobis ellipsoid ($D_M \le 3.0802$) with zero proximity anchoring ($w_{\text{prox}} = 0$).
+   - **Strategy A (`FIXED_RECIPE`)**: 1D SLSQP circulation optimization holding MR composition constant at the certified invariant recipe ($3.77\%\text{ N}_2$, $42.22\%\text{ C}_1$, $43.67\%\text{ C}_2$, $1.53\%\text{ C}_2\text{H}_4$, $8.82\%\text{ C}_3$) across load variations.
+   - **Strategy C (`MINIMUM_INTERVENTION`)**: 5D SLSQP optimization penalizing squared Aitchison ILR distance from the current DCS inventory composition ($w_{\text{int}} = 4.0 / \alpha_{\text{trim}}$) to minimize make-up gas consumption during minor load fluctuations.
+2. **Closed-Loop Inventory Dilution Make-Up Calculator (`backend/core/makeup_calculator.py`)**:
+   - Solves the coupled molar conservation and loop expansion balance $\mathbf{u} = n_f (\mathbf{Y}^{-1} \mathbf{x}_{\text{target}}) - n_0 (\mathbf{Y}^{-1} \mathbf{x}_0) \ge \mathbf{0}$ using the Badak LNG header purity matrix $\mathbf{Y}$ (`H4FIC006` $N_2$, `H4FIC005`/`H4FIC009` $C_1$, `H4FI00C8` $C_2$ from De-Ethanizer `3C-4`, and `H4FIC007` $C_3$ from De-Propanizer `3C-6`).
+   - Reports component injection rates in dual engineering units ($Nm^3/\text{h}$, $kg/\text{h}$, $t/\text{h}$, $scfd$) and enforces strict `NOT EVALUATED` / `TIDAK DAPAT DIEVALUASI` null guards when inventory or composition inputs are missing or invalid.
+3. **Hybrid Full-Stack & Offline Browser Execution**:
+   - **Backend (`backend/`)**: FastAPI server exposing `/api/health`, `/api/baseline`, `/api/predict`, `/api/optimize`, `/api/makeup`, `/api/simulate`, and `/api/sensitivity`.
+   - **Frontend (`frontend/`)**: React 19 + TypeScript + Tailwind CSS interface with Yokogawa Centum VP PFD mimic (`MchePfdTab.tsx`), strategy selector (`TabInputResults.tsx`), `AbortController` concurrency protection (`App.tsx`), and client-side TypeScript/ONNX fallback (`physicsEngine.ts`).
+
+---
+
+## 3. Running & Verifying the Application
+
+### 3.1 Backend Server & Test Suite (198 Passed Tests)
+```bash
+cd operator-website/backend
+pip install -r requirements.txt
+python -m pytest tests/ -v
+python -m uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+### 3.2 Frontend Build & Test Suite (26 Passed Vitest Tests + 64 Node Reviewer Gates)
+```bash
+cd operator-website/frontend
+npm install
+npm test
+npm run build
 ```
 
 ---
 
-## 3. Quickstart & Installation
+## 4. Reference Engineering Documentation
 
-### Prerequisites
-- Python 3.10+ (with `numpy`, `scipy`, `scikit-learn`, `fastapi`, `uvicorn`, `joblib`, `pyyaml`, `pandas`)
-- Node.js 18+ (for frontend development server or preview)
-
-### Step 1: Start Backend (Port 3001)
-```cmd
-cd backend
-python main.py
-```
-*Health check URL:* `http://localhost:3001/health`
-
-### Step 2: Start Frontend (Port 5173)
-```cmd
-cd frontend
-npm run dev
-```
-*Browser URL:* `http://localhost:5173`
-
----
-
-## 4. Verification Gates Ledger (`GATES.md`)
-
-| Gate | Description | Command | Status |
-|---|---|---|---|
-| **GATE-01** | Model & Module Import | `python -c "from core.model_loader import ..."` | ✅ PASS (`PhysicsResidualSurrogate`) |
-| **GATE-02** | 20-Feature ILR Extraction | `python -c "from core.feature_builder import ..."` | ✅ PASS (`(1, 20) shape`) |
-| **GATE-03** | Safety & Domain Audits | `python -c "from core.validator import ..."` | ✅ PASS (Surge violation caught) |
-| **GATE-04** | Bound Compliance | `python -c "assert 40.0 <= p <= 150.0"` | ✅ PASS (`84.19 MW`) |
-| **GATE-05** | FastAPI Endpoint Integration | `TestClient(app).post('/api/v1/predict')` | ✅ PASS (`200 OK`) |
-| **GATE-06** | TypeScript Build | `npm run build` | ✅ PASS (`built in 217ms`) |
-| **GATE-07** | Read-Only & Zero Write-Back | Assert 0 control / write routes | ✅ PASS (`ZERO WRITE-BACK ROUTES`) |
-
----
-
-## 5. Governance & Compliance
-All algorithms and calculations strictly comply with `AGENTS.md`:
-- **Pasal 1:** Zero magic numbers (all constants sourced from plant datasheets or first-principles).
-- **Pasal 2 & 13:** Proportional engineering units (**MW** for compressor power, **mol%** for composition).
-- **Pasal 9:** Primary optimization focus on MR composition ($N_2, C_1, C_2, C_2H_4, C_3$) and circulation rate ($H_4FI001$), with recycle valves treated strictly as safety boundaries.
-- **Pasal 10:** Transparent power decomposition ($W_{\text{total}} = W_{\text{MCR}} + W_{\text{C3}}$).
-
+See the root directory for the 8 comprehensive Phase 3 engineering reports:
+- [`../MR_OPTIMIZATION_STRATEGY.md`](../MR_OPTIMIZATION_STRATEGY.md)
+- [`../OPTIMIZER_DATA_FLOW_AUDIT.md`](../OPTIMIZER_DATA_FLOW_AUDIT.md)
+- [`../OBJECTIVE_AND_CONSTRAINT_REGISTER.md`](../OBJECTIVE_AND_CONSTRAINT_REGISTER.md)
+- [`../MR_MAKEUP_MASS_BALANCE.md`](../MR_MAKEUP_MASS_BALANCE.md)
+- [`../LOAD_SENSITIVITY_STUDY.md`](../LOAD_SENSITIVITY_STUDY.md)
+- [`../API_SCENARIO_CONTRACT.md`](../API_SCENARIO_CONTRACT.md)
+- [`../KNOWN_LIMITATIONS.md`](../KNOWN_LIMITATIONS.md)
+- [`../PHASE_3_FINAL_VERIFICATION_REPORT.md`](../PHASE_3_FINAL_VERIFICATION_REPORT.md)

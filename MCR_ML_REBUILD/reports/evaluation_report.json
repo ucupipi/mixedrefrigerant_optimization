@@ -1,0 +1,94 @@
+{
+  "data_source": "synthetic",
+  "target_column": "total_shaft_power_mw",
+  "unit": "MW",
+  "n_train": 190,
+  "n_test": 48,
+  "features": [
+    "H1FI012",
+    "H0TI001",
+    "H4FI001",
+    "xi_1",
+    "xi_2",
+    "xi_3",
+    "xi_4"
+  ],
+  "monotonic_constraints": [
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0
+  ],
+  "baselines": {
+    "dummy_mean": {
+      "mae_mw": 6.0722536600969965,
+      "rmse_mw": 7.19392346632127,
+      "nmae_pct": 7.089012759393631,
+      "r2": -1.0542015800169748
+    },
+    "ridge_linear": {
+      "mae_mw": 0.16371421447170528,
+      "rmse_mw": 0.20733450020629016,
+      "nmae_pct": 0.191127087280719,
+      "r2": 0.9982937031819866
+    }
+  },
+  "surrogate_test_metrics": {
+    "mae_mw": 0.26312519282511787,
+    "rmse_mw": 0.3360108700451485,
+    "nmae_pct": 0.307183782771251,
+    "r2": 0.9955185548339633
+  },
+  "regime_stratified_metrics": {
+    "baseload": {
+      "n_samples": 48,
+      "metrics": {
+        "mae_mw": 0.26312519282511787,
+        "rmse_mw": 0.3360108700451485,
+        "nmae_pct": 0.307183782771251,
+        "r2": 0.9955185548339633
+      }
+    }
+  },
+  "bootstrap_95_ci_mw": {
+    "mae_ci_lower_mw": 0.2039120980041307,
+    "mae_ci_upper_mw": 0.32247926262287685,
+    "rmse_ci_lower_mw": 0.2677160436212928,
+    "rmse_ci_upper_mw": 0.395178361925081,
+    "nmae_ci_lower_pct": 0.23805584309580974,
+    "nmae_ci_upper_pct": 0.376476302759873
+  },
+  "blocked_cv_metrics": {
+    "n_splits": 3,
+    "mean_mae_mw": 1.7863102893245622,
+    "mean_rmse_mw": 2.3176721056099914,
+    "mean_nmae_pct": 2.0458896283834975,
+    "mean_r2": 0.7167900967177608,
+    "folds": [
+      {
+        "mae_mw": 4.411251970457181,
+        "rmse_mw": 5.687439026040319,
+        "nmae_pct": 5.097204744084775,
+        "r2": 0.17032646997405343
+      },
+      {
+        "mae_mw": 0.4709638140825354,
+        "rmse_mw": 0.5997157712829932,
+        "nmae_pct": 0.5217723864798307,
+        "r2": 0.9916015015553024
+      },
+      {
+        "mae_mw": 0.4767150834339693,
+        "rmse_mw": 0.6658615195066621,
+        "nmae_pct": 0.5186917545858871,
+        "r2": 0.9884423186239268
+      }
+    ]
+  },
+  "mlflow_run_id": "fcbd832931fa4946",
+  "qualified": true,
+  "model_artifact": "c3mr_power_surrogate.joblib"
+}

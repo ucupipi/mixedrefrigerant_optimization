@@ -1,0 +1,181 @@
+# ==============================================================================
+# Badak LNG Plant-3 Train H C3MR ML Rebuild - Default Configuration
+# Governance: AGENTS.md (Hukum Anti-Dosa Rekayasa, Pasals 1 - 13)
+# ==============================================================================
+
+paths:
+  # Strictly relative paths (zero hardcoded machine drives or absolute roots)
+  raw_dir: "data/raw"
+  interim_dir: "data/interim"
+  processed_dir: "data/processed"
+  manifest_path: "data/manifests/sha256_manifest.json"
+  models_dir: "models"
+  reports_dir: "reports"
+
+data:
+  raw_dir: "data/raw"
+  interim_dir: "data/interim"
+  processed_dir: "data/processed"
+  manifest_path: "data/manifests/sha256_manifest.json"
+  models_dir: "models"
+  reports_dir: "reports"
+
+  # Canonical plant operating and GC files (R1)
+  canonical_files:
+    - "OverallComposition_2023_2024.xlsx"
+    - "OverallComposition_August_2026.tsv"
+    - "OverallComposition_July_2025.tsv"
+    - "ProcessParameter_2023_2024.xlsx"
+    - "ProcessParameter_August_2026.xlsx"
+    - "ProcessParameter_July_2025.xlsx"
+
+  # 10 Quarantined target-reconstructing tags (R3, F6)
+  quarantined_tags:
+    - "H4FI029A"               # 4KT-2 MCR LP compressor turbine steam flow (t/h)
+    - "H4FI030A"               # 4KT-3 MCR HP compressor turbine steam flow (t/h)
+    - "H4FI031A"               # 4KT-1 Propane compressor turbine steam flow (t/h)
+    - "H5FI006A"               # LNG product flow rate (target reconstructor)
+    - "H1FI0009"               # Raw feed gas flow (collinear baseline target)
+    - "total_steam_t_h"        # Aggregate driver steam (t/h)
+    - "total_shaft_power_mw"   # Target C3MR total shaft power (MW)
+    - "mcr_shaft_power_mw"     # Target MCR shaft power (MW)
+    - "c3_shaft_power_mw"      # Target C3 precooling shaft power (MW)
+    - "exergy_destruction_mw"  # Target total exergy destruction (MW)
+
+thermo:
+  # Thermodynamic Reference State (standard reference)
+  t0_k: 288.15                 # Standard ambient temperature (15.0 °C)
+  p0_kpa: 101.325              # Standard atmospheric pressure (1.01325 bar)
+
+  # 5-Component MCR Basis: Nitrogen (N2), Methane (C1), Ethane (C2), Ethylene (C2H4), Propane (C3)
+  components:
+    - "N2"
+    - "C1"
+    - "C2"
+    - "C2H4"
+    - "C3"
+
+  # Critical properties and physical constants
+  tc_k: [126.20, 190.56, 305.32, 282.34, 369.83]
+  pc_bar: [33.90, 45.99, 48.72, 50.41, 42.48]
+  omega: [0.037, 0.011, 0.099, 0.087, 0.152]
+  mw_g_mol: [28.013, 16.042, 30.070, 28.054, 44.096]
+  cp_ideal_j_mol_k: [29.1, 35.7, 52.5, 43.6, 73.6]
+
+  # Binary interaction coefficients k_ij for Peng-Robinson EOS
+  kij:
+    - [0.000, 0.038, 0.000, 0.000, 0.000]
+    - [0.038, 0.000, 0.008, 0.000, 0.015]
+    - [0.000, 0.008, 0.000, 0.000, 0.000]
+    - [0.000, 0.000, 0.000, 0.000, 0.000]
+    - [0.000, 0.015, 0.000, 0.000, 0.000]
+
+  # Process and Safety Boundaries (Pasal 5, 12, 13)
+  mita_min_c: 1.50             # Hard thermodynamic lower bound (MITA >= 1.50 °C)
+  mita_guardband_c: 2.00       # Conservative screening guardband
+  tal_suction_c: -45.0         # Compressor suction drum Temperature Alarm Low (TAL >= -45.0 °C)
+  suction_superheat_min_c: 3.0 # Minimum superheat above dew point
+  flow_floor_t_h: 480.0        # Centrifugal compressor anti-surge flow floor (>= 480.0 t/h)
+  mche_slices: 100             # Discretization resolution for numerical Riemann integral
+
+  # Compositional Geometry Mahalanobis Envelopes
+  chi2_critical_5comp: 3.080216 # sqrt(chi2(df=4, p=0.95))
+  chi2_critical_4comp: 2.795488 # sqrt(chi2(df=3, p=0.95))
+
+features:
+  # Rolling Statistics Pipeline
+  rolling_window_minutes: 120
+  rolling_metrics:
+    - "mean"
+    - "std"
+    - "min"
+    - "max"
+  max_timestamp_gap_minutes: 10 # Shutdown and gap detection threshold
+
+  # Compositional Transformation (Egozcue et al. 2003)
+  zero_replacement_delta: 0.00001 # 1e-5 multiplicative zero replacement
+  sbp_5comp:
+    - [1, -1, -1, -1, -1]       # xi1: N2 vs (C1, C2, C2H4, C3)
+    - [0,  1, -1, -1, -1]       # xi2: C1 vs (C2, C2H4, C3)
+    - [0,  0,  1, -1, -1]       # xi3: C2 vs (C2H4, C3)
+    - [0,  0,  0,  1, -1]       # xi4: C2H4 vs C3
+
+  # Discrete Shift Alignment (R3, F7)
+  shift_hours:
+    shift_1: [7, 15]           # 07:00 - 15:00
+    shift_2: [15, 23]          # 15:00 - 23:00
+    shift_3: [23, 7]           # 23:00 - 07:00
+  gc_sampling_location: "4C-8" # MCR suction drum sample tap
+
+models:
+  # Validation & Cross-Validation Split Strategy (R4, F11)
+  test_split_ratio: 0.20       # 80:20 chronological partition
+  cv_folds: 5                  # GroupKFold by shift group
+  random_state: 42
+
+  # Candidate Model: HistGradientBoostingRegressor (F13)
+  hgb_max_iter: 150
+  hgb_learning_rate: 0.05
+  hgb_max_leaf_nodes: 31
+  hgb_min_samples_leaf: 20
+  hgb_l2_regularization: 0.1
+
+  # Physical Monotonic Constraints (F13)
+  # Features: [feed_rate (+1), ambient_temp (+1), xi1 (0), xi2 (0), xi3 (0), xi4 (0)]
+  monotonic_cst: [1, 1, 0, 0, 0, 0]
+
+  # Baseline Model Parameters (F12)
+  ridge_alpha: 1.0
+
+  # Acceptance Gates & Engineering Metric Limits (Pasal 2, 13)
+  max_mae_mw: 1.0              # Absolute MAE < 1.0 MW
+  max_nmae_pct: 1.0            # Normalized MAE < 1.0%
+  min_r2: 0.60                 # Test set R² >= 0.60
+  composition_closure_atol: 0.000001 # Absolute tolerance for 100% sum
+
+model:
+  test_split_ratio: 0.20
+  cv_folds: 5
+  random_state: 42
+  hgb_max_iter: 150
+  hgb_learning_rate: 0.05
+  hgb_max_leaf_nodes: 31
+  hgb_min_samples_leaf: 20
+  hgb_l2_regularization: 0.1
+  monotonic_cst: [1, 1, 0, 0, 0, 0]
+  ridge_alpha: 1.0
+  max_mae_mw: 1.0
+  max_nmae_pct: 1.0
+  min_r2: 0.60
+  composition_closure_atol: 0.000001
+
+evaluation:
+  max_mae_mw: 1.0
+  max_nmae_pct: 1.0
+  min_r2: 0.60
+  composition_closure_atol: 0.000001
+  report_format: "json"
+
+economics:
+  annual_operating_hours: 8000.0
+  fuel_gas_price_usd_per_mmbtu: 10.04
+  fuel_gas_lhv_mj_per_nm3: 38.0
+  boiler_efficiency_pct: 88.0
+  co2_emission_factor_kg_per_gj: 56.1
+
+# Operating Regimes (P25 and P75 interquartile flow thresholds)
+regimes:
+  underload_threshold_t_h: 226.8
+  baseload_threshold_t_h: 279.8
+
+# MCHE Differential Pressure Limits & Trip Envelopes
+mche_dp_limits:
+  warm_bundle_alarm_kg_cm2: 0.42
+  warm_bundle_trip_kg_cm2: 0.54
+  cold_bundle_normal_max_kg_cm2: 0.17
+
+# Thermal Operating Limits & Protective Interlocks
+thermal_limits:
+  suction_temp_tal_c: -45.0
+  suction_temp_tall_c: -51.0
+  rundown_temp_min_c: -152.0
