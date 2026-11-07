@@ -484,10 +484,10 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
             <div style={{ backgroundColor: '#fff', borderRadius: '5px', padding: '10px 14px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
               <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>Injeksi Make-Up Hidrokarbon</div>
               <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#c2410c', marginTop: '3px' }}>
-                {makeup ? `${makeup.total_makeup_flow_nm3_h.toFixed(1)}` : '0.0'} <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Nm³/h</span>
+                {makeup && makeup.total_makeup_flow_nm3_h != null ? `${makeup.total_makeup_flow_nm3_h.toFixed(1)}` : '0.0'} <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Nm³/h</span>
               </div>
               <div style={{ fontSize: '0.74rem', color: '#c2410c', marginTop: '3px', fontWeight: 600 }}>
-                {makeup ? `${makeup.total_makeup_flow_kg_h.toFixed(1)} kg/h · ${transitionHours.toFixed(1)} jam` : 'Tidak perlu injeksi'}
+                {makeup && makeup.total_makeup_flow_kg_h != null ? `${makeup.total_makeup_flow_kg_h.toFixed(1)} kg/h · ${transitionHours.toFixed(1)} jam` : 'Tidak perlu injeksi'}
               </div>
             </div>
 
@@ -1225,15 +1225,15 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                       <tr key={idx} style={{ backgroundColor: isInj ? '#fffbeb' : '#fff' }}>
                         <td style={{ ...tagCell, color: isInj ? '#c2410c' : '#64748b' }}>{item.tag_dcs}</td>
                         <td style={nameCell}>{item.description}</td>
-                        <td style={valCell}>{item.actual_molpct.toFixed(2)}</td>
+                        <td style={valCell}>{item.actual_molpct != null ? item.actual_molpct.toFixed(2) : '-'}</td>
                         <td style={{
                           ...valCell,
                           fontWeight: 700,
                           color: isInj ? '#c2410c' : '#107c41',
                         }}>
-                          {item.recommended_flow_nm3_h.toFixed(1)} Nm³/h
+                          {item.recommended_flow_nm3_h != null ? `${item.recommended_flow_nm3_h.toFixed(1)} Nm³/h` : '-'}
                         </td>
-                        <td style={unitCell}>{item.recommended_flow_kg_h.toFixed(1)} kg/h</td>
+                        <td style={unitCell}>{item.recommended_flow_kg_h != null ? `${item.recommended_flow_kg_h.toFixed(1)} kg/h` : '-'}</td>
                         <td style={{
                           ...nameCell,
                           fontWeight: 700,
@@ -1265,10 +1265,10 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                       fontSize: '0.9rem',
                       fontWeight: 800,
                     }}>
-                      {makeup.total_makeup_flow_nm3_h.toFixed(1)} Nm³/h
+                      {makeup.total_makeup_flow_nm3_h != null ? `${makeup.total_makeup_flow_nm3_h.toFixed(1)} Nm³/h` : '-'}
                     </td>
                     <td style={{ ...unitCell, color: '#9a3412', fontWeight: 700 }}>
-                      {makeup.total_makeup_flow_kg_h.toFixed(1)} kg/h
+                      {makeup.total_makeup_flow_kg_h != null ? `${makeup.total_makeup_flow_kg_h.toFixed(1)} kg/h` : '-'}
                     </td>
                     <td style={{ ...nameCell, color: '#9a3412', fontWeight: 700 }}>
                       DURASI {transitionHours.toFixed(1)} JAM
@@ -1440,7 +1440,7 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
           <span>MCR: <strong style={{ color: '#93c5fd' }}>{pred?.power_mcr_mw != null ? `${pred.power_mcr_mw.toFixed(1)} MW` : '-'}</strong></span>
           <span>C3: <strong style={{ color: '#c4b5fd' }}>{pred?.power_c3_mw != null ? `${pred.power_c3_mw.toFixed(1)} MW` : '-'}</strong></span>
           <span>Komp: <strong style={{ color: '#fff' }}>{compSum.toFixed(1)}%</strong></span>
-          <span>Make-Up: <strong style={{ color: '#f59e0b' }}>{makeup ? `${makeup.total_makeup_flow_nm3_h.toFixed(1)} Nm³/h` : '0.0 Nm³/h'}</strong></span>
+          <span>Make-Up: <strong style={{ color: '#f59e0b' }}>{makeup && makeup.total_makeup_flow_nm3_h != null ? `${makeup.total_makeup_flow_nm3_h.toFixed(1)} Nm³/h` : '0.0 Nm³/h'}</strong></span>
         </div>
       </div>
     </div>

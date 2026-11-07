@@ -8,6 +8,8 @@ import type { FeedGasComposition } from '../utils/thermoFlash';
 import type {
   ActualDcsState,
   DemoSnapshot,
+  MakeupInjectionItem,
+  OptimizationStrategy,
   OptimizeResponse,
   PredictResponse,
   ScenarioInput,
@@ -22,8 +24,8 @@ interface TabInputResultsProps {
   prediction: PredictResponse | null;
   userMode: UserMode;
   loading: boolean;
-  strategy?: 'CONDITION_DEPENDENT' | 'FIXED_RECIPE' | 'MINIMUM_INTERVENTION';
-  onStrategyChange?: (strategy: 'CONDITION_DEPENDENT' | 'FIXED_RECIPE' | 'MINIMUM_INTERVENTION') => void;
+  strategy?: OptimizationStrategy;
+  onStrategyChange?: (strategy: OptimizationStrategy) => void;
   feedGasComp?: FeedGasComposition;
   onFeedGasCompChange?: (comp: FeedGasComposition) => void;
   onActualChange: (key: keyof ActualDcsState, val: number) => void;
@@ -37,7 +39,7 @@ interface TabInputResultsProps {
 export const TabInputResults: React.FC<TabInputResultsProps> = ({
   snapshot: _snapshot,
   scenario,
-  actualDcs,
+  actualDcs: _actualDcs,
   optimum,
   prediction,
   userMode: _userMode,
@@ -122,64 +124,26 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   );
   const potentialAiSecSavingKwh = activeLngFlow > 0 ? (potentialAiPowerSavingMw * 1000) / activeLngFlow : 0;
 
-  // Make-Up MCR Schedule items (from backend makeup_advisory or computed dynamically)
+  // Make-Up MCR Schedule items (from backend makeup_advisory or canonical fallback)
+  const makeupStatus = prediction?.makeup_advisory?.status ?? (prediction?.makeup_advisory ? 'EVALUATED' : 'NOT EVALUATED');
+  const isUnevaluated = makeupStatus === 'NOT EVALUATED';
   const makeupTransitionHours = prediction?.makeup_advisory?.transition_hours ?? scenario.transition_hours ?? 2.0;
-  const makeupInventoryKg = prediction?.makeup_advisory?.estimated_inventory_kg ?? 85000;
+  const makeupInventoryKg = prediction?.makeup_advisory?.estimated_inventory_kg ?? 24000.0;
 
-  const actualCompMap = {
-    N2: actualDcs.comp_N2_molpct,
-    C1: actualDcs.comp_C1_molpct,
-    C2: actualDcs.comp_C2_molpct,
-    C2H4: actualDcs.comp_C2H4_molpct,
-    C3: actualDcs.comp_C3_molpct,
-  };
-  const targetCompMap = {
-    N2: scenario.comp_N2_molpct,
-    C1: scenario.comp_C1_molpct,
-    C2: scenario.comp_C2_molpct,
-    C2H4: scenario.comp_C2H4_molpct,
-    C3: scenario.comp_C3_molpct,
-  };
-  const compMeta = [
-    { key: 'N2', name: 'Nitrogen (N₂)', tag: 'H4FIC008', mw: 28.0134, line: 'Line N₂ Make-up (3E-10 Inlet)' },
-    { key: 'C1', name: 'Methane (C₁)', tag: '4PV-021', mw: 16.0425, line: 'Feed Gas In-Line Blend' },
-    { key: 'C2', name: 'Ethane (C₂)', tag: '3FV-014', mw: 30.0690, line: 'De-ethanizer Overhead' },
-    { key: 'C2H4', name: 'Ethylene (C₂H₄)', tag: '3FV-018', mw: 28.0532, line: 'Pure Ethylene Sphere Make-up' },
-    { key: 'C3', name: 'Propane (C₃)', tag: '3FV-022', mw: 44.0956, line: 'De-propanizer Distillate Make-up' },
+  const defaultItems: MakeupInjectionItem[] = [
+    { component: 'N2', tag_dcs: 'H4FIC006', description: 'Nitrogen (N2)', unit: 'Nm3/h', actual_molpct: null, target_molpct: null, delta_molpct: null, recommended_flow_nm3_h: null, recommended_flow_kg_h: null, recommended_flow_scfd: null, action: 'TIDAK DAPAT DIEVALUASI', instruction: '[ADVISORY] Make-up advisory is NOT EVALUATED.' },
+    { component: 'C1', tag_dcs: 'H4FIC005', alternate_tag_dcs: 'H4FIC009', description: 'Methane (C1)', unit: 'Nm3/h', actual_molpct: null, target_molpct: null, delta_molpct: null, recommended_flow_nm3_h: null, recommended_flow_kg_h: null, recommended_flow_scfd: null, action: 'TIDAK DAPAT DIEVALUASI', instruction: '[ADVISORY] Make-up advisory is NOT EVALUATED.' },
+    { component: 'C2', tag_dcs: 'H4FI00C8', description: 'Ethane (C2)', unit: 'Nm3/h', actual_molpct: null, target_molpct: null, delta_molpct: null, recommended_flow_nm3_h: null, recommended_flow_kg_h: null, recommended_flow_scfd: null, action: 'TIDAK DAPAT DIEVALUASI', instruction: '[ADVISORY] Make-up advisory is NOT EVALUATED.' },
+    { component: 'C3', tag_dcs: 'H4FIC007', description: 'Propane (C3)', unit: 'Nm3/h', actual_molpct: null, target_molpct: null, delta_molpct: null, recommended_flow_nm3_h: null, recommended_flow_kg_h: null, recommended_flow_scfd: null, action: 'TIDAK DAPAT DIEVALUASI', instruction: '[ADVISORY] Make-up advisory is NOT EVALUATED.' },
   ];
 
-  const makeupItems = (prediction?.makeup_advisory?.items && prediction.makeup_advisory.items.length > 0)
+  const makeupItems: MakeupInjectionItem[] = (prediction?.makeup_advisory?.items && prediction.makeup_advisory.items.length > 0)
     ? prediction.makeup_advisory.items
-    : compMeta.map((c) => {
-      const act = (actualCompMap as any)[c.key] ?? 0;
-      const tgt = (targetCompMap as any)[c.key] ?? 0;
-      const delta = tgt - act;
-      const isInject = delta > 0.02;
-      const deltaFrac = Math.max(0, delta) / 100.0;
-      const kgTotal = deltaFrac * makeupInventoryKg;
-      const kgPerHour = kgTotal / makeupTransitionHours;
-      const nm3PerHour = (kgPerHour / c.mw) * 22.414;
-      return {
-        component: c.key,
-        tag_dcs: c.tag,
-        description: c.name,
-        unit: 'Nm³/h',
-        actual_molpct: act,
-        target_molpct: tgt,
-        delta_molpct: delta,
-        recommended_flow_nm3_h: nm3PerHour,
-        recommended_flow_kg_h: kgPerHour,
-        action: isInject ? 'INJECT' : 'HOLD',
-        instruction: isInject
-          ? `Gradually open control valve ${c.tag}, rate ${nm3PerHour.toFixed(1)} Nm³/h (${kgPerHour.toFixed(1)} kg/h) over ${makeupTransitionHours} hours.`
-          : `Maintain minimum valve position (0 Nm³/h); component fraction meets target.`,
-      };
-    });
+    : defaultItems;
 
-  const totalMakeupFlowNm3 = prediction?.makeup_advisory?.total_makeup_flow_nm3_h
-    ?? makeupItems.reduce((acc, it) => acc + (it.recommended_flow_nm3_h || 0), 0);
-  const totalMakeupFlowKg = prediction?.makeup_advisory?.total_makeup_flow_kg_h
-    ?? makeupItems.reduce((acc, it) => acc + (it.recommended_flow_kg_h || 0), 0);
+  const totalMakeupFlowNm3 = isUnevaluated ? null : (prediction?.makeup_advisory?.total_makeup_flow_nm3_h ?? null);
+  const totalMakeupFlowKg = isUnevaluated ? null : (prediction?.makeup_advisory?.total_makeup_flow_kg_h ?? null);
+  const totalMakeupFlowScfd = isUnevaluated ? null : (prediction?.makeup_advisory?.total_makeup_flow_scfd ?? null);
 
   // Composition sum
   const compSum =
@@ -377,7 +341,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     style={{ accentColor: '#2563eb', cursor: 'pointer' }}
                   />
                   <strong style={{ fontSize: '12px', color: strategy === 'CONDITION_DEPENDENT' ? '#1d4ed8' : '#334155' }}>
-                    Strategy B: Condition-Dependent
+                    Condition-Dependent Optimization
                   </strong>
                 </div>
                 <span style={{ fontSize: '11px', color: '#64748b', lineHeight: 1.35 }}>
@@ -411,7 +375,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     style={{ accentColor: '#2563eb', cursor: 'pointer' }}
                   />
                   <strong style={{ fontSize: '12px', color: strategy === 'FIXED_RECIPE' ? '#1d4ed8' : '#334155' }}>
-                    Strategy A: Fixed Recipe Across Loads
+                    Fixed Recipe Across Loads
                   </strong>
                 </div>
                 <span style={{ fontSize: '11px', color: '#64748b', lineHeight: 1.35 }}>
@@ -445,7 +409,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     style={{ accentColor: '#2563eb', cursor: 'pointer' }}
                   />
                   <strong style={{ fontSize: '12px', color: strategy === 'MINIMUM_INTERVENTION' ? '#1d4ed8' : '#334155' }}>
-                    Strategy C: Minimum-Intervention
+                    Minimum-Intervention Optimization
                   </strong>
                 </div>
                 <span style={{ fontSize: '11px', color: '#64748b', lineHeight: 1.35 }}>
@@ -969,46 +933,86 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 </span>
               </div>
 
-              <div style={{ display: 'flex', gap: '8px', fontSize: '12px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '8px', fontSize: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+                {isUnevaluated && (
+                  <span style={{ backgroundColor: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800 }}>
+                    NOT EVALUATED
+                  </span>
+                )}
                 <span style={{ backgroundColor: '#f1f5f9', color: '#334155', padding: '4px 10px', borderRadius: '6px', fontWeight: 600, border: '1px solid #cbd5e1' }}>
                   Transition Time: <strong>{makeupTransitionHours} Hours</strong>
                 </span>
-                <span style={{ backgroundColor: '#f0fdf4', color: '#166534', padding: '4px 10px', borderRadius: '6px', fontWeight: 600, border: '1px solid #bbf7d0' }}>
-                  Total Make-Up: <strong>{totalMakeupFlowNm3.toFixed(1)} Nm³/h</strong> ({totalMakeupFlowKg.toFixed(1)} kg/h)
+                <span style={{
+                  backgroundColor: (isUnevaluated || totalMakeupFlowNm3 === null) ? '#fffbeb' : '#f0fdf4',
+                  color: (isUnevaluated || totalMakeupFlowNm3 === null) ? '#b45309' : '#166534',
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  fontWeight: 600,
+                  border: (isUnevaluated || totalMakeupFlowNm3 === null) ? '1px solid #fde68a' : '1px solid #bbf7d0',
+                }}>
+                  Total Make-Up:{' '}
+                  {(isUnevaluated || totalMakeupFlowNm3 === null) ? (
+                    <strong style={{ color: '#b45309' }}>NOT EVALUATED</strong>
+                  ) : (
+                    <>
+                      <strong>{totalMakeupFlowNm3.toFixed(1)} Nm3/h</strong> ({totalMakeupFlowKg != null ? totalMakeupFlowKg.toFixed(1) : '-'} kg/h{totalMakeupFlowScfd != null ? ` · ${Math.round(totalMakeupFlowScfd).toLocaleString()} scfd` : ''})
+                    </>
+                  )}
                 </span>
                 <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '4px 10px', borderRadius: '6px', fontWeight: 600, border: '1px solid #bae6fd' }}>
-                  Loop Inventory: <strong>{makeupInventoryKg.toLocaleString()} kg</strong>
+                  Loop Inventory: <strong>{makeupInventoryKg.toLocaleString()} kg (Nominal)</strong>
                 </span>
               </div>
             </div>
+
+            {/* Make-Up Advisory Explanation Banner */}
+            {prediction?.makeup_advisory?.explanation && (
+              <div style={{
+                marginBottom: '12px',
+                padding: '8px 12px',
+                backgroundColor: isUnevaluated ? '#fef3c7' : '#f0fdf4',
+                border: isUnevaluated ? '1px solid #fde68a' : '1px solid #bbf7d0',
+                borderRadius: '6px',
+                fontSize: '12px',
+                color: isUnevaluated ? '#92400e' : '#166534',
+                lineHeight: 1.4,
+              }}>
+                <strong>Make-Up Status:</strong> {prediction.makeup_advisory.explanation}
+              </div>
+            )}
 
             {/* Mobile Card Deck for Make-Up Schedule */}
             {mobileMode === 'card' && (
               <div className="mobile-card-deck">
                 {makeupItems.map((item, idx) => {
                   const isInject = item.action === 'INJEKSI' || item.action === 'INJECT';
-                  const isStop = item.action === 'TAHAN / STOP' || item.action === 'Tutup';
-                  const actionLabel = isInject ? 'Inject' : isStop ? 'Close' : 'Standby';
-                  const actionBg = isInject ? '#dcfce7' : isStop ? '#fef3c7' : '#f1f5f9';
-                  const actionColor = isInject ? '#15803d' : isStop ? '#92400e' : '#475569';
-                  const actionBorder = isInject ? '1px solid #86efac' : isStop ? '1px solid #fde68a' : '1px solid #e2e8f0';
+                  const isStop = item.action === 'TAHAN / STOP' || item.action === 'Tutup' || item.action === 'HOLD';
+                  const isUneval = item.action === 'TIDAK DAPAT DIEVALUASI' || isUnevaluated || item.recommended_flow_nm3_h === null;
+                  const actionLabel = isUneval ? 'NOT EVALUATED' : isInject ? 'Inject' : isStop ? 'Close' : 'Standby';
+                  const actionBg = isUneval ? '#fef3c7' : isInject ? '#dcfce7' : isStop ? '#fef3c7' : '#f1f5f9';
+                  const actionColor = isUneval ? '#92400e' : isInject ? '#15803d' : isStop ? '#92400e' : '#475569';
+                  const actionBorder = isUneval ? '1px solid #fde68a' : isInject ? '1px solid #86efac' : isStop ? '1px solid #fde68a' : '1px solid #e2e8f0';
 
                   const compName =
-                    item.description.includes('N2') ? 'Nitrogen (N₂)' :
-                      item.description.includes('C1') ? 'Methane (C₁)' :
-                        item.description.includes('C2H4') ? 'Ethylene (C₂H₄)' :
-                          item.description.includes('C2') ? 'Ethane (C₂)' :
-                            item.description.includes('C3') ? 'Propane (C₃)' :
+                    item.description.includes('N2') ? 'Nitrogen (N2)' :
+                      item.description.includes('C1') ? 'Methane (C1)' :
+                        item.description.includes('C2H4') ? 'Ethylene (C2H4)' :
+                          item.description.includes('C2') ? 'Ethane (C2)' :
+                            item.description.includes('C3') ? 'Propane (C3)' :
                               item.description;
 
-                  const cleanInstruction = isInject
-                    ? `Open valve ${item.tag_dcs} to ${item.recommended_flow_nm3_h.toFixed(1)} Nm³/h.`
-                    : isStop
-                      ? `Close valve ${item.tag_dcs} (concentration exceeds target).`
-                      : `Valve on standby (concentration on target).`;
+                  const cleanInstruction = item.instruction || (
+                    isUneval
+                      ? '[ADVISORY] Make-up calculation cannot be evaluated.'
+                      : isInject && item.recommended_flow_nm3_h != null
+                        ? `Open valve ${item.tag_dcs} to ${item.recommended_flow_nm3_h.toFixed(1)} Nm3/h.`
+                        : isStop
+                          ? `Close valve ${item.tag_dcs} (concentration exceeds target).`
+                          : `Valve on standby (concentration on target).`
+                  );
 
-                  const diff = item.target_molpct - item.actual_molpct;
-                  const diffSign = diff > 0 ? '+' : '';
+                  const diff = (item.target_molpct != null && item.actual_molpct != null) ? item.target_molpct - item.actual_molpct : null;
+                  const diffSign = diff != null && diff > 0 ? '+' : '';
 
                   return (
                     <div key={item.component || idx} className="mobile-param-card">
@@ -1024,17 +1028,27 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
                         <div style={{ backgroundColor: '#f8fafc', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
                           <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 600 }}>DCS (mol%)</div>
-                          <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>{item.actual_molpct.toFixed(2)}</div>
+                          <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>
+                            {item.actual_molpct != null ? item.actual_molpct.toFixed(2) : '-'}
+                          </div>
                         </div>
                         <div style={{ backgroundColor: '#ecfdf5', padding: '6px 8px', borderRadius: '6px', border: '1px solid #a7f3d0' }}>
                           <div style={{ fontSize: '10px', color: '#065f46', fontWeight: 600 }}>AI Target (Δ)</div>
                           <div style={{ fontSize: '13px', fontWeight: 800, color: '#047857' }}>
-                            {item.target_molpct.toFixed(2)} <span style={{ fontSize: '10px', color: diff >= 0 ? '#15803d' : '#b45309' }}>({diffSign}{diff.toFixed(2)})</span>
+                            {item.target_molpct != null ? item.target_molpct.toFixed(2) : '-'}{' '}
+                            <span style={{ fontSize: '10px', color: (diff != null && diff >= 0) ? '#15803d' : '#b45309' }}>
+                              ({diffSign}{diff != null ? diff.toFixed(2) : '-'})
+                            </span>
                           </div>
                         </div>
                       </div>
                       <div style={{ fontSize: '11.5px', color: '#1e293b', backgroundColor: '#f1f5f9', padding: '6px 10px', borderRadius: '6px', marginBottom: '6px' }}>
-                        <strong>Injection Rate:</strong> {item.recommended_flow_nm3_h.toFixed(1)} Nm³/h ({item.recommended_flow_kg_h.toFixed(1)} kg/h)
+                        <strong>Injection Rate:</strong>{' '}
+                        {item.recommended_flow_nm3_h != null ? (
+                          `${item.recommended_flow_nm3_h.toFixed(1)} Nm3/h (${item.recommended_flow_kg_h != null ? item.recommended_flow_kg_h.toFixed(1) : '-'} kg/h)`
+                        ) : (
+                          'NOT EVALUATED'
+                        )}
                       </div>
                       <div style={{ fontSize: '11px', color: '#475569', fontStyle: 'italic' }}>
                         💡 {cleanInstruction}
@@ -1109,25 +1123,30 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               <tbody>
                 {makeupItems.map((item, idx) => {
                   const isInject = item.action === 'INJEKSI' || item.action === 'INJECT';
-                  const isStop = item.action === 'TAHAN / STOP' || item.action === 'Tutup';
-                  const actionLabel = isInject ? 'Inject' : isStop ? 'Close' : 'Standby';
-                  const actionBg = isInject ? '#dcfce7' : isStop ? '#fef3c7' : '#f1f5f9';
-                  const actionColor = isInject ? '#15803d' : isStop ? '#92400e' : '#475569';
-                  const actionBorder = isInject ? '1px solid #86efac' : isStop ? '1px solid #fde68a' : '1px solid #e2e8f0';
+                  const isStop = item.action === 'TAHAN / STOP' || item.action === 'Tutup' || item.action === 'HOLD';
+                  const isUneval = item.action === 'TIDAK DAPAT DIEVALUASI' || isUnevaluated || item.recommended_flow_nm3_h === null;
+                  const actionLabel = isUneval ? 'NOT EVALUATED' : isInject ? 'Inject' : isStop ? 'Close' : 'Standby';
+                  const actionBg = isUneval ? '#fef3c7' : isInject ? '#dcfce7' : isStop ? '#fef3c7' : '#f1f5f9';
+                  const actionColor = isUneval ? '#92400e' : isInject ? '#15803d' : isStop ? '#92400e' : '#475569';
+                  const actionBorder = isUneval ? '1px solid #fde68a' : isInject ? '1px solid #86efac' : isStop ? '1px solid #fde68a' : '1px solid #e2e8f0';
 
                   const compName =
-                    item.description.includes('N2') ? 'Nitrogen (N₂)' :
-                      item.description.includes('C1') ? 'Methane (C₁)' :
-                        item.description.includes('C2H4') ? 'Ethylene (C₂H₄)' :
-                          item.description.includes('C2') ? 'Ethane (C₂)' :
-                            item.description.includes('C3') ? 'Propane (C₃)' :
+                    item.description.includes('N2') ? 'Nitrogen (N2)' :
+                      item.description.includes('C1') ? 'Methane (C1)' :
+                        item.description.includes('C2H4') ? 'Ethylene (C2H4)' :
+                          item.description.includes('C2') ? 'Ethane (C2)' :
+                            item.description.includes('C3') ? 'Propane (C3)' :
                               item.description;
 
-                  const cleanInstruction = isInject
-                    ? `Open valve ${item.tag_dcs} to ${item.recommended_flow_nm3_h.toFixed(1)} Nm³/h.`
-                    : isStop
-                      ? `Close valve ${item.tag_dcs} (concentration exceeds target).`
-                      : `Valve on standby (concentration on target).`;
+                  const cleanInstruction = item.instruction || (
+                    isUneval
+                      ? '[ADVISORY] Make-up calculation cannot be evaluated.'
+                      : isInject && item.recommended_flow_nm3_h != null
+                        ? `Open valve ${item.tag_dcs} to ${item.recommended_flow_nm3_h.toFixed(1)} Nm3/h.`
+                        : isStop
+                          ? `Close valve ${item.tag_dcs} (concentration exceeds target).`
+                          : `Valve on standby (concentration on target).`
+                  );
 
                   return (
                     <tr key={item.component || idx} style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: idx % 2 === 0 ? '#ffffff' : '#fbfcfd' }}>
@@ -1138,19 +1157,25 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                         {item.tag_dcs}
                       </td>
                       <td style={{ padding: '10px 14px', backgroundColor: '#f8fafc', color: '#475569', fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>
-                        {item.actual_molpct.toFixed(2)}
+                        {item.actual_molpct != null ? item.actual_molpct.toFixed(2) : '-'}
                       </td>
                       <td style={{ padding: '10px 14px', backgroundColor: '#ecfdf5', fontWeight: 700, color: '#047857', borderBottom: '1px solid #e2e8f0' }}>
-                        {item.target_molpct.toFixed(2)}
+                        {item.target_molpct != null ? item.target_molpct.toFixed(2) : '-'}
                       </td>
-                      <td style={{ padding: '10px 14px', fontWeight: 600, color: item.delta_molpct > 0 ? '#15803d' : '#64748b', borderBottom: '1px solid #e2e8f0' }}>
-                        {item.delta_molpct > 0 ? `+${item.delta_molpct.toFixed(2)}` : item.delta_molpct.toFixed(2)}
+                      <td style={{ padding: '10px 14px', fontWeight: 600, color: (item.delta_molpct != null && item.delta_molpct > 0) ? '#15803d' : '#64748b', borderBottom: '1px solid #e2e8f0' }}>
+                        {item.delta_molpct != null ? (item.delta_molpct > 0 ? `+${item.delta_molpct.toFixed(2)}` : item.delta_molpct.toFixed(2)) : '-'}
                       </td>
                       <td style={{ padding: '10px 14px', fontFamily: 'monospace', fontWeight: 700, fontSize: '13px', color: isInject ? '#0f172a' : '#94a3b8', borderBottom: '1px solid #e2e8f0' }}>
-                        {item.recommended_flow_nm3_h.toFixed(1)} Nm³/h
-                        <span style={{ fontSize: '12px', color: '#64748b', marginLeft: '6px', fontWeight: 500 }}>
-                          ({item.recommended_flow_kg_h.toFixed(1)} kg/h)
-                        </span>
+                        {item.recommended_flow_nm3_h != null ? (
+                          <>
+                            {item.recommended_flow_nm3_h.toFixed(1)} Nm3/h
+                            <span style={{ fontSize: '12px', color: '#64748b', marginLeft: '6px', fontWeight: 500 }}>
+                              ({item.recommended_flow_kg_h != null ? item.recommended_flow_kg_h.toFixed(1) : '-'} kg/h)
+                            </span>
+                          </>
+                        ) : (
+                          'NOT EVALUATED'
+                        )}
                       </td>
                       <td style={{ padding: '10px 14px', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>
                         <span style={{

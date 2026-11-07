@@ -221,3 +221,33 @@ class TestTabInputResultsMobileAccessibility:
         assert "repeat(3, 1fr)" not in input_results_content, "Hardcoded rigid repeat(3, 1fr) should not be used in Section 2"
         assert "repeat(4, 1fr)" not in input_results_content, "Hardcoded rigid repeat(4, 1fr) should not be used in Section 3"
 
+
+class TestPhysicsEngineRemediation:
+    """Milestone 3 Remediation: Verify computeFrontendRecommendation property-level defaulting."""
+
+    def test_physics_engine_remediation_source_guards(self):
+        """Verify that physicsEngine.ts has property-level finite defaulting instead of object-level truthy OR."""
+        engine_path = os.path.join(FRONTEND_DIR, 'utils', 'physicsEngine.ts')
+        content = read_file(engine_path)
+
+        # Ensure object-level actualDcs || {...} is absent
+        assert "const act = actualDcs || {" not in content, "Vulnerable object-level actualDcs || {...} still present"
+
+        # Ensure property-level Number.isFinite check is present for all 5 components
+        for comp in ['comp_N2_molpct', 'comp_C1_molpct', 'comp_C2_molpct', 'comp_C2H4_molpct', 'comp_C3_molpct']:
+            assert f"Number.isFinite(actualDcs.{comp})" in content, f"Missing finite check for {comp}"
+
+    def test_physics_engine_ts_unit_test_passes(self):
+        """Execute node test runner on physicsEngine.test.ts to verify zero-NaN on empty/undefined actualDcs."""
+        import subprocess
+        frontend_root = os.path.abspath(os.path.join(FRONTEND_DIR, '..'))
+        cmd = [
+            "node",
+            "--loader",
+            "./tests/ts-loader.mjs",
+            "src/__tests__/physicsEngine.test.ts"
+        ]
+        res = subprocess.run(cmd, cwd=frontend_root, capture_output=True, text=True)
+        assert res.returncode == 0, f"physicsEngine.test.ts failed:\nSTDOUT:\n{res.stdout}\nSTDERR:\n{res.stderr}"
+
+

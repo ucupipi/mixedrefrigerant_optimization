@@ -106,3 +106,4 @@ The table below presents the results extracted directly from `operator-website/b
 1. **Use Strategy A** when feed gas supply fluctuates frequently or during make-up system maintenance. It holds recipe constant and handles load swings via turbine speed.
 2. **Use Strategy C** as the default recommendation mode for normal production. It achieves over 95% of theoretical thermodynamic savings while eliminating violent make-up swings and minimizing GC validation delay.
 3. **Use Strategy B** during sustained, long-term steady baseload campaigns where every fraction of a megawatt is monetized over weeks of continuous operation.
+

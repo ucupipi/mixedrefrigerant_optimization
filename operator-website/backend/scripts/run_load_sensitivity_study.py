@@ -157,7 +157,7 @@ def run_load_sensitivity_sweep() -> List[Dict[str, Any]]:
             makeup = calculate_makeup_recommendations(
                 actual_molpct=actual_comp_map,
                 target_molpct=target_comp_map,
-                inventory_kg=85000.0,
+                inventory_kg=24000.0,
                 transition_hours=2.0,
             )
 

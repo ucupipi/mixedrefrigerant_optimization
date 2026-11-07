@@ -660,7 +660,7 @@ export const GoogleSheetsView: React.FC<GoogleSheetsViewProps> = ({
                       Injeksi {item.description}
                     </td>
                     <td style={{ border: '1px solid #e0e0e0', padding: '6px 8px', textAlign: 'right', fontFamily: 'monospace' }}>
-                      {item.actual_molpct.toFixed(2)} mol%
+                      {item.actual_molpct != null ? `${item.actual_molpct.toFixed(2)} mol%` : '-'}
                     </td>
                     <td style={{
                       border: selectedCell.name === `D${rowNum}` ? '2px solid #e37400' : '1px solid #e0e0e0',
@@ -671,10 +671,10 @@ export const GoogleSheetsView: React.FC<GoogleSheetsViewProps> = ({
                       color: isInj ? '#b06000' : '#80868b',
                       fontSize: '0.95rem'
                     }}>
-                      {item.recommended_flow_nm3_h > 0 ? `${item.recommended_flow_nm3_h.toFixed(1)} Nm³/h` : '0.0 Nm³/h'}
+                      {item.recommended_flow_nm3_h != null && item.recommended_flow_nm3_h > 0 ? `${item.recommended_flow_nm3_h.toFixed(1)} Nm³/h` : '0.0 Nm³/h'}
                     </td>
                     <td style={{ border: '1px solid #e0e0e0', padding: '6px 8px', textAlign: 'center', color: '#5f6368' }}>
-                      {item.recommended_flow_kg_h > 0 ? `${item.recommended_flow_kg_h.toFixed(1)} kg/h` : '-'}
+                      {item.recommended_flow_kg_h != null && item.recommended_flow_kg_h > 0 ? `${item.recommended_flow_kg_h.toFixed(1)} kg/h` : '-'}
                     </td>
                     <td style={{
                       border: '1px solid #e0e0e0',
@@ -713,10 +713,10 @@ export const GoogleSheetsView: React.FC<GoogleSheetsViewProps> = ({
                   color: '#b06000',
                   fontSize: '0.95rem'
                 }}>
-                  {makeup.total_makeup_flow_nm3_h.toFixed(1)} Nm³/h
+                  {makeup.total_makeup_flow_nm3_h != null ? `${makeup.total_makeup_flow_nm3_h.toFixed(1)} Nm³/h` : '-'}
                 </td>
                 <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', textAlign: 'center', color: '#b06000' }}>
-                  {makeup.total_makeup_flow_kg_h.toFixed(1)} kg/h
+                  {makeup.total_makeup_flow_kg_h != null ? `${makeup.total_makeup_flow_kg_h.toFixed(1)} kg/h` : '-'}
                 </td>
                 <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', color: '#b06000' }}>
                   DURASI {transitionHours.toFixed(1)} JAM

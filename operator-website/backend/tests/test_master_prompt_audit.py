@@ -97,7 +97,7 @@ class TestEngineeringCalculationsK1(unittest.TestCase):
         advisory = calculate_makeup_recommendations(actual_comp, target_comp, transition_hours=2.0)
         for item in advisory["items"]:
             if item["recommended_flow_kg_h"] > 0:
-                mw = MW_COMPONENTS[item["component"]]
+                mw = item.get("stream_mw", MW_COMPONENTS[item["component"]])
                 expected_nm3 = item["recommended_flow_kg_h"] * NORMAL_MOLAR_VOLUME_NM3_PER_KMOL / mw
                 self.assertAlmostEqual(item["recommended_flow_nm3_h"], expected_nm3, delta=0.5)
 

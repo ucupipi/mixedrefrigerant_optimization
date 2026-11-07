@@ -126,27 +126,44 @@ export interface ConfidenceData {
   regime_warning: string | null;
 }
 
+export type OptimizationStrategy = 'CONDITION_DEPENDENT' | 'FIXED_RECIPE' | 'MINIMUM_INTERVENTION';
+
 export interface MakeupInjectionItem {
   component: string;
   tag_dcs: string;
+  alternate_tag_dcs?: string | null;
   description: string;
   unit: string;
-  actual_molpct: number;
-  target_molpct: number;
-  delta_molpct: number;
-  recommended_flow_nm3_h: number;
-  recommended_flow_kg_h: number;
+  actual_molpct: number | null;
+  target_molpct: number | null;
+  delta_molpct: number | null;
+  needed_kmol?: number | null;
+  needed_kg?: number | null;
+  recommended_flow_nm3_h: number | null;
+  recommended_flow_kg_h: number | null;
+  recommended_flow_t_h?: number | null;
+  recommended_flow_scfd?: number | null;
+  stream_mw?: number | null;
   action: string;
   instruction: string;
 }
 
 export interface MakeupAdvisory {
-  transition_hours: number;
-  estimated_inventory_kg: number;
-  total_makeup_flow_nm3_h: number;
-  total_makeup_flow_kg_h: number;
+  status?: string;
+  transition_hours?: number | null;
+  estimated_inventory_kg?: number | null;
+  initial_moles_kmol?: number | null;
+  final_moles_kmol?: number | null;
+  expansion_ratio?: number | null;
+  total_makeup_flow_nm3_h: number | null;
+  total_makeup_flow_kg_h: number | null;
+  total_makeup_flow_t_h?: number | null;
+  total_makeup_flow_scfd?: number | null;
   items: MakeupInjectionItem[];
+  recommendations?: MakeupInjectionItem[];
+  explanation?: string;
   operational_notes: string[];
+  calculation_timestamp?: string;
 }
 
 export interface FlashDrumSummary {

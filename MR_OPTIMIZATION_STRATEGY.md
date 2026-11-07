@@ -182,3 +182,4 @@ In compliance with AGENTS.md:
 - **Pasal 2 (Zero Fake Regression):** Surrogate predictions are grounded in cross-validated gradient boosted ensembles ($R^2 > 0.985$, $\text{MAE} = 0.802\text{ MW}$).
 - **Pasal 5 (Manual Book First Principles):** MITA pinch $\ge 1.5^\circ\text{C}$, anti-surge floor $480.0\text{ t/h}$, suction TAL $-45.0^\circ\text{C}$, and Mahalanobis $D_M \le 3.0802$ are verified as active hard bounds.
 - **Typography Check:** All em-dashes and en-dashes have been replaced with standard hyphens or colons.
+

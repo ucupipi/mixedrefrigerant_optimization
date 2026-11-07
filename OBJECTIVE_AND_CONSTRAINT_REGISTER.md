@@ -149,3 +149,4 @@ The decision-support system recalculates all constraint residuals dynamically on
 $$\min\left(R_{\text{TAL}}, \, R_{\text{surge}}, \, R_{\text{SH}}, \, R_{\text{Maha}}, \, R_{\text{MITA}}, \, R_{\text{Simplex}}\right) \ge 0.0$$
 
 Any negative residual immediately trips the UI status badge to a safety violation alert and suppresses the `Apply AI Target` recommendation.
+

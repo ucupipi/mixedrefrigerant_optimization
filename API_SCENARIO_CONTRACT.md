@@ -162,3 +162,4 @@ To protect against race conditions caused by rapid UI changes:
 1. **Frontend AbortController:** Every new scenario dispatch calls `.abort()` on the previous in-flight HTTP request.
 2. **Stateless Solver Isolation:** The FastAPI calculation routines maintain zero shared mutable state between concurrent requests, ensuring 100% thread safety and deterministic outputs.
 3. **HTTP 422 Client Validation:** Payloads failing structural or boundary checks are rejected with descriptive JSON error structures, preventing backend solver exceptions.
+

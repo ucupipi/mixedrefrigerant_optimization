@@ -169,3 +169,4 @@ The implementation was empirically validated across feed flow variations:
 - Under Strategy A (`FIXED_RECIPE`): Composition remains invariant across all loads, while circulation scales from $480.0\text{ t/h}$ to $638.3\text{ t/h}$, proving the strategy distinction is strictly enforced.
 
 All 171 automated backend tests and 24 frontend tests confirm that data lineage is fully transparent and reproducible.
+

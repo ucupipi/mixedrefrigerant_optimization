@@ -309,24 +309,38 @@ class TestEngineeringCalculations(unittest.TestCase):
         self.assertEqual(c1_item["tag_dcs"], "H4FIC005")
         self.assertEqual(c1_item["action"], "INJEKSI")
 
-        # Check C2 and C3 hold injection (no make-up required for excess)
+        # Check C2 and C3 injection under closed-loop molar conservation:
+        # In this scenario, C2H4 is the limiting excess component (1.00% -> 0.80%, expansion = 1.25).
+        # To maintain C2 (44%) and C3 (6.7%) during the 25% loop expansion, both receive positive injection (INJEKSI).
         c2_item = items_dict["C2"]
         self.assertEqual(c2_item["tag_dcs"], "H4FI00C8")
-        self.assertIn("TAHAN", c2_item["action"])
-        self.assertEqual(c2_item["recommended_flow_nm3_h"], 0.0)
+        self.assertIn("INJEKSI", c2_item["action"])
+        self.assertGreater(c2_item["recommended_flow_nm3_h"], 0.0)
 
         c3_item = items_dict["C3"]
         self.assertEqual(c3_item["tag_dcs"], "H4FIC007")
-        self.assertIn("TAHAN", c3_item["action"])
-        self.assertEqual(c3_item["recommended_flow_nm3_h"], 0.0)
+        self.assertIn("INJEKSI", c3_item["action"])
+        self.assertGreater(c3_item["recommended_flow_nm3_h"], 0.0)
 
         # Volume to mass conversion consistency: V [Nm3] = (m [kg] / MW) * 22.414
         # Note: dictionary values are rounded to 1 decimal place (0.1 resolution)
         for comp, item in items_dict.items():
             if item["recommended_flow_kg_h"] > 0:
-                mw = MW_COMPONENTS[comp]
-                expected_nm3 = (item["recommended_flow_kg_h"] / mw) * NORMAL_MOLAR_VOLUME_NM3_PER_KMOL
+                stream_mw = item.get("stream_mw", MW_COMPONENTS[comp])
+                expected_nm3 = (item["recommended_flow_kg_h"] / stream_mw) * NORMAL_MOLAR_VOLUME_NM3_PER_KMOL
                 self.assertAlmostEqual(item["recommended_flow_nm3_h"], expected_nm3, delta=0.1)
+
+        # Verify limiting excess component receives TAHAN when a core component is limiting:
+        # Here C3 is limiting (7.00% -> 6.70%), so C3 is held while deficit components expand the loop.
+        res_c3_excess = calculate_makeup_recommendations(
+            actual_molpct={"N2": 3.00, "C1": 44.00, "C2": 45.00, "C2H4": 0.80, "C3": 7.00},
+            target_molpct={"N2": 3.50, "C1": 45.00, "C2": 44.00, "C2H4": 0.80, "C3": 6.70},
+            transition_hours=2.0,
+            inventory_kg=inventory_kg,
+        )
+        c3_excess_item = {item["component"]: item for item in res_c3_excess["items"]}["C3"]
+        self.assertIn("TAHAN", c3_excess_item["action"])
+        self.assertEqual(c3_excess_item["recommended_flow_nm3_h"], 0.0)
 
     # =========================================================================
     # CALC-06: 4D Mahalanobis Distance Critical Operating Boundary

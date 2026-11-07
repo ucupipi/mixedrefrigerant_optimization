@@ -82,7 +82,7 @@ const DEFAULT_PREDICTION = {
   features_computed: {},
   makeup_advisory: {
     transition_hours: 2.0,
-    estimated_inventory_kg: 85000,
+    estimated_inventory_kg: 24000.0,
     total_makeup_flow_nm3_h: 0,
     total_makeup_flow_kg_h: 0,
     items: [],
