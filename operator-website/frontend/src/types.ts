@@ -158,6 +158,30 @@ export interface FlashDrumSummary {
   status: string;
 }
 
+export interface CoolingWaterSpec {
+  T_CW_in_C: number;
+  delta_T_CW_C: number;
+  T_CW_out_C: number;
+  approach_C: number;
+  T_cond_C: number;
+  p_c3_disch_kgcm2a: number;
+}
+
+export interface ChillerDutyResult {
+  q_high_stage_mw: number;   // 3E-14 (+18 C)
+  q_med_stage_mw: number;    // 3E-17 (-10 C)
+  q_low_stage_mw: number;    // 3E-18 (-35 C)
+  q_total_precooling_mw: number;
+  q_propane_condenser_mw: number; // 3E-10
+  lmtd_condenser_c: number;
+  qHighStageMw?: number;
+  qMedStageMw?: number;
+  qLowStageMw?: number;
+  qTotalPrecoolingMw?: number;
+  qPropaneCondenserMw?: number;
+  lmtdCondenserC?: number;
+}
+
 export interface PredictResponse {
   prediction: PredictionSummary;
   domain_check: DomainCheck;
@@ -169,6 +193,8 @@ export interface PredictResponse {
   baseline_power_mw?: number | null;
   baseline_sec_lng?: number | null;
   flash_drum_5c1?: FlashDrumSummary | null;
+  cooling_water?: CoolingWaterSpec | null;
+  chiller_duties?: ChillerDutyResult | null;
 }
 
 export interface HistoricalPoint {

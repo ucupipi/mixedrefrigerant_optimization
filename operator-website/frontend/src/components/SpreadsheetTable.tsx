@@ -37,7 +37,7 @@ export const SpreadsheetTable: React.FC<SpreadsheetTableProps> = ({
       unit: 't/h',
       editable: true,
       status: 'DEMO (DCS)',
-      note: 'Variabel utama kapasitas produksi. Rentang data valid: 130 – 340 t/h.',
+      note: 'Variabel utama kapasitas produksi. Rentang data valid: 130 - 340 t/h.',
     },
     // Group 2: MCR Compressor
     {
@@ -111,7 +111,7 @@ export const SpreadsheetTable: React.FC<SpreadsheetTableProps> = ({
       unit: 'mol%',
       editable: true,
       status: 'DEMO (Lab GC)',
-      note: 'Komponen utama pendinginan subcooling MCHE. Rentang nominal: 35 – 55 mol%.',
+      note: 'Komponen utama pendinginan subcooling MCHE. Rentang nominal: 35 - 55 mol%.',
     },
     {
       group: 'Komposisi MCR',
@@ -123,7 +123,7 @@ export const SpreadsheetTable: React.FC<SpreadsheetTableProps> = ({
       unit: 'mol%',
       editable: true,
       status: 'DEMO (Lab GC)',
-      note: 'Komponen pendinginan bundle tengah MCHE. Rentang nominal: 30 – 55 mol%.',
+      note: 'Komponen pendinginan bundle tengah MCHE. Rentang nominal: 30 - 55 mol%.',
     },
     {
       group: 'Komposisi MCR',

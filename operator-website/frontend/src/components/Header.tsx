@@ -40,7 +40,7 @@ export const Header: React.FC<HeaderProps> = ({ timestamp, modelReady, shiftInfo
             alignItems: 'center',
             gap: '10px'
           }}>
-            Plant-5 Train H — C3MR Liquefaction & Refrigeration Cycle
+            Plant-5 Train H - C3MR Liquefaction & Refrigeration Cycle
             <span style={{
               fontSize: '0.75rem',
               fontWeight: 600,
@@ -61,7 +61,7 @@ export const Header: React.FC<HeaderProps> = ({ timestamp, modelReady, shiftInfo
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <span className="badge-demo">
-          DEMO — BUKAN DATA PLANT
+          DEMO - BUKAN DATA PLANT
         </span>
 
         <div style={{

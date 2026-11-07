@@ -1,75 +1,79 @@
-# Project: Plant-3 OTS Operator Website Refactor & C3MR VLE Optimization
+# Project: Badak NGL Plant-5 OTS Standalone Web & Cooling Seawater Hybrid C3MR Optimization
 
 ## Architecture
-- **Frontend**: React 18 + TypeScript + Vite + TailwindCSS (`operator-website/frontend/`)
-  - DCS Mimic: SVG Yokogawa Centum VP replica (`TabGrafik.tsx`)
-  - Operator Dashboard: KPI chips, TabInputResults, SpreadsheetTable, ResultPanel, TopNavbar
-- **Backend**: FastAPI + Python 3.10+ (`operator-website/backend/`)
-  - Thermodynamics Engine: 7-component Peng-Robinson EOS VLE Flash (`src/thermo/flash_drum_vle.py`)
-  - ML Surrogate & Optimizer: Ridge + GBDT with Monotonic Constraints (`core/optimizer_engine.py`)
-  - API Routes: `/api/v1/predict`, `/api/v1/status`, `/api/v1/stream-composition` (`api/routes.py`)
-- **Deployment**: Vercel Serverless Multi-Service + Synchronized Static Assets (`backend/static/`)
+- **Frontend**: React 19 + TypeScript + Vite + TailwindCSS (`operator-website/frontend/`)
+  - Standalone Client-Side Architecture: Fully functional in browser (Vercel) without external backend API dependency
+  - Hybrid Inference Engine: `hybridSurrogate.ts` attempting ONNX Runtime Web with automatic fallback to pure TypeScript physics engine `physicsEngine.ts`
+  - Thermodynamics Engine: `thermoFlash.ts` (PR-EOS 5C-1 Flash Drum VLE phase split, 5C-2 MCR separator phase split)
+  - Cooling Seawater Model: Teluk Bontang sea water inlet temperature T_CW = 30.0 C internal parameter governing propane condenser 3E-10 and chillers 3E-14/17/18
+  - Operator UI: DCS replica `TabGrafik.tsx`, `TabInputResults.tsx`, `ExcelWorkbookView.tsx`, `SpreadsheetTable.tsx`, `ResultPanel.tsx`, `TopNavbar.tsx`
+- **Backend & Verification Suite**:
+  - Test Suite: 24 unit tests in `operator-website/backend/tests/` (13 in `test_calculations.py`, 11 in `test_ui_empirical.py`)
+  - Verification: `npm test` in frontend executes and validates all 24 unit tests
 
 ## Feature Inventory
 | # | Feature | Description | Milestone | Source |
 |---|---------|-------------|-----------|--------|
-| 1 | Unified Centum VP Header | Consolidate 2 stacked headers into a single responsive 42px Centum VP window bar in `TabGrafik.tsx` | M1 | R1 Survey |
-| 2 | Refrigeration Stream Disambiguation | Distinctly display and label MCR Liquid (`FIC2`), MCR Vapor (`H5TI0047`), Total MCR (`H4FI011B`), and Propane Precooling (`4K-1` / `H4FI001A` + chillers) | M1 | R1 Survey |
-| 3 | Scenario Disturbance Clarification | Clarify Feed Gas Flow (`H1FI012`) as "Input Skenario / Beban Tetap" and relabel "Target AI" table heading | M1 | R2 Survey |
-| 4 | UI Unslop De-AI Rewriting | Replace academic/AI titles, robotic tags ("AI -152.0°C"), and buzzwords ("Value Creation") across UI | M1 | Follow-up Survey |
-| 5 | Rigorous 5C-1 VLE PR-EOS Engine | 7-component PR-EOS flash thermodynamic engine replacing static `0.9450` multiplier | M2 | R3 Survey |
-| 6 | 5C-1 Flash Physical Equilibrium Parity | Match 141.80 t/h liquid at 150.0 t/h feed and ~ -157.8°C bubble point matching DCS H5TI0041 | M2 | R3 Survey |
-| 7 | Full Codebase Magic Number Elimination | Audit and eliminate all 18 occurrences of `* 0.9450`, arbitrary economic multipliers, and uncalibrated constants | M3 | R4 Survey |
-| 8 | First-Principles Compressor Scaling | Replace heuristic speed exponent in `optimizer_engine.py` with physical affinity laws | M3 | R4 Survey |
-| 9 | Backend Routes Unslop Update | Replace "SKENARIO WHAT-IF (HASIL MODEL ML)" with "SIMULASI SKENARIO WHAT-IF" in `routes.py` | M3 | Follow-up Survey |
-| 10 | Frontend Build Pipeline Verification | Compile TypeScript frontend with zero errors (`npm run build`) | M4 | R5 Survey |
-| 11 | Backend Pytest Verification | Pass 100% of backend tests (`pytest operator-website/backend/tests`) with new VLE flash tests | M4 | R5 Survey |
-| 12 | Static Asset Synchronization | Synchronize frontend `dist/` bundle to `operator-website/backend/static/` | M4 | R5 Survey |
-| 13 | Remote Deployment Live Verification | Verify live operation and status at `https://mixedrefrigerantoptimization.vercel.app/` | M4 | R5 Survey |
+| 1 | Internal Cooling Seawater T_CW = 30.0 C | Internal model parameter T_CW = 30.0 C without operator slider, driving P_sat = 14.164 kg/cm2A and T_cond = 40.5 C | M1 | R1 Survey |
+| 2 | Chiller & Condenser Thermodynamics | Physical modeling of propane chillers 3E-14/17/18 and condenser 3E-10 duties and LMTD | M1 | R1 Survey |
+| 3 | Read-only T_CW Display in UI | Display T_CW = 30.0 C and chiller duties in ExcelWorkbookView without adding interactive sliders | M1 | R1 Survey |
+| 4 | Bundled Default Snapshot Data | Static offline snapshot data in `src/data/defaultSnapshot.ts` ensuring zero-dependency initial load | M2 | R2 Survey |
+| 5 | Pure TypeScript Physics Engine | First-principles feature builder (20 features), ILR geometry, Mahalanobis D_M <= 3.0802, DCS quantile baseline, exact Ridge surrogate | M2 | R2 Survey |
+| 6 | Hybrid ONNX Runtime Web with TS Fallback | Hybrid inference wrapper in `src/utils/hybridSurrogate.ts` that tries ONNX then silently falls back to TS physics | M2 | R2 Survey |
+| 7 | Standalone Client-Side API Adapter | Seamless fallback in `src/api.ts` so `predictScenario` and `fetchDemoSnapshot` work 100% offline | M2 | R2 Survey |
+| 8 | Em-Dash and En-Dash Elimination | Eradicate all 74 Unicode em-dash (U+2014) and en-dash (U+2013) in frontend and 1 in backend test | M3 | R3 Survey |
+| 9 | Frontend npm test Script Integration | Add `"test"` script to `operator-website/frontend/package.json` that runs 24/24 unit tests green | M3 | R3 Survey |
+| 10 | Strict AGENTS.md & Plant-5 Alignment | Zero magic numbers, verify Afdal as Process Control Engineer, Plant-5 Train H terminology | M3 | R3 Survey |
+| 11 | Production Build & Lint Pass | `npm run build` exit code 0 and `npm run lint` clean pass without errors | M3 | R3 Survey |
+| 12 | Final Gate Verification | Full review, adversarial challenge, and forensic audit of all acceptance criteria | M4 | Final Gate |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| 1 | M1: PFD Header Consolidation & UI Stream Clarification | TabGrafik.tsx header consolidation, stream disambiguation, scenario input labels, UI unslop | none | DONE (Verified: Centum VP 42px header, stream disambiguation, unslop, npm build exit 0) |
-| 2 | M2: 5C-1 Flash Drum Rigorous PR-EOS Thermodynamics | 7-component PR-EOS flash engine, backend integration, frontend thermo parity, physical 141.8 t/h validation | none | DONE (Verified: 141.79 t/h @ 150 t/h feed, -157.90°C bubble point, 82/82 pytest green) |
-| 3 | M3: Codebase-wide Magic Number & Heuristic Elimination | Eradicate all static `* 0.9450`, economic constants, hardcoded FIC2, compressor speed exponent, backend unslop | M2 | PLANNED |
-| 4 | M4: Test Suite Verification, Static Sync & Live Deployment | Frontend build, backend pytest, static asset sync, remote deployment verification | M1, M2, M3 | PLANNED |
+| 1 | M1: Cooling Seawater T_CW & Chiller/Condenser Integration | Implement internal parameter T_CW = 30.0 C in types.ts, thermoFlash.ts, and ExcelWorkbookView.tsx without UI slider | none | DONE (Gate PASS: T_CW=30.0C internal, 3E-10/14/17/18 duties, read-only UI, 24/24 tests green) |
+| 2 | M2: Client-Side Standalone Hybrid ONNX & TypeScript Physics Engine | Implement physicsEngine.ts, hybridSurrogate.ts, defaultSnapshot.ts, and wire api.ts for 100% standalone Vercel operation | M1 | DONE (Gate PASS: standalone offline fallback, exact 20-feat Ridge, hybrid ONNX, 24/24 tests green) |
+| 3 | M3: Em/En-Dash Sanitization, Frontend npm test, and Build Verification | Sanitize 75 dash violations, add npm test script (24/24 tests green), verify npm run build exit 0, AGENTS.md compliance | M1, M2 | DONE (Gate PASS: npm test exit 0, 24/24 green, 0 em/en-dashes, Plant-5 consistency) |
+| 4 | M4: Final Review, Adversarial Challenge, and Forensic Audit | Independent reviewer, challenger stress testing, and forensic auditor integrity verification | M1, M2, M3 | DONE (Gate PASS: 100% criteria verified, CLEAN audit verdict) |
 
 ## Interface Contracts
-### 5C-1 Flash Drum VLE Contract: Backend ↔ Frontend
-- **Module**: `operator-website/backend/src/thermo/flash_drum_vle.py`
-- **Function**: `calculate_flash_drum_5c1(feed_flow_t_h: float, T_mche_exit_C: float = -152.0, P_drop_kg_cm2: float = 0.40, composition: Optional[Dict[str, float]] = None) -> FlashDrumResult`
-- **Output Schema**:
-  ```python
-  class FlashDrumResult(BaseModel):
-      feed_mass_flow_t_h: float
-      lng_liquid_flow_t_h: float
-      end_flash_gas_flow_t_h: float
-      liquid_mass_yield_pct: float
-      vapor_mol_fraction: float
-      flash_temperature_C: float
-      flash_pressure_bara: float
-      liquid_composition_mol_pct: Dict[str, float]
-      vapor_composition_mol_pct: Dict[str, float]
-      status: str  # e.g., "VALID_PR_EOS_VLE"
+### 1. Cooling Seawater & Chiller Contract
+- **Module**: `operator-website/frontend/src/utils/thermoFlash.ts`
+- **Constant**: `DEFAULT_COOLING_WATER = { T_CW_in_C: 30.0, delta_T_CW_C: 5.0, T_CW_out_C: 35.0, approach_C: 5.5, T_cond_C: 40.5, p_c3_disch_kgcm2a: 14.164 }`
+- **Output Types**:
+  ```typescript
+  export interface ChillerDutyResult {
+    q_high_stage_mw: number;   // 3E-14 (+18 C)
+    q_med_stage_mw: number;    // 3E-17 (-10 C)
+    q_low_stage_mw: number;    // 3E-18 (-35 C)
+    q_total_precooling_mw: number;
+    q_propane_condenser_mw: number; // 3E-10
+    lmtd_condenser_c: number;
+  }
   ```
-- **Thermodynamic Ground Truth**:
-  - Feed: 150.0 t/h treated gas
-  - Conditions: MCHE outlet -152.0°C to -153.8°C, P_flash = 0.30 kg/cm²G
-  - Liquid yield: 94.533 wt% -> 141.80 t/h LNG rundown (tolerance ±0.5 t/h)
-  - Flash temperature: -157.7°C to -157.9°C (matching DCS H5TI0041 = -158.1°C)
+
+### 2. Standalone Client-Side Prediction Contract
+- **Module**: `operator-website/frontend/src/utils/physicsEngine.ts` and `src/api.ts`
+- **Function**: `computeClientPrediction(scenario: ScenarioInput, actualDcs?: Partial<ScenarioInput>): PredictResponse`
+- **Behavior**:
+  - Matches exact return schema of `/api/v1/predict`
+  - Evaluates 20 standardized features matching `feature_builder.py`
+  - Evaluates Ridge surrogate with intercept `90.165461 MW` and exact trained coefficients
+  - Evaluates DCS 7-quantile baseline power for Plant-5 Train H
+  - Evaluates 5C-1 Flash letdown via `calculateFlashDrum5C1`
+  - Evaluates safety interlocks (TAL -45 C, Anti-surge 480 t/h, MITA pinch >= 1.5 C)
+  - Evaluates make-up injection advisory for N2, C1, C2, C3
 
 ## Code Layout
-- Frontend UI: `operator-website/frontend/src/components/`
-  - `TabGrafik.tsx`: Unified Centum VP header, PFD SVG, refrigeration stream tags
-  - `TabInputResults.tsx`: Scenario disturbance labels, table headings, economic formulas
-  - `TopNavbar.tsx`: Plant title unslop
-  - `ResultPanel.tsx`: Recommendation wording unslop
-  - `ExcelWorkbookView.tsx`: Dynamic flash calculation binding
-  - `App.tsx`: Global state, scenario synchronization, CSV export
-- Backend Python: `operator-website/backend/`
-  - `src/thermo/flash_drum_vle.py`: 7-component PR-EOS flash engine
-  - `api/routes.py`: FastAPI endpoints, prediction handlers, unslop labels
-  - `core/optimizer_engine.py`: ML surrogate & physical compressor affinity scaling
-  - `tests/test_calculations.py`: Pytest suite for VLE thermodynamics and mass balances
-- Static Assets: `operator-website/backend/static/`
+- Frontend: `operator-website/frontend/`
+  - `src/utils/thermoFlash.ts`: 5C-1 flash drum, 5C-2 MCR phase split, cooling seawater thermodynamics
+  - `src/utils/physicsEngine.ts`: Pure TypeScript first-principles physics surrogate & feature builder
+  - `src/utils/hybridSurrogate.ts`: Hybrid ONNX Runtime Web loader with automatic physics fallback
+  - `src/data/defaultSnapshot.ts`: Bundled plant baseline snapshot data for standalone offline initialization
+  - `src/api.ts`: API client with transparent standalone client-side execution fallback
+  - `src/components/ExcelWorkbookView.tsx`: Workbook view showing T_CW = 30.0 C and chiller duties (read-only)
+  - `src/components/TopNavbar.tsx`: Author roster with Afdal as Process Control Engineer
+  - `src/components/TabGrafik.tsx`: DCS mimic layout
+  - `package.json`: Build and test scripts
+- Tests: `operator-website/backend/tests/`
+  - `test_calculations.py`: 13 engineering calculation unit tests
+  - `test_ui_empirical.py`: 11 UI empirical unit tests

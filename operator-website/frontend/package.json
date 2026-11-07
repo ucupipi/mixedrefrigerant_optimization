@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "python -m pytest ../backend/tests/test_calculations.py ../backend/tests/test_ui_empirical.py -v"
   },
   "dependencies": {
     "react": "^19.3.1",

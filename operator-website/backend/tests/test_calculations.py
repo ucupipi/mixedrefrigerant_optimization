@@ -131,7 +131,7 @@ class TestEngineeringCalculations(unittest.TestCase):
             sec_lng_status = "OK"
         else:
             sec_lng = None
-            sec_lng_status = "N/A — data produksi LNG belum tersedia"
+            sec_lng_status = "N/A - data produksi LNG belum tersedia"
 
         self.assertIsNone(sec_lng, "SEC LNG must be None when fiscal rundown data is absent")
         self.assertIn("N/A", sec_lng_status)

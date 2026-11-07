@@ -86,7 +86,7 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
           <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#38bdf8' }}>MW</span>
         </div>
         <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
-          Ketidakpastian (CI 95%): ±{confidence.mae_mw.toFixed(2)} MW [{confidence.bootstrap_ci_lower_mw.toFixed(2)} – {confidence.bootstrap_ci_upper_mw.toFixed(2)} MW]
+          Ketidakpastian (CI 95%): ±{confidence.mae_mw.toFixed(2)} MW [{confidence.bootstrap_ci_lower_mw.toFixed(2)} - {confidence.bootstrap_ci_upper_mw.toFixed(2)} MW]
         </div>
         {deltaPower !== null && (
           <div style={{
@@ -130,7 +130,7 @@ export const ResultPanel: React.FC<ResultPanelProps> = ({
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '6px' }}>
           <span className="font-num" style={{ fontSize: '2.1rem', fontWeight: 800, color: '#f8fafc' }}>
-            {pred.sec_kwh_per_t ? pred.sec_kwh_per_t.toFixed(1) : '—'}
+            {pred.sec_kwh_per_t ? pred.sec_kwh_per_t.toFixed(1) : '-'}
           </span>
           <span style={{ fontSize: '1rem', fontWeight: 700, color: '#06b6d4' }}>kWh/t umpan</span>
         </div>

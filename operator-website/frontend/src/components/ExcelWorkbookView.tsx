@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { ActualDcsState, DemoSnapshot, HistoricalPoint, OptimizeResponse, PredictResponse, ScenarioInput } from '../types';
-import { calculateFlashDrum5C1, getEstimatedLngFlow } from '../utils/thermoFlash';
+import { calculateChillerAndCondenserDuties, calculateFlashDrum5C1, DEFAULT_COOLING_WATER, getEstimatedLngFlow } from '../utils/thermoFlash';
 import { TabGrafik } from './TabGrafik';
 import { TabPanduan } from './TabPanduan';
 
@@ -34,7 +34,7 @@ const BH = '1px solid #9ca3af'; // header border
 const mono = "'Consolas', 'Courier New', monospace";
 const cellPad = '5px 8px';
 
-/* Flow conversion constants — single source: data/MASTER_DATASET_REBUILD_20261014/scripts/08_enrich_physics_features.py
+/* Flow conversion constants - single source: data/MASTER_DATASET_REBUILD_20261014/scripts/08_enrich_physics_features.py
    treated_gas_mass_flow_t_h = H3FI0004 [kNm3/h] x 0.760 ; H3FI0004 soft-sensor = 0.8136 x H1FI0009 */
 const TREATED_GAS_T_PER_KNM3 = 0.760;
 const TREATED_TO_FEED_RATIO = 0.8136;
@@ -115,7 +115,7 @@ const inputStyle: React.CSSProperties = {
   fontSize: '0.85rem',
 };
 
-/* Actual DCS input (operator types current PV / GC result) — blue to distinguish from target */
+/* Actual DCS input (operator types current PV / GC result) - blue to distinguish from target */
 const actualInputStyle: React.CSSProperties = {
   ...inputStyle,
   border: '1.5px solid #93c5fd',
@@ -150,7 +150,7 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
   const [activeSheetTab, setActiveSheetTab] = useState<ExcelSheetTabId>('sheet-01');
   const [transitionHours, setTransitionHours] = useState<number>(scenario.transition_hours || 2.0);
 
-  /* Derived values — baseline = same surrogate evaluated at the operator's Aktual DCS state */
+  /* Derived values - baseline = same surrogate evaluated at the operator's Aktual DCS state */
   const snapshotPower = snapshot.baseline_model_output?.total_shaft_power_mw ?? 84.48;
   const baselinePower = prediction?.baseline_power_mw ?? prediction?.actual_power_mw ?? snapshotPower;
   const currentPower = prediction ? prediction.prediction.total_shaft_power_mw : baselinePower;
@@ -185,11 +185,23 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
   const domain = prediction?.domain_check;
   const hasViolations = Boolean(prediction?.safety_check.violations && prediction.safety_check.violations.length > 0);
 
+  // Cooling Seawater & Precooling Chiller Thermodynamics (AGENTS.md Pasal 1, 5, 10 & ORIGINAL_REQUEST.md R1)
+  const actualChillers = calculateChillerAndCondenserDuties(
+    actualDcs.feed_flow_t_h,
+    actualDcs.mcr_flow_t_h,
+    DEFAULT_COOLING_WATER.T_CW_in_C
+  );
+  const targetChillers = prediction?.chiller_duties ?? calculateChillerAndCondenserDuties(
+    scenario.feed_flow_t_h,
+    scenario.mcr_flow_t_h,
+    DEFAULT_COOLING_WATER.T_CW_in_C
+  );
+
   /* Snapshot DCS values for read-only display */
   const sv = snapshot.values;
   const dcsVal = (key: string): string => {
     const v = sv[key];
-    return v ? String(v.value) : '—';
+    return v ? String(v.value) : '-';
   };
 
   /* ========================================================================= */
@@ -235,7 +247,7 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '0.92rem', fontWeight: 700 }}>
-                Plant-5 Train H — C3MR Liquefaction & Make-Up Advisory
+                Plant-5 Train H - C3MR Liquefaction & Make-Up Advisory
               </span>
               <span style={{
                 fontSize: '0.65rem',
@@ -244,10 +256,10 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                 padding: '2px 8px',
                 borderRadius: '3px',
                 fontWeight: 600,
-              }}>ADVISORY — TIDAK MENULIS KE DCS</span>
+              }}>ADVISORY - TIDAK MENULIS KE DCS</span>
             </div>
             <div style={{ fontSize: '0.68rem', color: '#64748b', marginTop: '1px' }}>
-              Dukungan Keputusan Operator — Siklus Refrigerasi Campuran MCR & C3
+              Dukungan Keputusan Operator - Siklus Refrigerasi Campuran MCR & C3
             </div>
           </div>
         </div>
@@ -453,7 +465,7 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
             {/* Card: Specific Energy Consumption SEC LNG (H5FI6A) */}
             <div style={{ backgroundColor: '#fff', borderRadius: '5px', padding: '10px 14px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
               <div style={{ fontSize: '0.68rem', color: '#107c41', fontWeight: 700, textTransform: 'uppercase' }}>
-                SEC LNG (Spesifik per Ton LNG — H5FI6A)
+                SEC LNG (Spesifik per Ton LNG - H5FI6A)
               </div>
               <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', marginTop: '3px' }}>
                 {secLng.toFixed(1)} <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>kWh/t LNG</span>
@@ -494,7 +506,7 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                 {(domain?.in_domain ?? true) && scenario.mcr_flow_t_h >= 480.0 ? '✓ Kendala Terperiksa Terpenuhi' : '⚠ Perlu Ditinjau'}
               </div>
               <div style={{ fontSize: '0.71rem', color: '#64748b', marginTop: '3px' }}>
-                D<sub>M</sub>: {domain ? domain.mahalanobis_distance.toFixed(2) : '—'} (≤3.08) · Floor ≥480 t/h · Peta dinamis: Belum dievaluasi
+                D<sub>M</sub>: {domain ? domain.mahalanobis_distance.toFixed(2) : '-'} (≤3.08) · Floor ≥480 t/h · Peta dinamis: Belum dievaluasi
               </div>
             </div>
           </div>
@@ -524,12 +536,12 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                   {optimumStale ? '⚠ Rekomendasi kedaluwarsa' : 'Rekomendasi AI aktif'}
                 </strong>
                 {' '}untuk feed {optimum.feed_t_h.toFixed(1)} t/h
-                {optimumStale && ` (feed aktual sekarang ${actualDcs.feed_flow_t_h.toFixed(1)} t/h — klik hitung ulang)`}
+                {optimumStale && ` (feed aktual sekarang ${actualDcs.feed_flow_t_h.toFixed(1)} t/h - klik hitung ulang)`}
                 {' · '}D<sub>M</sub> = {optimum.mahalanobis_distance.toFixed(3)} (≤ 3.0802)
                 {' · '}Estimasi H4TI004B = {optimum.expected_suction_temp_c.toFixed(1)} °C ({optimum.suction_tal_ok ? '≥ −45.0 °C AMAN' : '⚠ TAL'})
                 {optimum.antisurge_floor_applied && ' · Laju MCR dijepit ke batas anti-surge 480.0 t/h'}
                 {optimum.envelope_shrink_applied && ' · Komposisi ditarik ke batas elipsoid D_M'}
-                {optimum.extrapolated && ` · Feed di luar rentang optimasi ${optimum.feed_span_t_h[0]}–${optimum.feed_span_t_h[1]} t/h: dipakai titik ujung terdekat`}
+                {optimum.extrapolated && ` · Feed di luar rentang optimasi ${optimum.feed_span_t_h[0]}-${optimum.feed_span_t_h[1]} t/h: dipakai titik ujung terdekat`}
                 <div style={{ fontSize: '0.72rem', color: '#475569', marginTop: '3px', fontFamily: mono }}>
                   Mesin solver: <strong>{optimum.source}</strong> · Batas: T_suct ≥ −45.0 °C, D_M ≤ 3.0802, superheat PR-EOS ≥ 3.0 °C, MCR ≥ 480 t/h.
                 </div>
@@ -561,13 +573,13 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
               </thead>
               <tbody>
                 {/* ============================================================= */}
-                {/* SEKSI A — INPUT SKENARIO (WHAT-IF, DAPAT DIEDIT) */}
+                {/* SEKSI A - INPUT SKENARIO (WHAT-IF, DAPAT DIEDIT) */}
                 {/* ============================================================= */}
                 <tr><td colSpan={7} style={sectionHdrStyle('#0d9488')}>
-                  ▎ SEKSI A — AKTUAL DCS (DIISI OPERATOR) vs REKOMENDASI AI (LAJU MCR & KOMPOSISI MCR)
+                  ▎ SEKSI A - AKTUAL DCS (DIISI OPERATOR) vs REKOMENDASI AI (LAJU MCR & KOMPOSISI MCR)
                 </td></tr>
 
-                {/* A1: Treated Gas Flow (model feature key: feed_flow_t_h) — disturbance, target follows actual */}
+                {/* A1: Treated Gas Flow (model feature key: feed_flow_t_h) - disturbance, target follows actual */}
                 <tr style={{ backgroundColor: '#fff' }}>
                   <td style={tagCell}>H3FI0004</td>
                   <td style={{ ...nameCell, fontWeight: 600 }}>Laju Alir Treated Gas 3C-2 → MCHE 5E-1 (massa)</td>
@@ -579,7 +591,7 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                   <td style={{ ...valCell, color: '#334155' }}>{scenario.feed_flow_t_h.toFixed(1)}</td>
                   <td style={unitCell}>t/h</td>
                   <td style={{ ...nameCell, color: '#1d4ed8', fontWeight: 600, fontSize: '0.76rem' }}>GANGGUAN (ikut aktual)</td>
-                  <td style={noteCell}>= H3FI0004 [kNm³/h] × 0.760; feed bukan variabel keputusan; rentang data latih 130 – 340 t/h</td>
+                  <td style={noteCell}>= H3FI0004 [kNm³/h] × 0.760; feed bukan variabel keputusan; rentang data latih 130 - 340 t/h</td>
                 </tr>
 
                 {/* A1b: LNG Rundown Flow (H5FI6A) */}
@@ -631,11 +643,11 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
 
                 {/* A3-A7: MCR Composition */}
                 {[
-                  { tag: 'comp_4C-8_N2', name: 'MCR Nitrogen (N₂)', key: 'comp_N2_molpct' as CompKey, note: 'Mengontrol suhu cold bundle & TAL; 0.5–8.5%' },
-                  { tag: 'comp_4C-8_C1', name: 'MCR Metana (CH₄)', key: 'comp_C1_molpct' as CompKey, note: 'Subcooling LNG rundown; 35–55%' },
-                  { tag: 'comp_4C-8_C2', name: 'MCR Etana (C₂H₆)', key: 'comp_C2_molpct' as CompKey, note: 'Pendinginan bundle tengah; 30–55%' },
-                  { tag: 'comp_4C-8_C2H4', name: 'MCR Etilena (C₂H₄)', key: 'comp_C2H4_molpct' as CompKey, note: 'Modifikasi kurva transisi; 0–45%' },
-                  { tag: 'comp_4C-8_C3', name: 'MCR Propana (C₃H₈)', key: 'comp_C3_molpct' as CompKey, note: 'Pendinginan warm end; 0–12%' },
+                  { tag: 'comp_4C-8_N2', name: 'MCR Nitrogen (N₂)', key: 'comp_N2_molpct' as CompKey, note: 'Mengontrol suhu cold bundle & TAL; 0.5-8.5%' },
+                  { tag: 'comp_4C-8_C1', name: 'MCR Metana (CH₄)', key: 'comp_C1_molpct' as CompKey, note: 'Subcooling LNG rundown; 35-55%' },
+                  { tag: 'comp_4C-8_C2', name: 'MCR Etana (C₂H₆)', key: 'comp_C2_molpct' as CompKey, note: 'Pendinginan bundle tengah; 30-55%' },
+                  { tag: 'comp_4C-8_C2H4', name: 'MCR Etilena (C₂H₄)', key: 'comp_C2H4_molpct' as CompKey, note: 'Modifikasi kurva transisi; 0-45%' },
+                  { tag: 'comp_4C-8_C3', name: 'MCR Propana (C₃H₈)', key: 'comp_C3_molpct' as CompKey, note: 'Pendinginan warm end; 0-12%' },
                 ].map((row, i) => {
                   const d = (scenario[row.key] as number) - actualDcs[row.key];
                   return (
@@ -730,10 +742,10 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                 </tr>
 
                 {/* ============================================================= */}
-                {/* SEKSI B — KONDISI PROSES & KOMPRESOR (DCS PVs, READ-ONLY) */}
+                {/* SEKSI B - KONDISI PROSES & KOMPRESOR (DCS PVs, READ-ONLY) */}
                 {/* ============================================================= */}
                 <tr><td colSpan={7} style={sectionHdrStyle('#1e40af')}>
-                  ▎ SEKSI B — KONDISI PROSES & KOMPRESOR 4K-2/4K-3 (DCS — READ-ONLY)
+                  ▎ SEKSI B - KONDISI PROSES & KOMPRESOR 4K-2/4K-3 (DCS - READ-ONLY)
                 </td></tr>
 
                 {/* B0a: Treated gas volumetric (inverse of stage-08 density factor 0.760 t/kNm3) */}
@@ -766,7 +778,7 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                   <td style={{ ...valCell, color: '#334155' }}>{dcsVal('p_4k2_suct_kgcm2a')}</td>
                   <td style={unitCell}>kg/cm²A</td>
                   <td style={{ ...nameCell, color: '#64748b', fontSize: '0.76rem' }}>BACA DCS</td>
-                  <td style={noteCell}>Rentang tipikal: 2.4 – 3.5 kg/cm²A</td>
+                  <td style={noteCell}>Rentang tipikal: 2.4 - 3.5 kg/cm²A</td>
                 </tr>
 
                 {/* B2: 4K-2 LP Discharge Pressure */}
@@ -777,7 +789,7 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                   <td style={{ ...valCell, color: '#334155' }}>{dcsVal('p_4k2_disch_kgcm2a')}</td>
                   <td style={unitCell}>kg/cm²A</td>
                   <td style={{ ...nameCell, color: '#64748b', fontSize: '0.76rem' }}>BACA DCS</td>
-                  <td style={noteCell}>Rentang tipikal: 12.0 – 15.5 kg/cm²A</td>
+                  <td style={noteCell}>Rentang tipikal: 12.0 - 15.5 kg/cm²A</td>
                 </tr>
 
                 {/* B3: 4K-3 HP Suction Pressure */}
@@ -799,7 +811,7 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                   <td style={{ ...valCell, color: '#334155' }}>{dcsVal('p_4k3_disch_kgcm2a')}</td>
                   <td style={unitCell}>kg/cm²A</td>
                   <td style={{ ...nameCell, color: '#64748b', fontSize: '0.76rem' }}>BACA DCS</td>
-                  <td style={noteCell}>Rentang tipikal: 42.0 – 48.0 kg/cm²A</td>
+                  <td style={noteCell}>Rentang tipikal: 42.0 - 48.0 kg/cm²A</td>
                 </tr>
 
                 {/* B5: Pressure Ratio LP */}
@@ -808,7 +820,7 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                   <td style={nameCell}>Rasio Tekanan LP 4K-2 (P<sub>disch</sub>/P<sub>suct</sub>)</td>
                   <td style={valCell}>4.23</td>
                   <td style={{ ...valCell, color: '#334155' }}>{(feat.rp_LP_MCR ?? 4.23).toFixed(2)}</td>
-                  <td style={unitCell}>—</td>
+                  <td style={unitCell}>-</td>
                   <td style={{ ...nameCell, color: '#64748b', fontSize: '0.76rem' }}>DIHITUNG</td>
                   <td style={noteCell}>Manual Book §3.3: r<sub>p,LP</sub> = 13.50/3.15 = 4.286</td>
                 </tr>
@@ -819,7 +831,7 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                   <td style={nameCell}>Rasio Tekanan HP 4K-3 (P<sub>disch</sub>/P<sub>suct</sub>)</td>
                   <td style={valCell}>3.27</td>
                   <td style={{ ...valCell, color: '#334155' }}>{(feat.rp_HP_MCR ?? 3.27).toFixed(2)}</td>
-                  <td style={unitCell}>—</td>
+                  <td style={unitCell}>-</td>
                   <td style={{ ...nameCell, color: '#64748b', fontSize: '0.76rem' }}>DIHITUNG</td>
                   <td style={noteCell}>Manual Book §3.3: r<sub>p,HP</sub> = 43.60/13.50 = 3.230</td>
                 </tr>
@@ -830,7 +842,7 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                   <td style={nameCell}>Rasio Tekanan Total MCR (LP × HP)</td>
                   <td style={valCell}>13.56</td>
                   <td style={{ ...valCell, color: '#334155' }}>{(feat.rp_MCR_total ?? 13.56).toFixed(2)}</td>
-                  <td style={unitCell}>—</td>
+                  <td style={unitCell}>-</td>
                   <td style={{ ...nameCell, color: '#64748b', fontSize: '0.76rem' }}>DIHITUNG</td>
                   <td style={noteCell}>r<sub>p,Total</sub> = r<sub>p,LP</sub> × r<sub>p,HP</sub></td>
                 </tr>
@@ -865,7 +877,7 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                   <td style={{ ...valCell, color: '#334155' }}>{dcsVal('p_c3_disch_kgcm2a')}</td>
                   <td style={unitCell}>kg/cm²A</td>
                   <td style={{ ...nameCell, color: '#64748b', fontSize: '0.76rem' }}>BACA DCS</td>
-                  <td style={noteCell}>Rentang tipikal: 13.0 – 15.0 kg/cm²A</td>
+                  <td style={noteCell}>Rentang tipikal: 13.0 - 15.0 kg/cm²A</td>
                 </tr>
 
                 {/* B11: rp_C3_total */}
@@ -874,9 +886,91 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                   <td style={nameCell}>Rasio Tekanan Total Propana 4K-1</td>
                   <td style={valCell}>13.56</td>
                   <td style={{ ...valCell, color: '#334155' }}>{(feat.rp_C3_total ?? 13.56).toFixed(2)}</td>
-                  <td style={unitCell}>—</td>
+                  <td style={unitCell}>-</td>
                   <td style={{ ...nameCell, color: '#64748b', fontSize: '0.76rem' }}>DIHITUNG</td>
                   <td style={noteCell}>r<sub>p,C3</sub> = P<sub>disch</sub>/P<sub>suct</sub> (4K-1)</td>
+                </tr>
+
+                {/* B11b: Cooling Seawater Inlet Temperature T_CW (Internal Parameter, Non-Interactive) */}
+                <tr style={{ backgroundColor: '#f0fdf4' }}>
+                  <td style={{ ...tagCell, color: '#0284c7', fontWeight: 700 }}>T_CW</td>
+                  <td style={{ ...nameCell, fontWeight: 700, color: '#0369a1' }}>
+                    Suhu Air Laut Pendingin Teluk Bontang (T_CW)
+                  </td>
+                  <td style={{ ...valCell, fontWeight: 700 }}>{DEFAULT_COOLING_WATER.T_CW_in_C.toFixed(1)}</td>
+                  <td style={{ ...valCell, fontWeight: 700, color: '#0284c7' }}>{DEFAULT_COOLING_WATER.T_CW_in_C.toFixed(1)}</td>
+                  <td style={unitCell}>°C</td>
+                  <td style={{ ...nameCell, color: '#0284c7', fontWeight: 600, fontSize: '0.76rem' }}>
+                    PARAMETER INTERNAL
+                  </td>
+                  <td style={noteCell}>
+                    Air laut Teluk Bontang (desain 30.0 °C); penentu T_cond (40.5 °C) & P_sat C3 (14.164 kg/cm²A)
+                  </td>
+                </tr>
+
+                {/* B11c: Propane Condenser 3E-10 Heat Duty & LMTD */}
+                <tr style={{ backgroundColor: '#fff' }}>
+                  <td style={{ ...tagCell, color: '#64748b' }}>3E-10</td>
+                  <td style={nameCell}>Beban Kondensor Propana 3E-10 (4E-2A-F)</td>
+                  <td style={valCell}>{actualChillers.q_propane_condenser_mw.toFixed(2)}</td>
+                  <td style={{ ...valCell, color: '#334155', fontWeight: 600 }}>{targetChillers.q_propane_condenser_mw.toFixed(2)}</td>
+                  <td style={unitCell}>MW</td>
+                  <td style={{ ...nameCell, color: '#64748b', fontSize: '0.76rem' }}>DIHITUNG</td>
+                  <td style={noteCell}>
+                    Neraca energi: Q_precool + W_comp; LMTD = {targetChillers.lmtd_condenser_c.toFixed(2)} °C (approach 5.5 °C)
+                  </td>
+                </tr>
+
+                {/* B11d: High Stage Chiller 3E-14 (+18 C) */}
+                <tr style={{ backgroundColor: '#fafafa' }}>
+                  <td style={{ ...tagCell, color: '#64748b' }}>3E-14</td>
+                  <td style={nameCell}>Chiller Propana High Stage (+18°C) 3E-14</td>
+                  <td style={valCell}>{actualChillers.q_high_stage_mw.toFixed(2)}</td>
+                  <td style={{ ...valCell, color: '#334155', fontWeight: 600 }}>{targetChillers.q_high_stage_mw.toFixed(2)}</td>
+                  <td style={unitCell}>MW</td>
+                  <td style={{ ...nameCell, color: '#64748b', fontSize: '0.76rem' }}>DIHITUNG</td>
+                  <td style={noteCell}>Evaporasi +18.0 °C (7.0 kg/cm²A); mendinginkan feed & MCR ke 22.0 °C</td>
+                </tr>
+
+                {/* B11e: Medium Stage Chiller 3E-17 (-10 C) */}
+                <tr style={{ backgroundColor: '#fff' }}>
+                  <td style={{ ...tagCell, color: '#64748b' }}>3E-17</td>
+                  <td style={nameCell}>Chiller Propana Medium Stage (-10°C) 3E-17</td>
+                  <td style={valCell}>{actualChillers.q_med_stage_mw.toFixed(2)}</td>
+                  <td style={{ ...valCell, color: '#334155', fontWeight: 600 }}>{targetChillers.q_med_stage_mw.toFixed(2)}</td>
+                  <td style={unitCell}>MW</td>
+                  <td style={{ ...nameCell, color: '#64748b', fontSize: '0.76rem' }}>DIHITUNG</td>
+                  <td style={noteCell}>Evaporasi -10.0 °C (3.5 kg/cm²A); mendinginkan feed & MCR ke -5.0 °C</td>
+                </tr>
+
+                {/* B11f: Low Stage Chiller 3E-18 (-35 C) */}
+                <tr style={{ backgroundColor: '#fafafa' }}>
+                  <td style={{ ...tagCell, color: '#64748b' }}>3E-18</td>
+                  <td style={nameCell}>Chiller Propana Low Stage (-35°C) 3E-18</td>
+                  <td style={valCell}>{actualChillers.q_low_stage_mw.toFixed(2)}</td>
+                  <td style={{ ...valCell, color: '#334155', fontWeight: 600 }}>{targetChillers.q_low_stage_mw.toFixed(2)}</td>
+                  <td style={unitCell}>MW</td>
+                  <td style={{ ...nameCell, color: '#64748b', fontSize: '0.76rem' }}>DIHITUNG</td>
+                  <td style={noteCell}>Evaporasi -35.0 °C (1.045 kg/cm²A); mendinginkan feed ke -32.5 °C & MCR ke -35.0 °C</td>
+                </tr>
+
+                {/* B11g: Total Precooling Duty */}
+                <tr style={{ backgroundColor: '#f0fdf4' }}>
+                  <td style={{ ...tagCell, color: '#107c41', fontWeight: 700 }}>Q_PRECOOL</td>
+                  <td style={{ ...nameCell, fontWeight: 700, color: '#107c41' }}>
+                    Total Beban Pendinginan Propana (3E-14 + 3E-17 + 3E-18)
+                  </td>
+                  <td style={{ ...valCell, fontWeight: 700 }}>{actualChillers.q_total_precooling_mw.toFixed(2)}</td>
+                  <td style={{ ...valCell, fontWeight: 800, color: '#107c41', backgroundColor: '#dcfce7' }}>
+                    {targetChillers.q_total_precooling_mw.toFixed(2)}
+                  </td>
+                  <td style={{ ...unitCell, fontWeight: 700, color: '#107c41' }}>MW</td>
+                  <td style={{ ...nameCell, color: '#107c41', fontWeight: 700, fontSize: '0.76rem' }}>
+                    NERACA TERMAL
+                  </td>
+                  <td style={noteCell}>
+                    Total beban pendingin loop C3; menurunkan daya kompresor propana 4KT-1
+                  </td>
                 </tr>
 
                 {/* B12: Suction Drum Temp */}
@@ -971,10 +1065,10 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                 </tr>
 
                 {/* ============================================================= */}
-                {/* SEKSI C — DAMPAK KINERJA & ENERGI (OUTPUT MODEL ML) */}
+                {/* SEKSI C - DAMPAK KINERJA & ENERGI (OUTPUT MODEL ML) */}
                 {/* ============================================================= */}
                 <tr><td colSpan={7} style={sectionHdrStyle('#107c41')}>
-                  ▎ SEKSI C — DAMPAK KINERJA & ENERGI (HASIL PREDIKSI MODEL ML)
+                  ▎ SEKSI C - DAMPAK KINERJA & ENERGI (HASIL PREDIKSI MODEL ML)
                 </td></tr>
 
                 {/* C1: Total Power */}
@@ -1004,9 +1098,9 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                 <tr style={{ backgroundColor: '#fff' }}>
                   <td style={{ ...tagCell, color: '#64748b' }}>4KT-2/3</td>
                   <td style={nameCell}>Daya Kompresor MCR (4K-2 LP + 4K-3 HP)</td>
-                  <td style={{ ...valCell, color: '#94a3b8' }}>—</td>
+                  <td style={{ ...valCell, color: '#94a3b8' }}>-</td>
                   <td style={{ ...valCell, fontWeight: 700, color: '#1e40af' }}>
-                    {pred?.power_mcr_mw != null ? pred.power_mcr_mw.toFixed(2) : '—'}
+                    {pred?.power_mcr_mw != null ? pred.power_mcr_mw.toFixed(2) : '-'}
                   </td>
                   <td style={unitCell}>MW</td>
                   <td style={{ ...nameCell, color: '#1e40af', fontWeight: 600, fontSize: '0.76rem' }}>DEKOMPOSISI</td>
@@ -1017,9 +1111,9 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                 <tr style={{ backgroundColor: '#fafafa' }}>
                   <td style={{ ...tagCell, color: '#64748b' }}>4KT-1</td>
                   <td style={nameCell}>Daya Kompresor Propana C3 (4K-1)</td>
-                  <td style={{ ...valCell, color: '#94a3b8' }}>—</td>
+                  <td style={{ ...valCell, color: '#94a3b8' }}>-</td>
                   <td style={{ ...valCell, fontWeight: 700, color: '#7c3aed' }}>
-                    {pred?.power_c3_mw != null ? pred.power_c3_mw.toFixed(2) : '—'}
+                    {pred?.power_c3_mw != null ? pred.power_c3_mw.toFixed(2) : '-'}
                   </td>
                   <td style={unitCell}>MW</td>
                   <td style={{ ...nameCell, color: '#7c3aed', fontWeight: 600, fontSize: '0.76rem' }}>DEKOMPOSISI</td>
@@ -1091,17 +1185,17 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                 <tr style={{ backgroundColor: '#fff' }}>
                   <td style={{ ...tagCell, color: '#64748b' }}>CO2_REDUKSI</td>
                   <td style={nameCell}>Estimasi Pengurangan Emisi CO₂ Boiler</td>
-                  <td style={{ ...valCell, color: '#94a3b8' }}>—</td>
+                  <td style={{ ...valCell, color: '#94a3b8' }}>-</td>
                   <td style={{
                     ...valCell,
                     fontWeight: 700,
                     color: (pred?.co2_abatement_t_day ?? 0) > 0 ? '#107c41' : '#64748b',
                   }}>
-                    {pred?.co2_abatement_t_day != null ? `−${pred.co2_abatement_t_day.toFixed(1)}` : '—'}
+                    {pred?.co2_abatement_t_day != null ? `−${pred.co2_abatement_t_day.toFixed(1)}` : '-'}
                   </td>
                   <td style={unitCell}>t CO₂/hari</td>
                   <td style={{ ...nameCell, color: '#107c41', fontSize: '0.76rem' }}>
-                    {(pred?.co2_abatement_t_day ?? 0) > 0 ? 'PENGURANGAN' : '—'}
+                    {(pred?.co2_abatement_t_day ?? 0) > 0 ? 'PENGURANGAN' : '-'}
                   </td>
                   <td style={noteCell}>Faktor emisi: 0.587 tCO₂/MWh (Modul 8)</td>
                 </tr>
@@ -1118,10 +1212,10 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                 </tr>
 
                 {/* ============================================================= */}
-                {/* SEKSI D — REKOMENDASI INJEKSI MAKE-UP HIDROKARBON */}
+                {/* SEKSI D - REKOMENDASI INJEKSI MAKE-UP HIDROKARBON */}
                 {/* ============================================================= */}
                 <tr><td colSpan={7} style={sectionHdrStyle('#c2410c')}>
-                  ▎ SEKSI D — REKOMENDASI LAJU INJEKSI MAKE-UP HIDROKARBON (H4FIC005 – H4FIC007)
+                  ▎ SEKSI D - REKOMENDASI LAJU INJEKSI MAKE-UP HIDROKARBON (H4FIC005 - H4FIC007)
                 </td></tr>
 
                 {makeup?.items ? (
@@ -1164,7 +1258,7 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                   <tr style={{ backgroundColor: '#fffbeb', fontWeight: 700 }}>
                     <td style={{ ...tagCell, color: '#c2410c' }}>TOTAL_MAKEUP</td>
                     <td style={{ ...nameCell, fontWeight: 700 }}>Total Laju Injeksi Hidrokarbon / N₂</td>
-                    <td style={{ ...valCell, color: '#94a3b8' }}>—</td>
+                    <td style={{ ...valCell, color: '#94a3b8' }}>-</td>
                     <td style={{
                       ...valCell,
                       color: '#9a3412',
@@ -1186,10 +1280,10 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                 )}
 
                 {/* ============================================================= */}
-                {/* SEKSI E — AUDIT KESELAMATAN & DOMAIN ENVELOPE */}
+                {/* SEKSI E - AUDIT KESELAMATAN & DOMAIN ENVELOPE */}
                 {/* ============================================================= */}
                 <tr><td colSpan={7} style={sectionHdrStyle('#334155')}>
-                  ▎ SEKSI E — AUDIT BATAS KESELAMATAN & JARAK MAHALANOBIS
+                  ▎ SEKSI E - AUDIT BATAS KESELAMATAN & JARAK MAHALANOBIS
                 </td></tr>
 
                 {/* E1: Mahalanobis */}
@@ -1204,7 +1298,7 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                   }}>
                     {domain ? domain.mahalanobis_distance.toFixed(3) : '1.025'}
                   </td>
-                  <td style={unitCell}>—</td>
+                  <td style={unitCell}>-</td>
                   <td style={{
                     ...nameCell,
                     fontWeight: 700,
@@ -1242,11 +1336,11 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                 <tr style={{ backgroundColor: '#ffffff' }}>
                   <td style={{ ...tagCell, color: '#64748b' }}>SURGE_MAP</td>
                   <td style={nameCell}>Peta Anti-Surge Dinamis Kompresor Sentrifugal</td>
-                  <td style={{ ...valCell, color: '#94a3b8' }}>—</td>
-                  <td style={{ ...valCell, color: '#94a3b8' }}>—</td>
+                  <td style={{ ...valCell, color: '#94a3b8' }}>-</td>
+                  <td style={{ ...valCell, color: '#94a3b8' }}>-</td>
                   <td style={unitCell}>% margin</td>
                   <td style={{ ...nameCell, color: '#64748b', fontSize: '0.74rem' }}>Belum Dievaluasi</td>
-                  <td style={noteCell}>Memerlukan kurva head/dp lengkap — Saat ini hanya flow floor 480.0 t/h yang dievaluasi</td>
+                  <td style={noteCell}>Memerlukan kurva head/dp lengkap - Saat ini hanya flow floor 480.0 t/h yang dievaluasi</td>
                 </tr>
 
                 {/* E3: TAL */}
@@ -1338,13 +1432,13 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
             <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }} />
             Sistem Siap
           </span>
-          <span>PT Badak NGL — Plant-5 Train H (Liquefaction)</span>
+          <span>PT Badak NGL - Plant-5 Train H (Liquefaction)</span>
           <span>Disiplin: AGENTS.md</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <span>Total: <strong style={{ color: '#fff' }}>{currentPower.toFixed(2)} MW</strong></span>
-          <span>MCR: <strong style={{ color: '#93c5fd' }}>{pred?.power_mcr_mw != null ? `${pred.power_mcr_mw.toFixed(1)} MW` : '—'}</strong></span>
-          <span>C3: <strong style={{ color: '#c4b5fd' }}>{pred?.power_c3_mw != null ? `${pred.power_c3_mw.toFixed(1)} MW` : '—'}</strong></span>
+          <span>MCR: <strong style={{ color: '#93c5fd' }}>{pred?.power_mcr_mw != null ? `${pred.power_mcr_mw.toFixed(1)} MW` : '-'}</strong></span>
+          <span>C3: <strong style={{ color: '#c4b5fd' }}>{pred?.power_c3_mw != null ? `${pred.power_c3_mw.toFixed(1)} MW` : '-'}</strong></span>
           <span>Komp: <strong style={{ color: '#fff' }}>{compSum.toFixed(1)}%</strong></span>
           <span>Make-Up: <strong style={{ color: '#f59e0b' }}>{makeup ? `${makeup.total_makeup_flow_nm3_h.toFixed(1)} Nm³/h` : '0.0 Nm³/h'}</strong></span>
         </div>

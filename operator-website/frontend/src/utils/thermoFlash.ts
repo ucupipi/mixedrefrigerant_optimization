@@ -20,6 +20,10 @@
  * Governance: AGENTS.md (Pasal 1, 3, 5), ORIGINAL_REQUEST.md (§R3).
  */
 
+import type { ChillerDutyResult, CoolingWaterSpec } from '../types';
+
+export type { ChillerDutyResult, CoolingWaterSpec };
+
 export interface FeedGasComposition {
   N2?: number;   // mol% (AI25A, baseline 0.0536%)
   C1?: number;   // mol% (AI25B, baseline 94.5096%)
@@ -97,7 +101,7 @@ export function calculateFlashDrum5C1(
       tFlashC: NOMINAL_T_FLASH_C,
       tBubbleC: NOMINAL_T_BUBBLE_C,
       pFlashKgcm2g: 0.30,
-      status: 'N/A — Zero or unmeasured feed flow rate',
+      status: 'N/A - Zero or unmeasured feed flow rate',
     };
   }
 
@@ -397,5 +401,104 @@ export function calculateMcrPhaseSplit(
     mcrLiquidFlowTH: liqFlowTH,
     liquidDensityKgM3: Math.round(rhoLiq * 10) / 10,
     fic2VolumetricFlowM3H: fic2M3H,
+  };
+}
+
+export const DEFAULT_COOLING_WATER: CoolingWaterSpec = {
+  T_CW_in_C: 30.0,
+  delta_T_CW_C: 5.0,
+  T_CW_out_C: 35.0,
+  approach_C: 5.5,
+  T_cond_C: 40.5,
+  p_c3_disch_kgcm2a: 14.164,
+};
+
+// Sensible enthalpy removal of feed gas (34 C -> -32.5 C): 186.25 kJ/kg
+const DH_FEED_PRECOOL = 186.25;
+// Sensible + condensation enthalpy removal of MCR (34 C -> -35 C): 141.65 kJ/kg
+const DH_MCR_PRECOOL = 141.65;
+
+/**
+ * First-principles thermodynamic model of Propane Precooling Chillers (3E-14/17/18)
+ * and Propane Refrigerant Condenser (3E-10) driven by Teluk Bontang Cooling Seawater.
+ * 
+ * Process Stages:
+ *   High Stage (3E-14, +18 C): Precools Feed Gas & MCR from 34 C to 22 C (40.85% duty)
+ *   Med Stage  (3E-17, -10 C): Precools Feed Gas & MCR from 22 C to -5 C (34.14% duty)
+ *   Low Stage  (3E-18, -35 C): Precools Feed Gas to -32.5 C & MCR to -35 C (25.01% duty)
+ * 
+ * Rejection Loop:
+ *   Propane Condenser (3E-10): Total Heat Rejection = Q_precool + W_comp_c3
+ *   LMTD = 7.71 C against Teluk Bontang Seawater (T_CW_in = 30.0 C -> T_CW_out = 35.0 C)
+ * 
+ * Governance: AGENTS.md (Pasal 1, 5, 10), PROJECT.md (Interface Contract 1), ORIGINAL_REQUEST.md (§R1).
+ * 
+ * @param feedFlowTH Treated gas feed rate to MCHE [t/h]
+ * @param mcrFlowTH MCR circulation flow rate [t/h]
+ * @param tCwInC Cooling seawater inlet temperature [C], default 30.0 C
+ * @returns Complete ChillerDutyResult
+ */
+export function calculateChillerAndCondenserDuties(
+  feedFlowTH: number,
+  mcrFlowTH: number,
+  tCwInC: number = DEFAULT_COOLING_WATER.T_CW_in_C
+): ChillerDutyResult {
+  const fFlow = Math.max(0, Number.isFinite(feedFlowTH) ? feedFlowTH : 0);
+  const mFlow = Math.max(0, Number.isFinite(mcrFlowTH) ? mcrFlowTH : 0);
+  const tCwIn = Number.isFinite(tCwInC) ? tCwInC : DEFAULT_COOLING_WATER.T_CW_in_C;
+
+  // Precooling duty from First Law energy balance (kJ/kg * t/h / 3600 = MW)
+  const qPrecoolRaw = (fFlow * DH_FEED_PRECOOL + mFlow * DH_MCR_PRECOOL) / 3600;
+  const qPrecool = Math.max(0, qPrecoolRaw);
+
+  // 3-Stage Precooling Duty Split (3E-14, 3E-17, 3E-18)
+  const qHigh = qPrecool * 0.408515; // 3E-14 (+18 C)
+  const qMed = qPrecool * 0.341388;  // 3E-17 (-10 C)
+  const qLow = qPrecool * 0.250096;  // 3E-18 (-35 C)
+
+  // Cooling seawater thermal profile
+  const deltaTCw = DEFAULT_COOLING_WATER.delta_T_CW_C; // 5.0 C
+  const tCwOut = tCwIn + deltaTCw;                      // 35.0 C at default
+  const approach = DEFAULT_COOLING_WATER.approach_C;   // 5.5 C
+  const tCond = tCwOut + approach;                     // 40.5 C at default
+
+  // Condenser LMTD (Counter-current heat exchange)
+  const dt1 = tCond - tCwIn;  // 10.5 C
+  const dt2 = tCond - tCwOut; // 5.5 C
+  const lmtd = Math.abs(dt1 - dt2) < 1e-6 ? dt1 : (dt1 - dt2) / Math.log(dt1 / dt2);
+
+  // Saturation pressure of pure propane from Peng-Robinson EOS at T_cond
+  const tCondK = tCond + 273.15;
+  const pC3Disch = 14.164 * Math.exp(1872.46 / (313.65 - 25.16) - 1872.46 / (tCondK - 25.16));
+
+  // Propane compressor shaft power and condenser heat rejection duty
+  const rp = Math.max(1.0, pC3Disch / 1.045);
+  const rpNom = 14.164 / 1.045;
+  const kExp = 0.12;
+  const wCompC3 = qPrecool > 0
+    ? qPrecool * (29.88 / 52.14) * (Math.pow(rp, kExp) - 1.0) / (Math.pow(rpNom, kExp) - 1.0)
+    : 0;
+  const qCond = qPrecool + wCompC3;
+
+  const resHigh = Math.round(qHigh * 100) / 100;
+  const resMed = Math.round(qMed * 100) / 100;
+  const resLow = Math.round(qLow * 100) / 100;
+  const resTotal = Math.round(qPrecool * 100) / 100;
+  const resCond = Math.round(qCond * 100) / 100;
+  const resLmtd = Math.round(lmtd * 100) / 100;
+
+  return {
+    q_high_stage_mw: resHigh,
+    q_med_stage_mw: resMed,
+    q_low_stage_mw: resLow,
+    q_total_precooling_mw: resTotal,
+    q_propane_condenser_mw: resCond,
+    lmtd_condenser_c: resLmtd,
+    qHighStageMw: resHigh,
+    qMedStageMw: resMed,
+    qLowStageMw: resLow,
+    qTotalPrecoolingMw: resTotal,
+    qPropaneCondenserMw: resCond,
+    lmtdCondenserC: resLmtd,
   };
 }

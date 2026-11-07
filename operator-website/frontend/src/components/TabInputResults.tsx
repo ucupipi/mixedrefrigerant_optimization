@@ -87,12 +87,12 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   const deltaSecLng = prediction?.prediction?.delta_sec_kwh_per_t ?? (scenarioSecLng - baselineSecLng);
   const deltaSecLngPct = baselineSecLng > 0 ? (deltaSecLng / baselineSecLng) * 100 : 0;
 
-  // Plant-3 Economic & Decarbonization Constants (Manual Book Modul 8 & Stage 08)
+  // Plant-5 Train H (Liquefaction) Economic & Decarbonization Constants (Manual Book Modul 8 & Stage 08)
   const STEAM_RATE_T_PER_MWH = 4.04; // Verified condensate-meter anchor (R2 = 0.9989, Stage 08)
   const FUEL_GAS_NM3_PER_T_STEAM = 97.7; // Boiler fuel gas consumption (Nm³ fuel gas / t steam, Modul 8)
   const FG_DENSITY_KG_NM3 = 0.75; // Standard fuel gas density (kg/Nm³)
   const FUEL_GAS_MMBTU_PER_NM3 = 0.03535; // Heat content conversion: 35.3147 scf/Nm³ * 1001 BTU/scf / 1e6 MMBTU/BTU
-  const FUEL_GAS_PRICE_USD_PER_MMBTU = 6.0; // Plant-3 internal fuel gas transfer valuation ($/MMBTU)
+  const FUEL_GAS_PRICE_USD_PER_MMBTU = 6.0; // Plant-5 Train H (Liquefaction) internal fuel gas transfer valuation ($/MMBTU)
   const ANNUAL_OPERATING_HOURS = 8000; // Baseline annual plant operating hours (~91.3% availability)
 
   const deltaPowerSavingMw = Math.max(0, -deltaPower);

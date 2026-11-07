@@ -268,7 +268,7 @@ export const GoogleSheetsView: React.FC<GoogleSheetsViewProps> = ({
             <tr style={{ backgroundColor: '#1a73e8', color: '#ffffff', fontWeight: 700, fontSize: '0.8rem' }}>
               <td style={{ border: '1px solid #1557b0', textAlign: 'center', backgroundColor: '#1557b0' }}>4</td>
               <td colSpan={7} style={{ padding: '6px 12px', letterSpacing: '0.04em' }}>
-                📁 SEKSI 1 — INPUT SKENARIO OPERATOR (WHAT-IF PARAMETERS — DAPAT DIEDIT)
+                📁 SEKSI 1 - INPUT SKENARIO OPERATOR (WHAT-IF PARAMETERS - DAPAT DIEDIT)
               </td>
             </tr>
 
@@ -300,7 +300,7 @@ export const GoogleSheetsView: React.FC<GoogleSheetsViewProps> = ({
               </td>
               <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', textAlign: 'center', color: '#5f6368' }}>t/h</td>
               <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', color: '#137333', fontWeight: 600 }}>INPUT AKTIF</td>
-              <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', color: '#5f6368', fontSize: '0.78rem' }}>Rentang pelatihan valid: 130 – 340 t/h</td>
+              <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', color: '#5f6368', fontSize: '0.78rem' }}>Rentang pelatihan valid: 130 - 340 t/h</td>
             </tr>
 
             {/* Row 6: MCR Flow */}
@@ -400,7 +400,7 @@ export const GoogleSheetsView: React.FC<GoogleSheetsViewProps> = ({
               </td>
               <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', textAlign: 'center', color: '#5f6368' }}>mol%</td>
               <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', color: '#137333', fontSize: '0.8rem' }}>Kromatografi Gas</td>
-              <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', color: '#5f6368', fontSize: '0.78rem' }}>Subcooling LNG rundown; rentang: 35 – 55%</td>
+              <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', color: '#5f6368', fontSize: '0.78rem' }}>Subcooling LNG rundown; rentang: 35 - 55%</td>
             </tr>
 
             {/* Row 9: C2 */}
@@ -431,7 +431,7 @@ export const GoogleSheetsView: React.FC<GoogleSheetsViewProps> = ({
               </td>
               <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', textAlign: 'center', color: '#5f6368' }}>mol%</td>
               <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', color: '#137333', fontSize: '0.8rem' }}>Kromatografi Gas</td>
-              <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', color: '#5f6368', fontSize: '0.78rem' }}>Pendinginan bundle tengah; rentang: 30 – 55%</td>
+              <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', color: '#5f6368', fontSize: '0.78rem' }}>Pendinginan bundle tengah; rentang: 30 - 55%</td>
             </tr>
 
             {/* Row 10: C2H4 */}
@@ -462,7 +462,7 @@ export const GoogleSheetsView: React.FC<GoogleSheetsViewProps> = ({
               </td>
               <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', textAlign: 'center', color: '#5f6368' }}>mol%</td>
               <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', color: '#137333', fontSize: '0.8rem' }}>Kromatografi Gas</td>
-              <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', color: '#5f6368', fontSize: '0.78rem' }}>Modifikasi kurva transisi; rentang: 0 – 45%</td>
+              <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', color: '#5f6368', fontSize: '0.78rem' }}>Modifikasi kurva transisi; rentang: 0 - 45%</td>
             </tr>
 
             {/* Row 11: C3 */}
@@ -493,7 +493,7 @@ export const GoogleSheetsView: React.FC<GoogleSheetsViewProps> = ({
               </td>
               <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', textAlign: 'center', color: '#5f6368' }}>mol%</td>
               <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', color: '#137333', fontSize: '0.8rem' }}>Kromatografi Gas</td>
-              <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', color: '#5f6368', fontSize: '0.78rem' }}>Pendinginan warm end; rentang: 0 – 12%</td>
+              <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', color: '#5f6368', fontSize: '0.78rem' }}>Pendinginan warm end; rentang: 0 - 12%</td>
             </tr>
 
             {/* Row 12: Total MCR Sum */}
@@ -524,7 +524,7 @@ export const GoogleSheetsView: React.FC<GoogleSheetsViewProps> = ({
             <tr style={{ backgroundColor: '#0f9d58', color: '#ffffff', fontWeight: 700, fontSize: '0.8rem' }}>
               <td style={{ border: '1px solid #0b8043', textAlign: 'center', backgroundColor: '#0b8043' }}>14</td>
               <td colSpan={7} style={{ padding: '6px 12px', letterSpacing: '0.04em' }}>
-                📊 SEKSI 2 — HASIL PREDIKSI DAYA & EFISIENSI MODEL ML (OUTPUT SISTEM)
+                📊 SEKSI 2 - HASIL PREDIKSI DAYA & EFISIENSI MODEL ML (OUTPUT SISTEM)
               </td>
             </tr>
 
@@ -637,7 +637,7 @@ export const GoogleSheetsView: React.FC<GoogleSheetsViewProps> = ({
             <tr style={{ backgroundColor: '#e37400', color: '#ffffff', fontWeight: 700, fontSize: '0.8rem' }}>
               <td style={{ border: '1px solid #b06000', textAlign: 'center', backgroundColor: '#b06000' }}>20</td>
               <td colSpan={7} style={{ padding: '6px 12px', letterSpacing: '0.04em' }}>
-                🛢️ SEKSI 3 — REKOMENDASI LAJU INJEKSI HYDROCARBON MAKE-UP (H4FIC005 – H4FIC007)
+                🛢️ SEKSI 3 - REKOMENDASI LAJU INJEKSI HYDROCARBON MAKE-UP (H4FIC005 - H4FIC007)
               </td>
             </tr>
 
@@ -674,7 +674,7 @@ export const GoogleSheetsView: React.FC<GoogleSheetsViewProps> = ({
                       {item.recommended_flow_nm3_h > 0 ? `${item.recommended_flow_nm3_h.toFixed(1)} Nm³/h` : '0.0 Nm³/h'}
                     </td>
                     <td style={{ border: '1px solid #e0e0e0', padding: '6px 8px', textAlign: 'center', color: '#5f6368' }}>
-                      {item.recommended_flow_kg_h > 0 ? `${item.recommended_flow_kg_h.toFixed(1)} kg/h` : '—'}
+                      {item.recommended_flow_kg_h > 0 ? `${item.recommended_flow_kg_h.toFixed(1)} kg/h` : '-'}
                     </td>
                     <td style={{
                       border: '1px solid #e0e0e0',
@@ -704,7 +704,7 @@ export const GoogleSheetsView: React.FC<GoogleSheetsViewProps> = ({
                 <td style={{ backgroundColor: '#f8f9fa', border: '1px solid #e0e0e0', textAlign: 'center', color: '#70757a', fontSize: '0.75rem' }}>25</td>
                 <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', fontFamily: 'monospace', color: '#e37400' }}>TOTAL_MAKEUP</td>
                 <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px' }}>Total Laju Alir Injeksi Hidrokarbon / N2</td>
-                <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', textAlign: 'right', color: '#80868b' }}>—</td>
+                <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', textAlign: 'right', color: '#80868b' }}>-</td>
                 <td style={{
                   border: '1px solid #e0e0e0',
                   padding: '5px 8px',
@@ -733,7 +733,7 @@ export const GoogleSheetsView: React.FC<GoogleSheetsViewProps> = ({
             <tr style={{ backgroundColor: '#5f6368', color: '#ffffff', fontWeight: 700, fontSize: '0.8rem' }}>
               <td style={{ border: '1px solid #3c4043', textAlign: 'center', backgroundColor: '#3c4043' }}>27</td>
               <td colSpan={7} style={{ padding: '6px 12px', letterSpacing: '0.04em' }}>
-                🛡️ SEKSI 4 — AUDIT BATAS KESELAMATAN KILANG & JARAK MAHALANOBIS (SAFETY INTERLOCKS)
+                🛡️ SEKSI 4 - AUDIT BATAS KESELAMATAN KILANG & JARAK MAHALANOBIS (SAFETY INTERLOCKS)
               </td>
             </tr>
 
@@ -753,7 +753,7 @@ export const GoogleSheetsView: React.FC<GoogleSheetsViewProps> = ({
               }}>
                 {prediction ? prediction.domain_check.mahalanobis_distance.toFixed(3) : '1.025'}
               </td>
-              <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', textAlign: 'center', color: '#5f6368' }}>—</td>
+              <td style={{ border: '1px solid #e0e0e0', padding: '5px 8px', textAlign: 'center', color: '#5f6368' }}>-</td>
               <td style={{
                 border: '1px solid #e0e0e0',
                 padding: '5px 8px',
