@@ -30,39 +30,82 @@ const API_BASE =
       ? 'http://localhost:3001'
       : '';
 
+function createTimedController(timeoutMs: number, externalSignal?: AbortSignal): {
+  controller: AbortController;
+  cleanup: () => void;
+  isTimedOut: () => boolean;
+} {
+  const controller = new AbortController();
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeoutMs);
+
+  const onExternalAbort = () => controller.abort();
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      clearTimeout(timer);
+      controller.abort();
+    } else {
+      externalSignal.addEventListener('abort', onExternalAbort, { once: true });
+    }
+  }
+
+  return {
+    controller,
+    cleanup: () => {
+      clearTimeout(timer);
+      if (externalSignal) {
+        externalSignal.removeEventListener('abort', onExternalAbort);
+      }
+    },
+    isTimedOut: () => timedOut,
+  };
+}
+
 export async function fetchSystemStatus(): Promise<any> {
+  const { controller, cleanup } = createTimedController(2500);
   try {
-    const resp = await fetch(`${API_BASE}/api/v1/status`);
+    const resp = await fetch(`${API_BASE}/api/v1/status`, { signal: controller.signal });
     if (!resp.ok) {
       return { status: 'healthy', mode: 'standalone-hybrid', model_loaded: true };
     }
     return await resp.json();
   } catch {
     return { status: 'healthy', mode: 'standalone-hybrid', model_loaded: true };
+  } finally {
+    cleanup();
   }
 }
 
 export async function fetchDemoSnapshot(): Promise<DemoSnapshot> {
+  const { controller, cleanup } = createTimedController(2500);
   try {
-    const resp = await fetch(`${API_BASE}/api/v1/demo-snapshot`);
+    const resp = await fetch(`${API_BASE}/api/v1/demo-snapshot`, { signal: controller.signal });
     if (!resp.ok) {
       return DEFAULT_DEMO_SNAPSHOT;
     }
     return await resp.json();
   } catch {
     return DEFAULT_DEMO_SNAPSHOT;
+  } finally {
+    cleanup();
   }
 }
 
 export async function fetchHistoricalSummary(): Promise<HistoricalSummary> {
+  const { controller, cleanup } = createTimedController(2500);
   try {
-    const resp = await fetch(`${API_BASE}/api/v1/historical-summary`);
+    const resp = await fetch(`${API_BASE}/api/v1/historical-summary`, { signal: controller.signal });
     if (!resp.ok) {
       return DEFAULT_HISTORICAL_SUMMARY;
     }
     return await resp.json();
   } catch {
     return DEFAULT_HISTORICAL_SUMMARY;
+  } finally {
+    cleanup();
   }
 }
 
@@ -76,25 +119,29 @@ export async function predictScenario(
   if (currentPredictController) {
     currentPredictController.abort();
   }
-  currentPredictController = new AbortController();
-  const requestSignal = signal || currentPredictController.signal;
+  const callerController = new AbortController();
+  currentPredictController = callerController;
+  const effectiveExternal = signal || callerController.signal;
+  const { controller, cleanup, isTimedOut } = createTimedController(4000, effectiveExternal);
 
   try {
     const resp = await fetch(`${API_BASE}/api/v1/predict`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(scenario),
-      signal: requestSignal,
+      signal: controller.signal,
     });
     if (!resp.ok) {
       return computeClientPrediction(scenario, actualDcs);
     }
     return await resp.json();
   } catch (err: any) {
-    if (err?.name === 'AbortError') {
+    if (err?.name === 'AbortError' && !isTimedOut()) {
       throw err;
     }
     return computeClientPrediction(scenario, actualDcs);
+  } finally {
+    cleanup();
   }
 }
 
@@ -124,8 +171,10 @@ export async function optimizeForFeed(
   if (currentOptimizeController) {
     currentOptimizeController.abort();
   }
-  currentOptimizeController = new AbortController();
-  const signal = options?.signal || currentOptimizeController.signal;
+  const callerController = new AbortController();
+  currentOptimizeController = callerController;
+  const effectiveExternal = options?.signal || callerController.signal;
+  const { controller, cleanup, isTimedOut } = createTimedController(4000, effectiveExternal);
 
   const payload: any = {
     feed_flow_t_h: feedFlowTH,
@@ -155,7 +204,7 @@ export async function optimizeForFeed(
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
-      signal,
+      signal: controller.signal,
     });
     if (!resp.ok) {
       console.warn(`Optimize API returned HTTP ${resp.status}, using physics fallback`);
@@ -164,13 +213,15 @@ export async function optimizeForFeed(
     }
     return await resp.json();
   } catch (err: any) {
-    if (err?.name === 'AbortError') {
+    if (err?.name === 'AbortError' && !isTimedOut()) {
       console.log('Optimize request aborted in favor of newer user scenario');
       throw err;
     }
-    console.warn('Optimize API network failed, using physics fallback:', err);
+    console.warn('Optimize API network failed or timed out, using physics fallback:', err);
     return computeFrontendRecommendation(feedFlowTH, actualDcs, alphaTrim, strategy, options?.selectedRecipe)
       ?? computeFrontendRecommendation(feedFlowTH, actualDcs, alphaTrim, strategy)!;
+  } finally {
+    cleanup();
   }
 }
 

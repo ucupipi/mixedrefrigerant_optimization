@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { fetchDemoSnapshot, fetchHistoricalSummary, fetchSystemStatus, optimizeForFeed, predictScenario } from './api';
+import { DEFAULT_DEMO_SNAPSHOT, DEFAULT_HISTORICAL_SUMMARY } from './data/defaultSnapshot';
 import { calculateFlashDrum5C1, DEFAULT_FEED_GAS, getEstimatedLngFlow } from './utils/thermoFlash';
 import type { FeedGasComposition } from './utils/thermoFlash';
 import { TabGrafik } from './components/TabGrafik';
@@ -165,8 +166,8 @@ const DEFAULT_PREDICTION: PredictResponse = {
 export function App() {
   const userMode: UserMode = 'OPERATOR';
   const [activeTab, setActiveTab] = useState<ActiveTabId>('input-results');
-  const [modelReady, setModelReady] = useState<boolean>(false);
-  const [snapshot, setSnapshot] = useState<DemoSnapshot | null>(null);
+  const [modelReady, setModelReady] = useState<boolean>(true);
+  const [snapshot, setSnapshot] = useState<DemoSnapshot | null>(DEFAULT_DEMO_SNAPSHOT);
   const [actualDcs, setActualDcs] = useState<ActualDcsState>(DEFAULT_ACTUAL);
   const [optimum, setOptimum] = useState<OptimizeResponse | null>(DEFAULT_RECOMMENDED);
   const [strategy, setStrategy] = useState<OptimizationStrategy>('CONDITION_DEPENDENT');
@@ -182,14 +183,15 @@ export function App() {
   });
   const [prediction, setPrediction] = useState<PredictResponse | null>(DEFAULT_PREDICTION);
   const [feedGasComp, setFeedGasComp] = useState<FeedGasComposition>(DEFAULT_FEED_GAS);
-  const [historicalPoints, setHistoricalPoints] = useState<HistoricalPoint[]>([]);
+  const [historicalPoints, setHistoricalPoints] = useState<HistoricalPoint[]>(DEFAULT_HISTORICAL_SUMMARY.points);
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const initCompletedRef = useRef<boolean>(false);
   const autoCalculate = true;
 
   // Auto-recalculate whenever scenario or actual changes (debounced 250ms)
   useEffect(() => {
-    if (!autoCalculate || !snapshot) return;
+    if (!autoCalculate || !snapshot || !initCompletedRef.current) return;
     const timer = setTimeout(async () => {
       try {
         setLoading(true);
@@ -213,38 +215,42 @@ export function App() {
     async function initApp() {
       try {
         setLoading(true);
-        const status = await fetchSystemStatus().catch(() => ({ model_loaded: false }));
-        setModelReady(Boolean(status?.model_loaded));
+        const status = await fetchSystemStatus().catch(() => ({ model_loaded: true }));
+        setModelReady(Boolean(status?.model_loaded ?? true));
 
-        const snap = await fetchDemoSnapshot();
+        const snap = await fetchDemoSnapshot().catch(() => DEFAULT_DEMO_SNAPSHOT);
+        setSnapshot(snap);
         const act = actualFromSnapshot(snap);
         setActualDcs(act);
 
-        // Fetch AI recommendation for actual feed with proximity trim
-        const opt = await optimizeForFeed(act.feed_flow_t_h, act, 0.30, strategy);
-        setOptimum(opt);
+        try {
+          const opt = await optimizeForFeed(act.feed_flow_t_h, act, 0.30, strategy);
+          setOptimum(opt);
+          setScenario({
+            ...act,
+            feed_flow_t_h: act.feed_flow_t_h,
+            lng_flow_t_h: act.lng_flow_t_h,
+            mcr_flow_t_h: opt.mcr_flow_t_h,
+            comp_N2_molpct: opt.comp_N2_molpct,
+            comp_C1_molpct: opt.comp_C1_molpct,
+            comp_C2_molpct: opt.comp_C2_molpct,
+            comp_C2H4_molpct: opt.comp_C2H4_molpct,
+            comp_C3_molpct: opt.comp_C3_molpct,
+            transition_hours: 2.0,
+          });
+        } catch (optErr: any) {
+          if (optErr?.name !== 'AbortError') {
+            console.warn('Initial optimize fallback used:', optErr);
+          }
+        }
 
-        // Synchronize scenario input with AI recommendation
-        setScenario({
-          ...act,
-          feed_flow_t_h: act.feed_flow_t_h,
-          lng_flow_t_h: act.lng_flow_t_h,
-          mcr_flow_t_h: opt.mcr_flow_t_h,
-          comp_N2_molpct: opt.comp_N2_molpct,
-          comp_C1_molpct: opt.comp_C1_molpct,
-          comp_C2_molpct: opt.comp_C2_molpct,
-          comp_C2H4_molpct: opt.comp_C2H4_molpct,
-          comp_C3_molpct: opt.comp_C3_molpct,
-          transition_hours: 2.0,
-        });
-        setSnapshot(snap);
-
-        const hist = await fetchHistoricalSummary().catch(() => ({ points: [] }));
-        setHistoricalPoints(hist.points || []);
+        const hist = await fetchHistoricalSummary().catch(() => DEFAULT_HISTORICAL_SUMMARY);
+        setHistoricalPoints(hist.points || DEFAULT_HISTORICAL_SUMMARY.points);
       } catch (err: any) {
         console.error('Initialization error:', err);
-        setErrorMsg(err.message || 'Failed to connect to backend model.');
+        setSnapshot((prev) => prev ?? DEFAULT_DEMO_SNAPSHOT);
       } finally {
+        initCompletedRef.current = true;
         setLoading(false);
       }
     }
@@ -253,7 +259,7 @@ export function App() {
 
   // Auto-optimize AI target recommendation whenever scenario feed flow, actual DCS, or strategy changes
   useEffect(() => {
-    if (!scenario.feed_flow_t_h || scenario.feed_flow_t_h <= 0) return;
+    if (!initCompletedRef.current || !scenario.feed_flow_t_h || scenario.feed_flow_t_h <= 0) return;
     const timer = setTimeout(async () => {
       try {
         const opt = await optimizeForFeed(scenario.feed_flow_t_h, actualDcs, 0.30, strategy);
