@@ -34,14 +34,6 @@ const AUTHORS: Author[] = [
     initials: 'AEA',
   },
   {
-    name: 'Dewi Putri Rahmawati',
-    role: 'Process Modeling Engineer',
-    institution: 'LNG Academy / PT Badak NGL',
-    linkedin: 'https://www.linkedin.com/in/dewi-putri-rahmawati-1430792b4/',
-    photo: '/authors/dewi.jpeg',
-    initials: 'DPR',
-  },
-  {
     name: 'Hizkia Dhiego Gurning',
     role: 'Liquefaction Operations Engineer',
     institution: 'LNG Academy / PT Badak NGL',

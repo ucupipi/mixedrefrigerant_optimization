@@ -9,7 +9,7 @@ from docx.oxml.ns import nsdecls, qn
 
 LEDGER_PATH = r"D:\User\Documents\KULIAH\LOMBA\IKMS 2026\DATA_LEDGER.json"
 MD_PATH = r"D:\User\Documents\KULIAH\LOMBA\IKMS 2026\IKMS2026_FullPaper_PNJ.md"
-DOCX_PATH = r"D:\User\Documents\KULIAH\LOMBA\IKMS 2026\IKMS2026_FullPaper_PNJ.docx"
+DOCX_PATH = r"D:\User\Documents\KULIAH\LOMBA\IKMS 2026\IKMS2026_FullPaper_PNJ_4Penulis.docx"
 
 with open(LEDGER_PATH, "r", encoding="utf-8") as f:
     L = json.load(f)
@@ -26,10 +26,10 @@ md_lines = []
 def add_md(text=""):
     md_lines.append(text)
 
-add_md("# OPTIMASI CAMPURAN REFRIGERAN BERBASIS MACHINE LEARNING DENGAN PEMBATAS FISIKA UNTUK MEREDUKSI DAYA KOMPRESI DAN KONSUMSI BAHAN BAKAR PADA KILANG BADAK LNG")
+add_md("# OPTIMASI MIXED REFRIGERANT BERBASIS MACHINE LEARNING UNTUK EFISIENSI ENERGI KILANG BADAK LNG")
 add_md()
-add_md("**Mukhammad Yusuf Iqbal¹*, Afdal Elang Arifin², Dewi Putri Rahmawati³, Bilqiis Dara Ramadhan⁴, Hizkia Dhiego Gurning⁵**")
-add_md("¹*²³⁴⁵Jurusan Teknik Mesin, Politeknik Negeri Jakarta, Depok, Indonesia")
+add_md("**Mukhammad Yusuf Iqbal¹*, Afdal Elang Arifin², Bilqiis Dara Ramadhan³, Hizkia Dhiego Gurning⁴**")
+add_md("¹*²³⁴Jurusan Teknik Mesin, Politeknik Negeri Jakarta, Depok, Indonesia")
 add_md("Email: mukhammad.yusuf.iqbal.tm23@stu.pnj.ac.id")
 add_md()
 add_md("---")
@@ -382,10 +382,10 @@ p_title.paragraph_format.space_after = Pt(12)
 # Authors
 p_auth = doc.add_paragraph()
 p_auth.alignment = WD_ALIGN_PARAGRAPH.CENTER
-run_auth = p_auth.add_run("Mukhammad Yusuf Iqbal¹*, Afdal Elang Arifin², Dewi Putri Rahmawati³, Bilqiis Dara Ramadhan⁴, Hizkia Dhiego Gurning⁵\n")
+run_auth = p_auth.add_run("Mukhammad Yusuf Iqbal¹*, Afdal Elang Arifin², Bilqiis Dara Ramadhan³, Hizkia Dhiego Gurning⁴\n")
 run_auth.bold = True
 run_auth.font.size = Pt(11)
-run_inst = p_auth.add_run("¹*²³⁴⁵Jurusan Teknik Mesin, Politeknik Negeri Jakarta, Depok, Jawa Barat, Indonesia\n*Email: mukhammad.yusuf.iqbal.tm23@stu.pnj.ac.id")
+run_inst = p_auth.add_run("¹*²³⁴Jurusan Teknik Mesin, Politeknik Negeri Jakarta, Depok, Jawa Barat, Indonesia\n*Email: mukhammad.yusuf.iqbal.tm23@stu.pnj.ac.id")
 run_inst.font.size = Pt(10)
 p_auth.paragraph_format.space_after = Pt(18)
 

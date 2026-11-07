@@ -48,11 +48,11 @@ p_title.paragraph_format.space_after = Pt(10)
 # Authors (5 members)
 p_authors = doc.add_paragraph()
 p_authors.alignment = WD_ALIGN_PARAGRAPH.CENTER
-r_authors = p_authors.add_run("Mukhammad Yusuf Iqbal¹*, Afdal Elang Arifin², Dewi Putri Rahmawati³, Bilqiis Dara Ramadhan⁴, Hizkia Dhiego Gurning⁵\n")
+r_authors = p_authors.add_run("Mukhammad Yusuf Iqbal¹*, Afdal Elang Arifin², Bilqiis Dara Ramadhan³, Hizkia Dhiego Gurning⁴\n")
 r_authors.bold = True
 r_authors.font.size = Pt(11)
 
-r_affil = p_authors.add_run("¹*²³⁴⁵Jurusan Teknik Mesin, Politeknik Negeri Jakarta, Depok 16425, Jawa Barat, Indonesia\n*Email Korespondensi: mukhammad.yusuf.iqbal.tm23@stu.pnj.ac.id")
+r_affil = p_authors.add_run("¹*²³⁴Jurusan Teknik Mesin, Politeknik Negeri Jakarta, Depok 16425, Jawa Barat, Indonesia\n*Email Korespondensi: mukhammad.yusuf.iqbal.tm23@stu.pnj.ac.id")
 r_affil.font.size = Pt(9.5)
 r_affil.italic = True
 p_authors.paragraph_format.space_after = Pt(14)
@@ -129,8 +129,8 @@ md_content = f"""# EXTENDED ABSTRACT (ABSTRAK PANJANG)
 
 **OPTIMASI MIXED REFRIGERANT BERBASIS MACHINE LEARNING UNTUK EFISIENSI ENERGI KILANG BADAK LNG**
 
-**Mukhammad Yusuf Iqbal¹*, Afdal Elang Arifin², Dewi Putri Rahmawati³, Bilqiis Dara Ramadhan⁴, Hizkia Dhiego Gurning⁵**  
-¹*²³⁴⁵Jurusan Teknik Mesin, Politeknik Negeri Jakarta, Depok 16425, Jawa Barat, Indonesia  
+**Mukhammad Yusuf Iqbal¹*, Afdal Elang Arifin², Bilqiis Dara Ramadhan³, Hizkia Dhiego Gurning⁴**  
+¹*²³⁴Jurusan Teknik Mesin, Politeknik Negeri Jakarta, Depok 16425, Jawa Barat, Indonesia  
 *Email Korespondensi: mukhammad.yusuf.iqbal.tm23@stu.pnj.ac.id  
 
 ---
