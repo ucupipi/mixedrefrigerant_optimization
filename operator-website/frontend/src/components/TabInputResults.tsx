@@ -62,6 +62,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   // Feed Gas Composition & Optimization Strategy Modal State
   const [showFeedGasModal, setShowFeedGasModal] = useState<boolean>(false);
   const [showStrategyModal, setShowStrategyModal] = useState<boolean>(false);
+  const [isAiApplied, setIsAiApplied] = useState<boolean>(false);
   const [localFeedGas, setLocalFeedGas] = useState<Required<FeedGasComposition>>({
     ...DEFAULT_FEED_GAS,
     ...(feedGasComp || {}),
@@ -118,11 +119,12 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
 
   // Detect if Current Input is sitting at unoptimized DCS baseline (before clicking Apply AI Target)
   const isAtDcsBaseline =
+    !isAiApplied &&
     Math.abs(rawDeltaPower) <= 0.05 &&
     Math.abs(scenario.mcr_flow_t_h - recMcrFlow) > 0.5;
 
-  const scenarioPower = rawScenarioPower;
-  const deltaPower = rawDeltaPower;
+  const scenarioPower = isAiApplied ? aiTargetPower : rawScenarioPower;
+  const deltaPower = isAiApplied ? aiTargetDeltaPower : rawDeltaPower;
   const deltaPowerPct = baselinePower > 0 ? (deltaPower / baselinePower) * 100 : 0;
 
   const activeLngFlow = Math.max(scenarioLngFlow, 10.0);
@@ -153,27 +155,20 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   // comparing DCS baseline against AI Target (or custom operator composition when manually modified).
   // Strictly injects only positive-deficit components (Δ > +0.02 mol%) on the 24,000 kg loop inventory,
   // preventing unphysical 1600% dilution expansion from trace C2H4 differences.
-  const isScenarioAtDcsComp =
-    Math.abs(scenario.comp_N2_molpct - _actualDcs.comp_N2_molpct) < 0.02 &&
-    Math.abs(scenario.comp_C1_molpct - _actualDcs.comp_C1_molpct) < 0.02 &&
-    Math.abs(scenario.comp_C2_molpct - _actualDcs.comp_C2_molpct) < 0.02 &&
-    Math.abs(scenario.comp_C2H4_molpct - _actualDcs.comp_C2H4_molpct) < 0.02 &&
-    Math.abs(scenario.comp_C3_molpct - _actualDcs.comp_C3_molpct) < 0.02;
-
   const activeMakeupAdvisory: MakeupAdvisory = (() => {
     const tHours = Math.max(0.5, scenario.transition_hours ?? 2.0);
     const invKg = 24000.0;
-    const tgtN2 = isScenarioAtDcsComp ? recN2 : scenario.comp_N2_molpct;
-    const tgtC1 = isScenarioAtDcsComp ? recC1 : scenario.comp_C1_molpct;
-    const tgtC2 = isScenarioAtDcsComp ? recC2 : scenario.comp_C2_molpct;
-    const tgtC3 = isScenarioAtDcsComp ? recC3 : scenario.comp_C3_molpct;
+    const tgtN2 = recN2;
+    const tgtC1 = recC1;
+    const tgtC2 = recC2;
+    const tgtC3 = recC3;
 
     const actMap: Record<string, number> = {
-      N2: _actualDcs.comp_N2_molpct,
-      C1: _actualDcs.comp_C1_molpct,
-      C2: _actualDcs.comp_C2_molpct,
-      C2H4: _actualDcs.comp_C2H4_molpct,
-      C3: _actualDcs.comp_C3_molpct,
+      N2: scenario.comp_N2_molpct,
+      C1: scenario.comp_C1_molpct,
+      C2: scenario.comp_C2_molpct,
+      C2H4: scenario.comp_C2H4_molpct,
+      C3: scenario.comp_C3_molpct,
     };
     const tgtMap: Record<string, number> = {
       N2: tgtN2,
@@ -333,15 +328,17 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   const isCompositionClosed = Math.abs(compSum - 100.0) < 0.05;
 
   const handleApplyRecommended = () => {
-    onScenarioChange('mcr_flow_t_h', recMcrFlow);
-    onScenarioChange('comp_N2_molpct', recN2);
-    onScenarioChange('comp_C1_molpct', recC1);
-    onScenarioChange('comp_C2_molpct', recC2);
-    onScenarioChange('comp_C2H4_molpct', recC2H4);
-    onScenarioChange('comp_C3_molpct', recC3);
+    // Keep DCS tag values in Current Input unchanged so the operator can compare
+    // Current Input (DCS) side-by-side against AI Target, while evaluating AI Target savings.
+    setIsAiApplied(true);
     if (onOptimize) {
       onOptimize();
     }
+  };
+
+  const handleResetToDcs = () => {
+    setIsAiApplied(false);
+    onReset();
   };
 
   return (
@@ -464,7 +461,9 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
               onClick={handleApplyRecommended}
               disabled={loading}
               style={{
-                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                background: isAiApplied
+                  ? 'linear-gradient(135deg, #047857 0%, #065f46 100%)'
+                  : 'linear-gradient(135deg, #059669 0%, #047857 100%)',
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: '8px',
@@ -476,10 +475,10 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 transition: 'all 0.15s ease',
               }}
             >
-              Apply AI Target
+              {isAiApplied ? '✓ AI Target Applied' : 'Apply AI Target'}
             </button>
             <button
-              onClick={onReset}
+              onClick={handleResetToDcs}
               disabled={loading}
               style={{
                 backgroundColor: 'rgba(241, 245, 249, 0.9)',
@@ -1730,7 +1729,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       DCS: {baselineSecLng.toFixed(1)}
                     </span>
                     <span style={{ backgroundColor: scenarioPillBg, color: scenarioPillColor, padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
-                      Scenario: {scenarioSecLng.toFixed(1)} kWh/t
+                      {isAiApplied ? 'AI Target' : 'Scenario'}: {scenarioSecLng.toFixed(1)} kWh/t
                     </span>
                   </div>
                 </div>
@@ -1881,7 +1880,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       DCS: {baselinePower.toFixed(1)} MW
                     </span>
                     <span style={{ backgroundColor: scenarioPillBg, color: scenarioPillColor, padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
-                      Scenario: {scenarioPower.toFixed(1)} MW
+                      {isAiApplied ? 'AI Target' : 'Scenario'}: {scenarioPower.toFixed(1)} MW
                     </span>
                   </div>
                 </div>
