@@ -1337,13 +1337,13 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
         }}>
           <span style={{ fontSize: '18px', lineHeight: 1 }}>💡</span>
           <div style={{ fontSize: '12.5px', color: '#166534', lineHeight: 1.5 }}>
-            <strong>Termodinamika MCHE &amp; Rebalancing Profil Suhu:</strong>
+            <strong>MCHE Thermodynamics &amp; Temperature Profile Rebalancing:</strong>
             <ul style={{ margin: '4px 0 0 0', paddingLeft: '18px' }}>
               <li>
-                <strong>Warm End / Suction (4TI-4B):</strong> DCS tampak lebih dingin (-44.8°C) karena sirkulasi MCR aktual berlebih (562.3 t/h) dengan propana tinggi menumpuk di dasar MCHE shell dan hampir menyentuh batas alarm trip TAL (-45.0°C). AI Target <em>menghangatkan</em> suction ke -41.5°C (+3.5°C di atas TAL) untuk menjaga kompresor 4K-2 tetap aman dari <em>liquid carryover</em>.
+                <strong>Warm End / Suction (4TI-4B):</strong> DCS suction is colder (-44.8°C) because excess MCR circulation (562.3 t/h) with heavy propane pools at the MCHE shell bottom, sitting 0.2°C above the TAL trip limit (-45.0°C). The recommended target warms suction to -41.5°C (+3.5°C margin) to protect compressor 4K-2 from liquid carryover.
               </li>
               <li>
-                <strong>Cold End / LNG Outlet (TIC1 &amp; TI29):</strong> AI Target justru <em>lebih dingin</em> (-152.0°C vs DCS -151.2°C) karena fraksi metana ringan (C₁) dinaikkan (+1.63 mol%), memfokuskan daya refrigerasi cryogenic ke Cold Bundle atas untuk memaksimalkan yield kondensasi LNG rundown.
+                <strong>Cold End / LNG Outlet (TIC1 &amp; TI29):</strong> The recommended target runs colder (-152.0°C vs DCS -151.2°C) because methane is increased by +1.63 mol%, directing cryogenic cooling duty to the upper cold bundle to improve rundown condensation yield.
               </li>
             </ul>
           </div>
