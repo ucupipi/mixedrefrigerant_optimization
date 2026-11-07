@@ -4,8 +4,10 @@ Governance: AGENTS.md (Pasal 2, 8, 10, 13), Strict units, zero ambiguous metrics
 """
 from __future__ import annotations
 
+from datetime import datetime, timezone
+from enum import Enum
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class PredictRequest(BaseModel):
@@ -104,29 +106,136 @@ class ConfidenceSummary(BaseModel):
     regime_warning: Optional[str] = Field(default=None, description="Peringatan jika akurasi rezim rendah")
 
 
-class MakeupInjectionItem(BaseModel):
-    """Make-up flow injection advisory for a single component."""
-    component: str
-    tag_dcs: str
-    description: str
-    unit: str = "Nm3/h"
-    actual_molpct: float
-    target_molpct: float
-    delta_molpct: float
-    recommended_flow_nm3_h: float
-    recommended_flow_kg_h: float
-    action: str
-    instruction: str
+class MakeupComponentRecommendation(BaseModel):
+    """Component-specific make-up flow recommendation with dual mass and volumetric units.
+
+    Governance: AGENTS.md (Pasal 1-13), ORIGINAL_REQUEST.md (§R3, §R4).
+    """
+    component: str = Field(..., description="Simbol komponen (N2, C1, C2, C3)")
+    tag_dcs: str = Field(..., description="Tag DCS resmi pengontrol make-up (H4FIC006, H4FIC005, H4FI00C8, H4FIC007)")
+    alternate_tag_dcs: Optional[str] = Field(None, description="Tag alternatif DCS (misal H4FIC009 untuk C1)")
+    description: str = Field(..., description="Deskripsi nama komponen")
+    unit: str = Field(default="Nm3/h", description="Satuan standar laju alir (Nm3/h)")
+    actual_molpct: Optional[float] = Field(None, description="Fraksi mol aktual (%)")
+    target_molpct: Optional[float] = Field(None, description="Fraksi mol target skenario (%)")
+    delta_molpct: Optional[float] = Field(None, description="Selisih fraksi mol target - aktual (%)")
+    needed_kmol: Optional[float] = Field(None, description="Kebutuhan mol injeksi (kmol)")
+    needed_kg: Optional[float] = Field(None, description="Kebutuhan massa injeksi (kg)")
+    recommended_flow_nm3_h: Optional[float] = Field(None, description="Rekomendasi laju alir volumetrik normal (Nm3/h)")
+    recommended_flow_kg_h: Optional[float] = Field(None, description="Rekomendasi laju alir massa (kg/h)")
+    recommended_flow_t_h: Optional[float] = Field(None, description="Rekomendasi laju alir massa (t/h)")
+    recommended_flow_scfd: Optional[float] = Field(None, description="Rekomendasi laju alir gas standar (scfd)")
+    action: str = Field(..., description="Aksi operasional: INJEKSI, TAHAN / STOP, STABIL / SEIMBANG, TIDAK DAPAT DIEVALUASI")
+    instruction: str = Field(..., description="Instruksi advisory untuk operator")
 
 
-class MakeupAdvisorySummary(BaseModel):
-    """Consolidated make-up advisory for all components."""
-    transition_hours: float = 2.0
-    estimated_inventory_kg: float = 24000.0
-    total_makeup_flow_nm3_h: float
-    total_makeup_flow_kg_h: float
-    items: List[MakeupInjectionItem]
-    operational_notes: List[str]
+# Backward-compatible alias for existing tests and components
+MakeupInjectionItem = MakeupComponentRecommendation
+
+
+class MakeupAdvisoryRequest(BaseModel):
+    """Request payload for dedicated MCR component make-up advisory endpoint.
+
+    Advisory only: does not write setpoints to DCS, SIS, PLC, or field controllers.
+    """
+    actual_comp: Optional[Dict[str, float]] = Field(
+        default=None,
+        description="Komposisi kromatografi gas aktual DCS {'N2': 3.38, 'C1': 44.37, ...} (mol%)",
+    )
+    target_comp: Optional[Dict[str, float]] = Field(
+        default=None,
+        description="Komposisi target optimasi/skenario {'N2': 3.50, 'C1': 45.00, ...} (mol%)",
+    )
+    transition_hours: Optional[float] = Field(
+        default=2.0,
+        ge=0.5,
+        le=24.0,
+        description="Estimasi durasi transisi injeksi (jam, default 2.0)",
+    )
+    inventory_kg: Optional[float] = Field(
+        default=24000.0,
+        gt=0.0,
+        description="Estimasi massa inventory aktif loop MCR (kg, nominal 24,000 kg)",
+    )
+    use_stream_purity: Optional[bool] = Field(
+        default=True,
+        description="Apakah memperhitungkan matriks kemurnian header riil kilang Badak",
+    )
+    c1_tag: Optional[str] = Field(
+        default="H4FIC005",
+        description="Tag DCS pilihan untuk C1 make-up ('H4FIC005' atau 'H4FIC009')",
+    )
+
+
+class MakeupAdvisoryResponse(BaseModel):
+    """Component-resolved make-up inventory balance advisory response.
+
+    Governance: AGENTS.md (Pasal 1-13), ORIGINAL_REQUEST.md (§R3, §R4).
+    """
+    status: str = Field(
+        default="EVALUATED",
+        description="Status evaluasi make-up: 'EVALUATED' atau 'NOT EVALUATED'",
+    )
+    transition_hours: Optional[float] = Field(
+        default=2.0,
+        description="Durasi transisi injeksi make-up (jam)",
+    )
+    estimated_inventory_kg: Optional[float] = Field(
+        default=24000.0,
+        description="Estimasi active loop inventory MCR (kg)",
+    )
+    initial_moles_kmol: Optional[float] = Field(
+        default=None,
+        description="Total mol awal dalam loop refrigerasi MCR (kmol)",
+    )
+    final_moles_kmol: Optional[float] = Field(
+        default=None,
+        description="Total mol akhir pasca injeksi/dilusi tertutup (kmol)",
+    )
+    expansion_ratio: Optional[float] = Field(
+        default=None,
+        description="Rasio ekspansi mol loop n_final / n0 untuk mencegah purging",
+    )
+    total_makeup_flow_nm3_h: Optional[float] = Field(
+        default=None,
+        description="Total laju alir make-up seluruh komponen (Nm3/h)",
+    )
+    total_makeup_flow_kg_h: Optional[float] = Field(
+        default=None,
+        description="Total laju alir massa make-up seluruh komponen (kg/h)",
+    )
+    total_makeup_flow_t_h: Optional[float] = Field(
+        default=None,
+        description="Total laju alir massa make-up seluruh komponen (t/h)",
+    )
+    total_makeup_flow_scfd: Optional[float] = Field(
+        default=None,
+        description="Total laju alir gas make-up standar (scfd)",
+    )
+    recommendations: List[MakeupComponentRecommendation] = Field(
+        default_factory=list,
+        description="Daftar rekomendasi per komponen MCR",
+    )
+    items: List[MakeupComponentRecommendation] = Field(
+        default_factory=list,
+        description="Alias recommendations untuk kompatibilitas frontend dan backward-compatibility",
+    )
+    explanation: str = Field(
+        default="",
+        description="Penjelasan teknis operasional status make-up advisory",
+    )
+    operational_notes: List[str] = Field(
+        default_factory=list,
+        description="Catatan operasional dan batasan keselamatan",
+    )
+    calculation_timestamp: str = Field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat(),
+        description="Timestamp kalkulasi dalam format ISO 8601 UTC",
+    )
+
+
+# Backward-compatible alias for existing services
+MakeupAdvisorySummary = MakeupAdvisoryResponse
 
 
 class FlashDrumSummary(BaseModel):
@@ -156,9 +265,30 @@ class PredictResponse(BaseModel):
     flash_drum_5c1: Optional[FlashDrumSummary] = Field(None, description="Detail termodinamika PR-EOS Flash Drum 5C-1")
 
 
+class OptimizationStrategy(str, Enum):
+    """C3MR Mixed Refrigerant optimization strategy options.
+
+    Governance: AGENTS.md (Pasal 1-13), ORIGINAL_REQUEST.md (Requirements R2, R4).
+    """
+    CONDITION_DEPENDENT = "CONDITION_DEPENDENT"
+    FIXED_RECIPE = "FIXED_RECIPE"
+    MINIMUM_INTERVENTION = "MINIMUM_INTERVENTION"
+
+
 class OptimizeRequest(BaseModel):
-    """Actual DCS state entered by operator; optimum is searched for this feed rate with proximity trimming."""
+    """Actual DCS state entered by operator; optimum is searched for this feed rate and strategy.
+
+    Governance: AGENTS.md (Pasal 1-13), ORIGINAL_REQUEST.md (Requirements R2, R4).
+    """
     feed_flow_t_h: float = Field(..., ge=50.0, le=1000.0, description="Treated gas aktual (t/h)")
+    strategy: Optional[OptimizationStrategy] = Field(
+        default=None,
+        description="Strategi optimasi C3MR: CONDITION_DEPENDENT, FIXED_RECIPE, MINIMUM_INTERVENTION",
+    )
+    selected_recipe: Optional[Dict[str, float]] = Field(
+        default=None,
+        description="Resep acuan tetap untuk strategi FIXED_RECIPE (mol%)",
+    )
     actual_mcr_flow_t_h: Optional[float] = Field(default=None, description="Laju alir MCR aktual DCS (t/h)")
     actual_comp_N2_molpct: Optional[float] = Field(default=None, description="Aktual N2 mol% dari GC")
     actual_comp_C1_molpct: Optional[float] = Field(default=None, description="Aktual CH4 mol% dari GC")
@@ -166,25 +296,62 @@ class OptimizeRequest(BaseModel):
     actual_comp_C2H4_molpct: Optional[float] = Field(default=None, description="Aktual C2H4 mol% dari GC")
     actual_comp_C3_molpct: Optional[float] = Field(default=None, description="Aktual C3H8 mol% dari GC")
     alpha_trim: Optional[float] = Field(default=0.30, ge=0.05, le=1.0, description="Faktor langkah transisi mendekati komposisi aktual")
+    intervention_weight: Optional[float] = Field(default=None, ge=0.0, description="Penalty weight for MINIMUM_INTERVENTION trade-off")
+    fixed_recipe_preset: Optional[str] = Field(default="CERTIFIED_INVARIANT_MASTER", description="Recipe preset name for FIXED_RECIPE")
+
+    @field_validator("strategy", mode="before")
+    @classmethod
+    def parse_strategy(cls, v: Any) -> Any:
+        if v is None:
+            return None
+        if isinstance(v, str):
+            v_norm = v.strip().upper()
+            if v_norm in OptimizationStrategy.__members__:
+                return OptimizationStrategy[v_norm]
+        return v
 
 
 class OptimizeResponse(BaseModel):
-    """Recommended MCR flow and composition (SLSQP optimum, ILR-interpolated)."""
-    feed_t_h: float
-    mcr_flow_t_h: float
-    comp_N2_molpct: float
-    comp_C1_molpct: float
-    comp_C2_molpct: float
-    comp_C2H4_molpct: float
-    comp_C3_molpct: float
-    mahalanobis_distance: float
-    expected_suction_temp_c: float
-    suction_tal_ok: bool
-    antisurge_floor_applied: bool
-    envelope_shrink_applied: bool
-    extrapolated: bool
-    feed_span_t_h: List[float]
-    source: str
-    solver_converged: bool = True
-    constraint_residuals: Optional[Dict[str, float]] = None
+    """Recommended MCR flow and composition with full constraint residuals, effective inputs, and explanations.
+
+    Governance: AGENTS.md (Pasal 1-13), ORIGINAL_REQUEST.md (Requirements R2, R4).
+    """
+    feed_t_h: float = Field(..., description="Laju alir umpan gas skenario (t/h)")
+    mcr_flow_t_h: float = Field(..., description="Target laju alir sirkulasi MCR optimal (t/h)")
+    comp_N2_molpct: float = Field(..., description="Target fraksi mol N2 (%)")
+    comp_C1_molpct: float = Field(..., description="Target fraksi mol C1 (%)")
+    comp_C2_molpct: float = Field(..., description="Target fraksi mol C2 (%)")
+    comp_C2H4_molpct: float = Field(..., description="Target fraksi mol C2H4 (%)")
+    comp_C3_molpct: float = Field(..., description="Target fraksi mol C3 (%)")
+    mahalanobis_distance: float = Field(..., description="Jarak Mahalanobis pada ruang ILR Simpleks S^5")
+    expected_suction_temp_c: float = Field(..., description="Estimasi suhu suction drum 4C-8 (°C)")
+    suction_tal_ok: bool = Field(..., description="Apakah suhu suction drum >= -45.0 °C")
+    antisurge_floor_applied: bool = Field(..., description="Apakah batas bawah anti-surge 480.0 t/h aktif")
+    envelope_shrink_applied: bool = Field(default=False, description="Apakah penyusutan batas amplop diterapkan")
+    extrapolated: bool = Field(default=False, description="Apakah titik operasi berada di luar rentang kuantil")
+    feed_span_t_h: List[float] = Field(..., description="Rentang batas umpan [min, max] (t/h)")
+    source: str = Field(..., description="Sumber kalkulasi / algoritma optimasi")
+    solver_converged: bool = Field(default=True, description="Status konvergensi solver")
+
+    # Milestone 1 Extended Fields (Requirements R2 & R4):
+    strategy: str = Field(
+        default=OptimizationStrategy.CONDITION_DEPENDENT.value,
+        description="Strategi optimasi yang dieksekusi (CONDITION_DEPENDENT / FIXED_RECIPE / MINIMUM_INTERVENTION)",
+    )
+    effective_inputs: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Echo input efektif yang diterima dan digunakan dalam kalkulasi optimasi",
+    )
+    calculation_timestamp: str = Field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat(),
+        description="Timestamp kalkulasi dalam format ISO 8601 UTC",
+    )
+    constraint_residuals: Dict[str, float] = Field(
+        default_factory=dict,
+        description="Residual kendala operasional (antisurge_margin_t_h, suction_tal_margin_c, superheat_margin_c, mahalanobis_margin)",
+    )
+    explanation: str = Field(
+        default="",
+        description="Penjelasan teknis operasional mengapa target berubah atau tetap konstan",
+    )
 

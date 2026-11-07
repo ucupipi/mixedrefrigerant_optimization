@@ -167,6 +167,7 @@ export function App() {
   const [snapshot, setSnapshot] = useState<DemoSnapshot | null>(null);
   const [actualDcs, setActualDcs] = useState<ActualDcsState>(DEFAULT_ACTUAL);
   const [optimum, setOptimum] = useState<OptimizeResponse | null>(DEFAULT_RECOMMENDED);
+  const [strategy, setStrategy] = useState<'CONDITION_DEPENDENT' | 'FIXED_RECIPE' | 'MINIMUM_INTERVENTION'>('CONDITION_DEPENDENT');
   const [scenario, setScenario] = useState<ScenarioInput>({
     ...DEFAULT_ACTUAL,
     mcr_flow_t_h: DEFAULT_RECOMMENDED.mcr_flow_t_h,
@@ -216,7 +217,7 @@ export function App() {
         setActualDcs(act);
 
         // Fetch AI recommendation for actual feed with proximity trim
-        const opt = await optimizeForFeed(act.feed_flow_t_h, act);
+        const opt = await optimizeForFeed(act.feed_flow_t_h, act, 0.30, strategy);
         setOptimum(opt);
 
         // Synchronize scenario input with AI recommendation
@@ -246,19 +247,21 @@ export function App() {
     initApp();
   }, []);
 
-  // Auto-optimize AI target recommendation whenever scenario feed flow or actual DCS changes
+  // Auto-optimize AI target recommendation whenever scenario feed flow, actual DCS, or strategy changes
   useEffect(() => {
     if (!scenario.feed_flow_t_h || scenario.feed_flow_t_h <= 0) return;
     const timer = setTimeout(async () => {
       try {
-        const opt = await optimizeForFeed(scenario.feed_flow_t_h, actualDcs);
+        const opt = await optimizeForFeed(scenario.feed_flow_t_h, actualDcs, 0.30, strategy);
         setOptimum(opt);
-      } catch (err) {
-        console.warn('Auto-optimize for feed failed:', err);
+      } catch (err: any) {
+        if (err?.name !== 'AbortError') {
+          console.warn('Auto-optimize for feed failed:', err);
+        }
       }
     }, 200);
     return () => clearTimeout(timer);
-  }, [scenario.feed_flow_t_h, actualDcs]);
+  }, [scenario.feed_flow_t_h, actualDcs, strategy]);
 
   const handleScenarioChange = (key: keyof ScenarioInput, value: number) => {
     if (key === 'feed_flow_t_h') {
@@ -281,7 +284,7 @@ export function App() {
       const updatedActual = { ...actualDcs, [key]: value, lng_flow_t_h: lng };
       setActualDcs(updatedActual);
       try {
-        const opt = await optimizeForFeed(value, updatedActual);
+        const opt = await optimizeForFeed(value, updatedActual, 0.30, strategy);
         setOptimum(opt);
         setScenario((prev) => ({
           ...prev,
@@ -304,6 +307,21 @@ export function App() {
     }
   };
 
+  const handleStrategyChange = async (newStrategy: 'CONDITION_DEPENDENT' | 'FIXED_RECIPE' | 'MINIMUM_INTERVENTION') => {
+    setStrategy(newStrategy);
+    try {
+      setLoading(true);
+      const opt = await optimizeForFeed(scenario.feed_flow_t_h, actualDcs, 0.30, newStrategy);
+      setOptimum(opt);
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') {
+        console.warn('Strategy switch optimize failed:', err);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleNormalizeScenario = () => {
     setScenario((prev) => normalizeComposition(prev));
   };
@@ -322,7 +340,7 @@ export function App() {
       setLoading(true);
       setErrorMsg(null);
       const targetFeed = scenario.feed_flow_t_h;
-      const opt = await optimizeForFeed(targetFeed, actualDcs);
+      const opt = await optimizeForFeed(targetFeed, actualDcs, 0.30, strategy);
       setOptimum(opt);
       setScenario((prev) => ({
         ...prev,
@@ -354,12 +372,17 @@ export function App() {
     }
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (!snapshot) return;
     const act = actualFromSnapshot(snapshot);
     setActualDcs(act);
     setScenario(scenarioFromActual(act, scenario.transition_hours ?? 2.0));
-    setOptimum(null);
+    try {
+      const opt = await optimizeForFeed(act.feed_flow_t_h, act, 0.30, strategy);
+      setOptimum(opt);
+    } catch {
+      setOptimum(null);
+    }
   };
 
   const handleExportCsv = () => {
@@ -513,6 +536,8 @@ export function App() {
             prediction={prediction}
             userMode={userMode}
             loading={loading}
+            strategy={strategy}
+            onStrategyChange={handleStrategyChange}
             feedGasComp={feedGasComp}
             onFeedGasCompChange={handleFeedGasCompChange}
             onActualChange={handleActualChange}

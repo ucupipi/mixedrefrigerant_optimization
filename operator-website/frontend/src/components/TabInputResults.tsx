@@ -22,6 +22,8 @@ interface TabInputResultsProps {
   prediction: PredictResponse | null;
   userMode: UserMode;
   loading: boolean;
+  strategy?: 'CONDITION_DEPENDENT' | 'FIXED_RECIPE' | 'MINIMUM_INTERVENTION';
+  onStrategyChange?: (strategy: 'CONDITION_DEPENDENT' | 'FIXED_RECIPE' | 'MINIMUM_INTERVENTION') => void;
   feedGasComp?: FeedGasComposition;
   onFeedGasCompChange?: (comp: FeedGasComposition) => void;
   onActualChange: (key: keyof ActualDcsState, val: number) => void;
@@ -40,6 +42,8 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   prediction,
   userMode: _userMode,
   loading,
+  strategy = 'CONDITION_DEPENDENT',
+  onStrategyChange,
   feedGasComp,
   onFeedGasCompChange,
   onActualChange: _onActualChange,
@@ -317,6 +321,173 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
 
         {/* Section Content: Comparison Table */}
         <div style={{ padding: '16px 20px', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
+          {/* OPERATING STRATEGY SELECTOR (Master Prompt Strategy A / B / C) */}
+          <div style={{
+            marginBottom: '16px',
+            padding: '14px 16px',
+            backgroundColor: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '12px',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Optimization Strategy Policy
+                </span>
+                <span style={{ fontSize: '11px', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                  Advisory Decision Support (Zero Direct DCS Write)
+                </span>
+              </div>
+              {optimum?.strategy && (
+                <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>
+                  Active Engine: <strong style={{ color: '#0f172a' }}>{optimum.strategy}</strong>
+                </span>
+              )}
+            </div>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '10px',
+            }}>
+              {/* Strategy B: Condition-Dependent */}
+              <button
+                type="button"
+                onClick={() => onStrategyChange?.('CONDITION_DEPENDENT')}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  padding: '10px 14px',
+                  backgroundColor: strategy === 'CONDITION_DEPENDENT' ? '#eff6ff' : '#ffffff',
+                  border: strategy === 'CONDITION_DEPENDENT' ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', marginBottom: '4px' }}>
+                  <input
+                    type="radio"
+                    name="opt_strategy"
+                    checked={strategy === 'CONDITION_DEPENDENT'}
+                    onChange={() => onStrategyChange?.('CONDITION_DEPENDENT')}
+                    style={{ accentColor: '#2563eb', cursor: 'pointer' }}
+                  />
+                  <strong style={{ fontSize: '12px', color: strategy === 'CONDITION_DEPENDENT' ? '#1d4ed8' : '#334155' }}>
+                    Strategy B: Condition-Dependent
+                  </strong>
+                </div>
+                <span style={{ fontSize: '11px', color: '#64748b', lineHeight: 1.35 }}>
+                  Full 5D dynamic MR composition and circulation optimization per operating condition across the load curve.
+                </span>
+              </button>
+
+              {/* Strategy A: Fixed Recipe */}
+              <button
+                type="button"
+                onClick={() => onStrategyChange?.('FIXED_RECIPE')}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  padding: '10px 14px',
+                  backgroundColor: strategy === 'FIXED_RECIPE' ? '#eff6ff' : '#ffffff',
+                  border: strategy === 'FIXED_RECIPE' ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', marginBottom: '4px' }}>
+                  <input
+                    type="radio"
+                    name="opt_strategy"
+                    checked={strategy === 'FIXED_RECIPE'}
+                    onChange={() => onStrategyChange?.('FIXED_RECIPE')}
+                    style={{ accentColor: '#2563eb', cursor: 'pointer' }}
+                  />
+                  <strong style={{ fontSize: '12px', color: strategy === 'FIXED_RECIPE' ? '#1d4ed8' : '#334155' }}>
+                    Strategy A: Fixed Recipe Across Loads
+                  </strong>
+                </div>
+                <span style={{ fontSize: '11px', color: '#64748b', lineHeight: 1.35 }}>
+                  Maintain certified constant baseline recipe; circulation scales with feed flow to minimize make-up transitions.
+                </span>
+              </button>
+
+              {/* Strategy C: Minimum Intervention */}
+              <button
+                type="button"
+                onClick={() => onStrategyChange?.('MINIMUM_INTERVENTION')}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  padding: '10px 14px',
+                  backgroundColor: strategy === 'MINIMUM_INTERVENTION' ? '#eff6ff' : '#ffffff',
+                  border: strategy === 'MINIMUM_INTERVENTION' ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', marginBottom: '4px' }}>
+                  <input
+                    type="radio"
+                    name="opt_strategy"
+                    checked={strategy === 'MINIMUM_INTERVENTION'}
+                    onChange={() => onStrategyChange?.('MINIMUM_INTERVENTION')}
+                    style={{ accentColor: '#2563eb', cursor: 'pointer' }}
+                  />
+                  <strong style={{ fontSize: '12px', color: strategy === 'MINIMUM_INTERVENTION' ? '#1d4ed8' : '#334155' }}>
+                    Strategy C: Minimum-Intervention
+                  </strong>
+                </div>
+                <span style={{ fontSize: '11px', color: '#64748b', lineHeight: 1.35 }}>
+                  Penalize composition movement from current loop inventory; balances thermodynamic gain against make-up costs.
+                </span>
+              </button>
+            </div>
+
+            {/* Strategy Explanation Banner */}
+            {optimum?.explanation && (
+              <div style={{
+                marginTop: '10px',
+                padding: '8px 12px',
+                backgroundColor: '#f1f5f9',
+                borderLeft: '3px solid #0284c7',
+                borderRadius: '4px',
+                fontSize: '11px',
+                color: '#334155',
+                lineHeight: 1.4,
+              }}>
+                <strong>Strategy Explanation:</strong> {optimum.explanation}
+              </div>
+            )}
+
+            {/* Thermodynamic Constraint Residuals */}
+            {optimum?.constraint_residuals && (
+              <div style={{
+                marginTop: '8px',
+                display: 'flex',
+                gap: '12px',
+                flexWrap: 'wrap',
+                fontSize: '11px',
+                color: '#475569',
+              }}>
+                <span>Suction TAL Margin: <strong style={{ color: optimum.constraint_residuals.suction_tal_margin_c >= 0 ? '#16a34a' : '#dc2626' }}>+{optimum.constraint_residuals.suction_tal_margin_c.toFixed(2)} °C</strong></span>
+                <span>Anti-Surge Margin: <strong style={{ color: optimum.constraint_residuals.antisurge_margin_t_h >= 0 ? '#16a34a' : '#dc2626' }}>+{optimum.constraint_residuals.antisurge_margin_t_h.toFixed(1)} t/h</strong></span>
+                <span>Superheat Margin: <strong style={{ color: optimum.constraint_residuals.superheat_margin_c >= 0 ? '#16a34a' : '#dc2626' }}>+{optimum.constraint_residuals.superheat_margin_c.toFixed(2)} °C</strong></span>
+                <span>Mahalanobis Margin: <strong style={{ color: optimum.constraint_residuals.mahalanobis_margin >= 0 ? '#16a34a' : '#dc2626' }}>+{optimum.constraint_residuals.mahalanobis_margin.toFixed(3)}</strong></span>
+              </div>
+            )}
+          </div>
+
           {/* Capacity Boundary Warning Card */}
           {prediction?.prediction?.capacity_warning && (
             <div style={{

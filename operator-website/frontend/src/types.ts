@@ -78,6 +78,9 @@ export interface OptimizeResponse {
   source: string;
   solver_converged?: boolean;
   constraint_residuals?: Record<string, number>;
+  strategy?: string;
+  explanation?: string;
+  effective_inputs?: Record<string, any>;
 }
 
 export interface PredictionSummary {

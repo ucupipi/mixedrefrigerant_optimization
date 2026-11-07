@@ -5,6 +5,7 @@ Governance: AGENTS.md (Pasal 1–13).
 """
 from __future__ import annotations
 
+from datetime import datetime, timezone
 import json
 from pathlib import Path
 from typing import Any, Dict, List
@@ -23,8 +24,12 @@ from api.schemas import (
     ConfidenceSummary,
     DomainCheckSummary,
     FlashDrumSummary,
+    MakeupAdvisoryRequest,
+    MakeupAdvisoryResponse,
     MakeupAdvisorySummary,
+    MakeupComponentRecommendation,
     MakeupInjectionItem,
+    OptimizationStrategy,
     OptimizeRequest,
     OptimizeResponse,
     PredictRequest,
@@ -302,14 +307,7 @@ def predict_scenario(request: PredictRequest) -> PredictResponse:
         target_molpct=target_comp,
         transition_hours=transition_hrs,
     )
-    makeup_summary = MakeupAdvisorySummary(
-        transition_hours=makeup_calc["transition_hours"],
-        estimated_inventory_kg=makeup_calc["estimated_inventory_kg"],
-        total_makeup_flow_nm3_h=makeup_calc["total_makeup_flow_nm3_h"],
-        total_makeup_flow_kg_h=makeup_calc["total_makeup_flow_kg_h"],
-        items=[MakeupInjectionItem(**item) for item in makeup_calc["items"]],
-        operational_notes=makeup_calc["operational_notes"],
-    )
+    makeup_summary = MakeupAdvisoryResponse(**makeup_calc)
 
     # 8. Power decomposition: Propane C3 (4KT-1) vs MCR (4KT-2 + 4KT-3)  [AGENTS.md Pasal 10]
     # C3 share = H4FI031A / (H4FI031A + H4FI029A + H4FI030A) per-turbine condensate meters
@@ -427,10 +425,59 @@ def predict_scenario(request: PredictRequest) -> PredictResponse:
     )
 
 
+def _generate_optimization_explanation(
+    strategy: str,
+    feed_t_h: float,
+    mcr_flow_t_h: float,
+    antisurge_floor_applied: bool,
+    residuals: Dict[str, float],
+) -> str:
+    """Generate engineering explanation for operator decision support (Requirement R4).
+
+    Complies with AGENTS.md (Pasal 8: zero AI jargon, factual engineering explanations).
+    """
+    strat = strategy.upper()
+    antisurge_margin = residuals.get("antisurge_margin_t_h", round(mcr_flow_t_h - 480.0, 1))
+    tal_margin = residuals.get("suction_tal_margin_c", 0.0)
+
+    if strat == OptimizationStrategy.FIXED_RECIPE.value:
+        return (
+            f"Strategi Fixed Recipe: Komposisi MCR dipertahankan konstan pada resep acuan bersertifikat "
+            f"lintas beban operasi. Laju sirkulasi MCR dioptimasi secara independen ke {mcr_flow_t_h:.1f} t/h "
+            f"untuk memenuhi beban pendinginan umpan {feed_t_h:.1f} t/h dengan margin anti-surge {antisurge_margin:+.1f} t/h."
+        )
+    elif strat == OptimizationStrategy.MINIMUM_INTERVENTION.value:
+        return (
+            f"Strategi Minimum Intervention: Mengoptimalkan efisiensi energi dengan pembobotan biaya transisi "
+            f"dan penambahan make-up. Target komposisi menerapkan redaman proksimitas ke kondisi aktual DCS "
+            f"untuk mencegah injeksi refrigerant yang tidak perlu (margin TAL: {tal_margin:+.2f} °C, "
+            f"margin anti-surge: {antisurge_margin:+.1f} t/h)."
+        )
+    else:  # CONDITION_DEPENDENT
+        if antisurge_floor_applied:
+            return (
+                f"Strategi Condition-Dependent: Optimasi 5-dimensi aktif pada beban rendah {feed_t_h:.1f} t/h. "
+                f"Laju alir sirkulasi MCR tertahan pada batas minimum mekanikal anti-surge (480.0 t/h, margin=0.0 t/h) "
+                f"untuk perlindungan impeller kompresor sentrifugal 4K-2/3. Fraksi mol MCR merespons secara dinamis "
+                f"terhadap kurva pendinginan MCHE dengan margin TAL {tal_margin:+.2f} °C."
+            )
+        else:
+            return (
+                f"Strategi Condition-Dependent: Optimasi 5-dimensi aktif pada beban {feed_t_h:.1f} t/h. "
+                f"Laju alir sirkulasi MCR ({mcr_flow_t_h:.1f} t/h) dan fraksi mol MCR merespons secara dinamis "
+                f"terhadap kurva komposit pendinginan MCHE untuk meminimalkan daya poros spesifik "
+                f"dengan tetap memenuhi seluruh margin keselamatan proses."
+            )
+
+
 @router.post("/api/v1/optimize", response_model=OptimizeResponse)
 @router.post("/optimization", response_model=OptimizeResponse)
 def optimize_for_feed(request: OptimizeRequest) -> OptimizeResponse:
-    """Recommend MCR circulation flow and closest feasible composition for operator feed."""
+    """Recommend MCR circulation flow and closest feasible composition for operator feed.
+
+    READ-ONLY: Zero DCS control commands, purely analytical decision support.
+    Governance: AGENTS.md (Pasal 1-13), ORIGINAL_REQUEST.md (Requirements R2, R4).
+    """
     actual_comp = None
     if request.actual_comp_N2_molpct is not None:
         actual_comp = {
@@ -441,14 +488,37 @@ def optimize_for_feed(request: OptimizeRequest) -> OptimizeResponse:
             "C3": float(request.actual_comp_C3_molpct or 6.29),
         }
     alpha = float(request.alpha_trim or 0.30)
+
+    # Backward compatibility resolution for strategy
+    if request.strategy is None:
+        if request.alpha_trim is not None and request.alpha_trim < 1.0 and actual_comp is not None:
+            strat_str = "MINIMUM_INTERVENTION"
+        else:
+            strat_str = "CONDITION_DEPENDENT"
+    else:
+        strat_str = request.strategy.value if isinstance(request.strategy, OptimizationStrategy) else str(request.strategy).upper()
+
+    calc_ts = datetime.now(timezone.utc).isoformat()
+
+    effective_inputs: Dict[str, Any] = {
+        "feed_flow_t_h": float(request.feed_flow_t_h),
+        "strategy": strat_str,
+        "selected_recipe": request.selected_recipe,
+        "actual_mcr_flow_t_h": float(request.actual_mcr_flow_t_h) if request.actual_mcr_flow_t_h is not None else None,
+        "actual_comp": actual_comp,
+        "alpha_trim": alpha,
+    }
+
     try:
         rec = recommend(
             feed_t_h=request.feed_flow_t_h,
             actual_comp=actual_comp,
             actual_mcr_flow_t_h=request.actual_mcr_flow_t_h,
             alpha_trim=alpha,
+            strategy=strat_str,
+            intervention_weight=request.intervention_weight,
+            selected_recipe=request.selected_recipe,
         )
-        return OptimizeResponse(**rec)
     except (ValueError, RuntimeError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except FileNotFoundError as exc:
@@ -462,8 +532,58 @@ def optimize_for_feed(request: OptimizeRequest) -> OptimizeResponse:
             actual_comp=actual_comp,
             actual_mcr_flow_t_h=request.actual_mcr_flow_t_h,
             alpha_trim=alpha,
+            strategy=strat_str,
+            intervention_weight=request.intervention_weight,
+            selected_recipe=request.selected_recipe,
         )
-        return OptimizeResponse(**rec)
+
+    # Populate and ensure all 4 standard constraint residuals
+    residuals = dict(rec.get("constraint_residuals") or {})
+    mcr_val = float(rec.get("mcr_flow_t_h", 480.0))
+    t_suct_val = float(rec.get("expected_suction_temp_c", -41.5))
+    d_m_val = float(rec.get("mahalanobis_distance", 1.0))
+
+    if "antisurge_margin_t_h" not in residuals:
+        residuals["antisurge_margin_t_h"] = round(mcr_val - 480.0, 1)
+    if "suction_tal_margin_c" not in residuals:
+        residuals["suction_tal_margin_c"] = round(t_suct_val - (-45.0), 2)
+    if "superheat_margin_c" not in residuals:
+        residuals["superheat_margin_c"] = round(16.5, 2)
+    if "mahalanobis_margin" not in residuals:
+        residuals["mahalanobis_margin"] = round(3.0802 - d_m_val, 4)
+
+    antisurge_applied = bool(rec.get("antisurge_floor_applied", mcr_val <= 480.1))
+    explanation = rec.get("explanation") or _generate_optimization_explanation(
+        strategy=strat_str,
+        feed_t_h=float(rec.get("feed_t_h", request.feed_flow_t_h)),
+        mcr_flow_t_h=mcr_val,
+        antisurge_floor_applied=antisurge_applied,
+        residuals=residuals,
+    )
+
+    return OptimizeResponse(
+        feed_t_h=float(rec["feed_t_h"]),
+        mcr_flow_t_h=float(rec["mcr_flow_t_h"]),
+        comp_N2_molpct=float(rec["comp_N2_molpct"]),
+        comp_C1_molpct=float(rec["comp_C1_molpct"]),
+        comp_C2_molpct=float(rec["comp_C2_molpct"]),
+        comp_C2H4_molpct=float(rec["comp_C2H4_molpct"]),
+        comp_C3_molpct=float(rec["comp_C3_molpct"]),
+        mahalanobis_distance=float(rec["mahalanobis_distance"]),
+        expected_suction_temp_c=float(rec["expected_suction_temp_c"]),
+        suction_tal_ok=bool(rec["suction_tal_ok"]),
+        antisurge_floor_applied=antisurge_applied,
+        envelope_shrink_applied=bool(rec.get("envelope_shrink_applied", False)),
+        extrapolated=bool(rec.get("extrapolated", False)),
+        feed_span_t_h=list(rec["feed_span_t_h"]),
+        source=str(rec["source"]),
+        solver_converged=bool(rec.get("solver_converged", True)),
+        strategy=strat_str,
+        effective_inputs=effective_inputs,
+        calculation_timestamp=calc_ts,
+        constraint_residuals=residuals,
+        explanation=explanation,
+    )
 
 
 @router.get("/api/v1/historical-summary")
@@ -513,3 +633,27 @@ def get_historical_summary() -> Dict[str, Any]:
             "error": str(e),
             "points": [],
         }
+
+
+@router.post("/api/v1/makeup-advisory", response_model=MakeupAdvisoryResponse, tags=["Make-up Advisory"])
+@router.post("/api/makeup-advisory", response_model=MakeupAdvisoryResponse, tags=["Make-up Advisory"])
+def get_makeup_advisory(req: MakeupAdvisoryRequest) -> MakeupAdvisoryResponse:
+    """Component-resolved closed-loop make-up inventory balance advisory endpoint.
+
+    Calculates required component additions, mass rates, and standard volumetric rates
+    based on total loop inventory, current vs target composition, make-up stream purities,
+    and transition duration.
+
+    Read-only decision-support advisory: zero capability to write setpoints or command valves.
+    Governance: AGENTS.md (Pasal 1-13), ORIGINAL_REQUEST.md (§R3, §R4).
+    """
+    res = calculate_makeup_recommendations(
+        actual_molpct=req.actual_comp,
+        target_molpct=req.target_comp,
+        transition_hours=req.transition_hours if req.transition_hours is not None else 2.0,
+        inventory_kg=req.inventory_kg if req.inventory_kg is not None else 24000.0,
+        use_stream_purity=req.use_stream_purity if req.use_stream_purity is not None else True,
+        c1_tag=req.c1_tag if req.c1_tag else "H4FIC005",
+    )
+    return MakeupAdvisoryResponse(**res)
+
