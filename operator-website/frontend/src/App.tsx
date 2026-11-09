@@ -178,13 +178,22 @@ export function App() {
   const initCompletedRef = useRef<boolean>(false);
   const autoCalculate = true;
 
-  // Auto-recalculate whenever scenario or actual changes (debounced 250ms)
+  // Auto-recalculate whenever scenario, actual, or optimum changes (debounced 250ms)
   useEffect(() => {
     if (!autoCalculate || !snapshot || !initCompletedRef.current) return;
     const timer = setTimeout(async () => {
       try {
         setLoading(true);
-        const res = await predictScenario(buildRequest(scenario, actualDcs));
+        const targetScenario: ScenarioInput = {
+          ...scenario,
+          mcr_flow_t_h: optimum?.mcr_flow_t_h ?? scenario.mcr_flow_t_h,
+          comp_N2_molpct: optimum?.comp_N2_molpct ?? scenario.comp_N2_molpct,
+          comp_C1_molpct: optimum?.comp_C1_molpct ?? scenario.comp_C1_molpct,
+          comp_C2_molpct: optimum?.comp_C2_molpct ?? scenario.comp_C2_molpct,
+          comp_C2H4_molpct: optimum?.comp_C2H4_molpct ?? scenario.comp_C2H4_molpct,
+          comp_C3_molpct: optimum?.comp_C3_molpct ?? scenario.comp_C3_molpct,
+        };
+        const res = await predictScenario(buildRequest(targetScenario, actualDcs));
         setPrediction(res);
         setErrorMsg(null);
       } catch (err: any) {
@@ -195,7 +204,7 @@ export function App() {
       }
     }, 250);
     return () => clearTimeout(timer);
-  }, [scenario, actualDcs, autoCalculate, Boolean(snapshot)]);
+  }, [scenario, actualDcs, optimum, autoCalculate, Boolean(snapshot)]);
 
   // Initialize data on mount
   useEffect(() => {
@@ -214,6 +223,17 @@ export function App() {
         try {
           const opt = await optimizeForFeed(act.feed_flow_t_h, act, 0.30, strategy);
           setOptimum(opt);
+          const targetScenario: ScenarioInput = {
+            ...scenarioFromActual(act, 2.0),
+            mcr_flow_t_h: opt.mcr_flow_t_h,
+            comp_N2_molpct: opt.comp_N2_molpct,
+            comp_C1_molpct: opt.comp_C1_molpct,
+            comp_C2_molpct: opt.comp_C2_molpct,
+            comp_C2H4_molpct: opt.comp_C2H4_molpct,
+            comp_C3_molpct: opt.comp_C3_molpct,
+          };
+          const initialPred = await predictScenario(buildRequest(targetScenario, act)).catch(() => null);
+          if (initialPred) setPrediction(initialPred);
         } catch (optErr: any) {
           if (optErr?.name !== 'AbortError') {
             console.warn('Initial optimize fallback used:', optErr);
@@ -252,52 +272,45 @@ export function App() {
   const handleScenarioChange = (key: keyof ScenarioInput, value: number) => {
     if (key === 'feed_flow_t_h') {
       const lng = getEstimatedLngFlow(value, -152.5, feedGasComp);
-      const dcsMcr = Math.max(504.0, Math.round(value * (562.3 / 245.8) * 10) / 10);
+      // Zero arbitrary scaling: preserve operator DCS baseline MCR flow and compositions
       setActualDcs((prev) => ({
         ...prev,
         feed_flow_t_h: value,
         lng_flow_t_h: lng,
-        mcr_flow_t_h: dcsMcr,
       }));
       setScenario((prev) => ({
         ...prev,
         feed_flow_t_h: value,
         lng_flow_t_h: lng,
-        mcr_flow_t_h: dcsMcr,
       }));
     } else {
       setScenario((prev) => ({ ...prev, [key]: value }));
+      if (key in DEFAULT_ACTUAL) {
+        setActualDcs((prev) => ({ ...prev, [key]: value }));
+      }
     }
   };
 
   const handleActualChange = async (key: keyof ActualDcsState, value: number) => {
-    setActualDcs((prev) => ({ ...prev, [key]: value }));
-    // Feed is a disturbance: target feed follows actual feed
     if (key === 'feed_flow_t_h') {
-      const lng = getEstimatedLngFlow(value);
+      const lng = getEstimatedLngFlow(value, -152.5, feedGasComp);
       const updatedActual = { ...actualDcs, [key]: value, lng_flow_t_h: lng };
       setActualDcs(updatedActual);
+      setScenario((prev) => ({
+        ...prev,
+        feed_flow_t_h: value,
+        lng_flow_t_h: lng,
+      }));
       try {
         const opt = await optimizeForFeed(value, updatedActual, 0.30, strategy);
         setOptimum(opt);
-        setScenario((prev) => ({
-          ...prev,
-          feed_flow_t_h: value,
-          lng_flow_t_h: lng,
-          mcr_flow_t_h: opt.mcr_flow_t_h,
-          comp_N2_molpct: opt.comp_N2_molpct,
-          comp_C1_molpct: opt.comp_C1_molpct,
-          comp_C2_molpct: opt.comp_C2_molpct,
-          comp_C2H4_molpct: opt.comp_C2H4_molpct,
-          comp_C3_molpct: opt.comp_C3_molpct,
-        }));
-      } catch {
-        setScenario((prev) => ({
-          ...prev,
-          feed_flow_t_h: value,
-          lng_flow_t_h: lng,
-        }));
+        // Do NOT overwrite scenario or actualDcs compositions with opt
+      } catch (err: any) {
+        if (err?.name !== 'AbortError') console.warn('Optimize on feed change failed:', err);
       }
+    } else {
+      setActualDcs((prev) => ({ ...prev, [key]: value }));
+      setScenario((prev) => ({ ...prev, [key]: value }));
     }
   };
 
@@ -305,8 +318,23 @@ export function App() {
     setStrategy(newStrategy);
     try {
       setLoading(true);
-      const opt = await optimizeForFeed(scenario.feed_flow_t_h, actualDcs, 0.30, newStrategy);
+      const targetFeed = scenario.feed_flow_t_h;
+      const opt = await optimizeForFeed(targetFeed, actualDcs, 0.30, newStrategy);
       setOptimum(opt);
+      // Immediately synchronize backend prediction with the newly selected strategy preset against unchanged DCS baseline
+      const targetScenario: ScenarioInput = {
+        ...scenario,
+        feed_flow_t_h: targetFeed,
+        lng_flow_t_h: scenario.lng_flow_t_h ?? getEstimatedLngFlow(targetFeed),
+        mcr_flow_t_h: opt.mcr_flow_t_h,
+        comp_N2_molpct: opt.comp_N2_molpct,
+        comp_C1_molpct: opt.comp_C1_molpct,
+        comp_C2_molpct: opt.comp_C2_molpct,
+        comp_C2H4_molpct: opt.comp_C2H4_molpct,
+        comp_C3_molpct: opt.comp_C3_molpct,
+      };
+      const pred = await predictScenario(buildRequest(targetScenario, actualDcs));
+      setPrediction(pred);
     } catch (err: any) {
       if (err?.name !== 'AbortError') {
         console.warn('Strategy switch optimize failed:', err);
@@ -318,12 +346,17 @@ export function App() {
 
   const handleNormalizeScenario = () => {
     setScenario((prev) => normalizeComposition(prev));
+    setActualDcs((prev) => normalizeComposition(prev));
   };
 
   const handleFeedGasCompChange = (newComp: FeedGasComposition) => {
     setFeedGasComp(newComp);
     const newLng = getEstimatedLngFlow(scenario.feed_flow_t_h, -152.5, newComp);
     setScenario((prev) => ({
+      ...prev,
+      lng_flow_t_h: newLng,
+    }));
+    setActualDcs((prev) => ({
       ...prev,
       lng_flow_t_h: newLng,
     }));
@@ -336,17 +369,20 @@ export function App() {
       const targetFeed = scenario.feed_flow_t_h;
       const opt = await optimizeForFeed(targetFeed, actualDcs, 0.30, strategy);
       setOptimum(opt);
-      setScenario((prev) => ({
-        ...prev,
+      // Strictly immutable DCS baseline: do NOT overwrite scenario or actualDcs inputs with opt!
+      const targetScenario: ScenarioInput = {
+        ...scenario,
         feed_flow_t_h: targetFeed,
-        lng_flow_t_h: getEstimatedLngFlow(targetFeed),
+        lng_flow_t_h: scenario.lng_flow_t_h ?? getEstimatedLngFlow(targetFeed),
         mcr_flow_t_h: opt.mcr_flow_t_h,
         comp_N2_molpct: opt.comp_N2_molpct,
         comp_C1_molpct: opt.comp_C1_molpct,
         comp_C2_molpct: opt.comp_C2_molpct,
         comp_C2H4_molpct: opt.comp_C2H4_molpct,
         comp_C3_molpct: opt.comp_C3_molpct,
-      }));
+      };
+      const pred = await predictScenario(buildRequest(targetScenario, actualDcs));
+      setPrediction(pred);
     } catch (err: any) {
       setErrorMsg(err.message || 'Optimization solver failed.');
     } finally {
@@ -358,7 +394,16 @@ export function App() {
     try {
       setLoading(true);
       setErrorMsg(null);
-      setPrediction(await predictScenario(buildRequest(scenario, actualDcs)));
+      const targetScenario: ScenarioInput = {
+        ...scenario,
+        mcr_flow_t_h: optimum?.mcr_flow_t_h ?? scenario.mcr_flow_t_h,
+        comp_N2_molpct: optimum?.comp_N2_molpct ?? scenario.comp_N2_molpct,
+        comp_C1_molpct: optimum?.comp_C1_molpct ?? scenario.comp_C1_molpct,
+        comp_C2_molpct: optimum?.comp_C2_molpct ?? scenario.comp_C2_molpct,
+        comp_C2H4_molpct: optimum?.comp_C2H4_molpct ?? scenario.comp_C2H4_molpct,
+        comp_C3_molpct: optimum?.comp_C3_molpct ?? scenario.comp_C3_molpct,
+      };
+      setPrediction(await predictScenario(buildRequest(targetScenario, actualDcs)));
     } catch (err: any) {
       setErrorMsg(err.message || 'Prediction calculation failed.');
     } finally {
@@ -374,6 +419,17 @@ export function App() {
     try {
       const opt = await optimizeForFeed(act.feed_flow_t_h, act, 0.30, strategy);
       setOptimum(opt);
+      const targetScenario: ScenarioInput = {
+        ...scenarioFromActual(act, scenario.transition_hours ?? 2.0),
+        mcr_flow_t_h: opt.mcr_flow_t_h,
+        comp_N2_molpct: opt.comp_N2_molpct,
+        comp_C1_molpct: opt.comp_C1_molpct,
+        comp_C2_molpct: opt.comp_C2_molpct,
+        comp_C2H4_molpct: opt.comp_C2H4_molpct,
+        comp_C3_molpct: opt.comp_C3_molpct,
+      };
+      const pred = await predictScenario(buildRequest(targetScenario, act));
+      setPrediction(pred);
     } catch {
       setOptimum(null);
     }
@@ -387,15 +443,15 @@ export function App() {
       ?? scenario.lng_flow_t_h
       ?? scenarioFlash.lngLiquidFlowTH;
     const rows: (string | number | undefined | null)[][] = [
-      ['Parameter', 'DCS Tag', 'DCS Actual', 'MCR Scenario / Recommendation', 'Unit', 'Variable Category'],
-      ['Treated Feed Gas Flow to MCHE 5E-1 (mass)', 'H3FI0004 x 0.760', actualDcs.feed_flow_t_h, scenario.feed_flow_t_h, 't/h', 'INPUT_DISTURBANCE'],
+      ['Parameter', 'DCS Tag', 'DCS Actual', 'MCR AI Recommendation', 'Unit', 'Variable Category'],
+      ['Treated Feed Gas Flow to MCHE 5E-1 (mass)', 'H3FI0004 x 0.760', actualDcs.feed_flow_t_h, optimum?.feed_t_h ?? scenario.feed_flow_t_h, 't/h', 'INPUT_DISTURBANCE'],
       ['LNG Rundown Production Flow (H5FI6A)', 'H5FI6A', actualLng.toFixed(1), scenarioLng.toFixed(1), 't/h LNG', 'COUPLED_PRODUCT'],
-      ['MCR Circulation Flow (mass)', 'H4FI011B x 36.8', actualDcs.mcr_flow_t_h, scenario.mcr_flow_t_h, 't/h', 'DECISION_VARIABLE'],
-      ['MCR N2', 'comp_4C-8_N2', actualDcs.comp_N2_molpct, scenario.comp_N2_molpct, 'mol%', 'DECISION_VARIABLE'],
-      ['MCR CH4 (C1)', 'comp_4C-8_C1', actualDcs.comp_C1_molpct, scenario.comp_C1_molpct, 'mol%', 'DECISION_VARIABLE'],
-      ['MCR C2H6 (C2)', 'comp_4C-8_C2', actualDcs.comp_C2_molpct, scenario.comp_C2_molpct, 'mol%', 'DECISION_VARIABLE'],
-      ['MCR C2H4', 'comp_4C-8_C2H4', actualDcs.comp_C2H4_molpct, scenario.comp_C2H4_molpct, 'mol%', 'DECISION_VARIABLE'],
-      ['MCR C3H8 (C3)', 'comp_4C-8_C3', actualDcs.comp_C3_molpct, scenario.comp_C3_molpct, 'mol%', 'DECISION_VARIABLE'],
+      ['MCR Circulation Flow (mass)', 'H4FI011B x 36.8', actualDcs.mcr_flow_t_h, optimum?.mcr_flow_t_h ?? scenario.mcr_flow_t_h, 't/h', 'DECISION_VARIABLE'],
+      ['MCR N2', 'comp_4C-8_N2', actualDcs.comp_N2_molpct, optimum?.comp_N2_molpct ?? scenario.comp_N2_molpct, 'mol%', 'DECISION_VARIABLE'],
+      ['MCR CH4 (C1)', 'comp_4C-8_C1', actualDcs.comp_C1_molpct, optimum?.comp_C1_molpct ?? scenario.comp_C1_molpct, 'mol%', 'DECISION_VARIABLE'],
+      ['MCR C2H6 (C2)', 'comp_4C-8_C2', actualDcs.comp_C2_molpct, optimum?.comp_C2_molpct ?? scenario.comp_C2_molpct, 'mol%', 'DECISION_VARIABLE'],
+      ['MCR C2H4', 'comp_4C-8_C2H4', actualDcs.comp_C2H4_molpct, optimum?.comp_C2H4_molpct ?? scenario.comp_C2H4_molpct, 'mol%', 'DECISION_VARIABLE'],
+      ['MCR C3H8 (C3)', 'comp_4C-8_C3', actualDcs.comp_C3_molpct, optimum?.comp_C3_molpct ?? scenario.comp_C3_molpct, 'mol%', 'DECISION_VARIABLE'],
       ['Total C3MR Shaft Power', 'OUTPUT_MODEL', (prediction.baseline_power_mw ?? prediction.actual_power_mw), prediction.prediction.total_shaft_power_mw, 'MW', 'OUTPUT_PREDICTION'],
       ['SEC LNG (Denominator H5FI6A)', 'DERIVED_LNG', prediction.baseline_sec_lng ?? '-', prediction.prediction.sec_lng_kwh_per_t ?? prediction.prediction.sec_kwh_per_t, 'kWh/t LNG', 'OUTPUT_PREDICTION'],
       ['Mahalanobis Distance', 'ENVELOPE', '-', prediction.domain_check.mahalanobis_distance, 'dimensionless', prediction.domain_check.in_domain ? 'IN_DOMAIN' : 'OUT_OF_DOMAIN'],

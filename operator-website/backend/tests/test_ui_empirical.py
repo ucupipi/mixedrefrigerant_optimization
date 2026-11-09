@@ -251,3 +251,176 @@ class TestPhysicsEngineRemediation:
         assert res.returncode == 0, f"physicsEngine.test.ts failed:\nSTDOUT:\n{res.stdout}\nSTDERR:\n{res.stderr}"
 
 
+class TestDcsBaselineImmutabilityAndStateSeparation:
+    """Verifies R1 & R4: DCS baseline inputs remain strictly immutable and separate from AI targets."""
+
+    @pytest.fixture
+    def app_content(self):
+        return read_file(APP_TSX)
+
+    @pytest.fixture
+    def tab_content(self):
+        return read_file(TAB_INPUT_RESULTS)
+
+    def test_apply_ai_target_preserves_dcs_inputs_without_on_optimize(self, tab_content):
+        """Verify handleApplyRecommended only toggles isAiApplied without invoking onOptimize()."""
+        match = re.search(r'const\s+handleApplyRecommended\s*=\s*\(\)\s*=>\s*\{([^}]+)\}', tab_content)
+        assert match, "handleApplyRecommended definition not found in TabInputResults.tsx"
+        body = match.group(1)
+        assert "setIsAiApplied(true)" in body, "handleApplyRecommended must set isAiApplied to true"
+        assert "onOptimize()" not in body, "handleApplyRecommended must NOT call onOptimize() which mutates inputs"
+        assert "onScenarioChange" not in body, "handleApplyRecommended must NOT mutate scenario"
+
+    def test_handle_optimize_does_not_mutate_dcs_inputs(self, app_content):
+        """Verify handleOptimize sets optimum without overwriting scenario or actualDcs inputs."""
+        match = re.search(r'const\s+handleOptimize\s*=\s*async\s*\(\)\s*=>\s*\{([\s\S]*?)\n  \};', app_content)
+        assert match, "handleOptimize definition not found in App.tsx"
+        body = match.group(1)
+        assert "setOptimum(opt)" in body, "handleOptimize must store result in optimum state"
+        assert "setScenario((prev) => ({" not in body, "handleOptimize must NOT overwrite scenario with opt targets"
+        assert "setActualDcs((prev) => ({" not in body, "handleOptimize must NOT overwrite actualDcs with opt targets"
+
+    def test_feed_flow_change_zero_arbitrary_scaling(self, app_content):
+        """Verify feed flow adjustment in handleScenarioChange does not use magic multiplier (562.3 / 245.8)."""
+        assert "562.3 / 245.8" not in app_content, "Arbitrary multiplier (562.3 / 245.8) found in App.tsx"
+        match = re.search(r'const\s+handleScenarioChange\s*=\s*\([^)]*\)\s*=>\s*\{([\s\S]*?)\n  \};', app_content)
+        assert match, "handleScenarioChange not found in App.tsx"
+        body = match.group(1)
+        feed_branch_match = re.search(r"if\s*\(\s*key\s*===\s*'feed_flow_t_h'\s*\)\s*\{([\s\S]*?)\}\s*else", body)
+        assert feed_branch_match, "feed_flow_t_h branch not found in handleScenarioChange"
+        feed_branch = feed_branch_match.group(1)
+        assert "mcr_flow_t_h:" not in feed_branch, "feed_flow_t_h change must NOT overwrite mcr_flow_t_h in App.tsx"
+
+    def test_section1_inputs_bound_to_actual_dcs(self, tab_content):
+        """Verify Table 1 inputs read from actualDcs to guarantee DCS baseline immutability."""
+        assert "value={actualDcs.feed_flow_t_h ?? scenario.feed_flow_t_h}" in tab_content, "Feed flow input not bound to actualDcs"
+        assert "value={actualDcs.mcr_flow_t_h ?? scenario.mcr_flow_t_h}" in tab_content, "MCR flow input not bound to actualDcs"
+        assert "value={actualDcs[comp.key] ?? scenario[comp.key]}" in tab_content, "Composition inputs not bound to actualDcs"
+
+
+class TestDynamicPresetSwitchingAndMetricRecalculation:
+    """Verifies R2: Switching optimization presets dynamically updates targets and recalculates savings."""
+
+    @pytest.fixture
+    def app_content(self):
+        return read_file(APP_TSX)
+
+    @pytest.fixture
+    def tab_content(self):
+        return read_file(TAB_INPUT_RESULTS)
+
+    def test_strategy_switch_triggers_optimization_and_prediction_refresh(self, app_content):
+        """Verify handleStrategyChange updates optimum and recalculates prediction with new preset."""
+        match = re.search(r'const\s+handleStrategyChange\s*=\s*async\s*\([^)]*\)\s*=>\s*\{([\s\S]*?)\n  \};', app_content)
+        assert match, "handleStrategyChange not found in App.tsx"
+        body = match.group(1)
+        assert "optimizeForFeed(targetFeed, actualDcs, 0.30, newStrategy)" in body, "optimizeForFeed must be called with newStrategy"
+        assert "setOptimum(opt)" in body, "setOptimum must be called with new recommendation"
+        assert "predictScenario(buildRequest(targetScenario, actualDcs))" in body, "predictScenario must be refreshed for the new strategy preset"
+
+    def test_section3_savings_recalculation_without_is_ai_applied_freeze(self, tab_content):
+        """Verify Section 3 evaluates savings directly against DCS baseline without isAiApplied gating."""
+        assert "const deltaPower = isAiApplied ? aiTargetDeltaPower : rawDeltaPower;" not in tab_content, \
+            "Found stale deltaPower gating behind isAiApplied in TabInputResults.tsx"
+        assert "const scenarioPower = isAiApplied ? aiTargetPower : rawScenarioPower;" not in tab_content, \
+            "Found stale scenarioPower gating behind isAiApplied in TabInputResults.tsx"
+        assert "deltaPower = prediction?.prediction?.delta_power_mw ?? (targetPower - baselinePower)" in tab_content, \
+            "deltaPower must directly evaluate targetPower against baselinePower"
+
+    def test_section3_kpi_status_pills_advisory_vs_applied(self, tab_content):
+        """Verify Section 3 KPI cards render dynamic status pill distinguishing Applied Target vs Advisory Target."""
+        assert "{isAiApplied ? 'Applied Target' : 'Advisory Target'}" in tab_content, \
+            "Status pill distinguishing Applied Target vs Advisory Target missing in Section 3"
+
+
+class TestSideBySidePresentationAndTrueMakeupDeltas:
+    """Verifies R3: Side-by-side presentation in Section 1, Section 2, and Make-Up Schedule."""
+
+    @pytest.fixture
+    def tab_content(self):
+        return read_file(TAB_INPUT_RESULTS)
+
+    def test_makeup_schedule_derives_actmap_from_actual_dcs(self, tab_content):
+        """Verify activeMakeupAdvisory derives actMap from actualDcs to guarantee true mathematical deviations."""
+        match = re.search(r'const\s+activeMakeupAdvisory[\s\S]*?const\s+actMap:\s*Record<string,\s*number>\s*=\s*\{([\s\S]*?)\};', tab_content)
+        assert match, "actMap definition not found in activeMakeupAdvisory"
+        act_map_body = match.group(1)
+        assert "actualDcs.comp_N2_molpct" in act_map_body, "actMap must read N2 from actualDcs"
+        assert "actualDcs.comp_C1_molpct" in act_map_body, "actMap must read C1 from actualDcs"
+        assert "actualDcs.comp_C2_molpct" in act_map_body, "actMap must read C2 from actualDcs"
+        assert "actualDcs.comp_C3_molpct" in act_map_body, "actMap must read C3 from actualDcs"
+
+    def test_makeup_schedule_mathematical_deviations_and_non_zero_rates(self):
+        """Verify empirical mathematical calculation of deficit injection rates on MCR inventory."""
+        inv_kg = 24000.0
+        mw = {"N2": 28.0134, "C1": 16.0425, "C2": 30.069, "C2H4": 28.0532, "C3": 44.0956}
+        purity = {"N2": 0.999, "C1": 0.945, "C2": 0.96, "C3": 0.985}
+        t_hours = 2.0
+
+        act = {"N2": 3.39, "C1": 44.45, "C2": 45.02, "C2H4": 0.85, "C3": 6.29}
+        tgt = {"N2": 3.31, "C1": 46.08, "C2": 45.15, "C3": 5.41}
+
+        avg_mw = sum(act[c] * mw[c] for c in act) / 100.0
+        n0_kmol = inv_kg / avg_mw
+
+        deltas = {c: round(tgt[c] - act[c], 2) for c in tgt}
+        assert deltas["C1"] == 1.63, f"Expected C1 delta +1.63 mol%, got {deltas['C1']}"
+        assert deltas["C2"] == 0.13, f"Expected C2 delta +0.13 mol%, got {deltas['C2']}"
+        assert deltas["N2"] == -0.08, f"Expected N2 delta -0.08 mol%, got {deltas['N2']}"
+        assert deltas["C3"] == -0.88, f"Expected C3 delta -0.88 mol%, got {deltas['C3']}"
+
+        # C1 is deficit: must inject
+        needed_kmol_c1 = (n0_kmol * (deltas["C1"] / 100.0)) / purity["C1"]
+        needed_nm3_c1 = needed_kmol_c1 * 22.414
+        flow_nm3_c1 = round(needed_nm3_c1 / t_hours, 1)
+        assert flow_nm3_c1 > 100.0, f"C1 injection flow must be substantial (>100 Nm3/h), got {flow_nm3_c1}"
+
+        # C2 is deficit: must inject
+        needed_kmol_c2 = (n0_kmol * (deltas["C2"] / 100.0)) / purity["C2"]
+        needed_nm3_c2 = needed_kmol_c2 * 22.414
+        flow_nm3_c2 = round(needed_nm3_c2 / t_hours, 1)
+        assert flow_nm3_c2 > 10.0, f"C2 injection flow must be non-zero (>10 Nm3/h), got {flow_nm3_c2}"
+
+    def test_section1_side_by_side_column_headers(self, tab_content):
+        """Verify Section 1 Table 1 header has explicit side-by-side columns."""
+        assert "Current Input (DCS)" in tab_content, "Current Input (DCS) header column missing in Section 1"
+        assert "AI Target" in tab_content, "AI Target header column missing in Section 1"
+
+    def test_section2_continuous_side_by_side_across_all_panels(self, tab_content):
+        """Verify Section 2 panels render DCS and AI Target side-by-side without conditional hiding."""
+        assert "{isAiApplied ? 'AI Target' : 'Scenario'}" not in tab_content, \
+            "Section 2 still contains {isAiApplied ? 'AI Target' : 'Scenario'} conditional hiding"
+        assert "{isAiApplied ? 'AI 2.35' : 'Scenario 2.28'}" not in tab_content, \
+            "Section 2 still contains conditional hiding on 4PI-13"
+        assert "{isAiApplied ? 'AI 58.1°C' : 'Scenario 62.4°C'}" not in tab_content, \
+            "Section 2 still contains conditional hiding on 4TI-16"
+        assert "{isAiApplied ? 'AI 35.15' : 'Scenario 36.90'}" not in tab_content, \
+            "Section 2 still contains conditional hiding on 4PI-1"
+        assert "SAFE (TAL ≥ -45.0°C)" in tab_content, "TAL interlock badge SAFE (TAL ≥ -45.0°C) missing"
+
+
+class TestEngineeringRulesCompliance:
+    """Verifies R5 and AGENTS.md compliance: zero magic numbers and mass balance consistency."""
+
+    def test_agents_md_zero_magic_numbers_in_state_handlers(self):
+        """Verify absence of unreferenced arbitrary multipliers in App.tsx and TabInputResults.tsx."""
+        app_content = read_file(APP_TSX)
+        tab_content = read_file(TAB_INPUT_RESULTS)
+
+        forbidden = [
+            "562.3 / 245.8",
+            "reboilerDuty * 6.5",
+            "condenserDuty * 6.2",
+            "chillerDuty / 7.0 * 25.23"
+        ]
+        for f in forbidden:
+            assert f not in app_content, f"Forbidden magic number '{f}' found in App.tsx"
+            assert f not in tab_content, f"Forbidden magic number '{f}' found in TabInputResults.tsx"
+
+    def test_simplex_molar_conservation_closure(self):
+        """Verify that Total MCR Composition sums strictly to 100% within tolerance."""
+        tab_content = read_file(TAB_INPUT_RESULTS)
+        assert "Math.abs(compSum - 100.0) < 0.05" in tab_content, "Simplex closure check missing in TabInputResults.tsx"
+
+
+

@@ -43,7 +43,7 @@ interface TabInputResultsProps {
 export const TabInputResults: React.FC<TabInputResultsProps> = ({
   snapshot: _snapshot,
   scenario,
-  actualDcs: _actualDcs,
+  actualDcs,
   optimum,
   prediction,
   userMode: _userMode,
@@ -52,10 +52,10 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   onStrategyChange,
   feedGasComp,
   onFeedGasCompChange,
-  onActualChange: _onActualChange,
+  onActualChange,
   onScenarioChange,
   onCalculate: _onCalculate,
-  onOptimize,
+  onOptimize: _onOptimize,
   onNormalizeScenario,
   onReset,
 }) => {
@@ -106,31 +106,24 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
       comp_C2H4_molpct: recC2H4,
       comp_C3_molpct: recC3,
     },
-    _actualDcs
+    actualDcs
   );
 
-  // Power and SEC calculations (Evaluated ceteris-paribus at the active feed & LNG flow)
+  // Power and SEC calculations evaluated directly against unchanged DCS baseline reference
   const baselinePower = prediction?.baseline_power_mw ?? prediction?.actual_power_mw ?? aiTargetPrediction.baseline_power_mw ?? 84.48;
-  const rawScenarioPower = prediction?.prediction?.total_shaft_power_mw ?? baselinePower;
-  const rawDeltaPower = prediction?.prediction?.delta_power_mw ?? (rawScenarioPower - baselinePower);
-
-  const aiTargetPower = aiTargetPrediction.prediction.total_shaft_power_mw;
-  const aiTargetDeltaPower = aiTargetPrediction.prediction.delta_power_mw ?? (aiTargetPower - baselinePower);
+  const targetPower = prediction?.prediction?.total_shaft_power_mw ?? aiTargetPrediction.prediction.total_shaft_power_mw;
+  const deltaPower = prediction?.prediction?.delta_power_mw ?? (targetPower - baselinePower);
+  const deltaPowerPct = baselinePower > 0 ? (deltaPower / baselinePower) * 100 : 0;
 
   // Detect if Current Input is sitting at unoptimized DCS baseline (before clicking Apply AI Target)
   const isAtDcsBaseline =
     !isAiApplied &&
-    Math.abs(rawDeltaPower) <= 0.05 &&
-    Math.abs(scenario.mcr_flow_t_h - recMcrFlow) > 0.5;
-
-  const scenarioPower = isAiApplied ? aiTargetPower : rawScenarioPower;
-  const deltaPower = isAiApplied ? aiTargetDeltaPower : rawDeltaPower;
-  const deltaPowerPct = baselinePower > 0 ? (deltaPower / baselinePower) * 100 : 0;
+    Math.abs((actualDcs.mcr_flow_t_h ?? scenario.mcr_flow_t_h) - recMcrFlow) > 0.5;
 
   const activeLngFlow = Math.max(scenarioLngFlow, 10.0);
   const baselineSecLng = prediction?.baseline_sec_lng ?? ((baselinePower * 1000) / activeLngFlow);
-  const scenarioSecLng = (scenarioPower * 1000) / activeLngFlow;
-  const deltaSecLng = scenarioSecLng - baselineSecLng;
+  const targetSecLng = prediction?.prediction?.sec_lng_kwh_per_t ?? ((targetPower * 1000) / activeLngFlow);
+  const deltaSecLng = targetSecLng - baselineSecLng;
   const deltaSecLngPct = baselineSecLng > 0 ? (deltaSecLng / baselineSecLng) * 100 : 0;
 
   // Plant-5 Train H (Liquefaction) Economic & Decarbonization Constants (Manual Book Modul 8 & Stage 08)
@@ -147,7 +140,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   const fuelGasSaved_t_h = (fuelGasSaved_nm3_h * FG_DENSITY_KG_NM3) / 1000;
   const fuelGasSaved_usd_yr = (fuelGasSaved_nm3_h * FUEL_GAS_MMBTU_PER_NM3 * FUEL_GAS_PRICE_USD_PER_MMBTU * ANNUAL_OPERATING_HOURS) / 1_000_000;
 
-  const potentialAiPowerSavingMw = Math.max(0, -aiTargetDeltaPower);
+  const potentialAiPowerSavingMw = deltaPowerSavingMw;
   const potentialAiSecSavingKwh = activeLngFlow > 0 ? (potentialAiPowerSavingMw * 1000) / activeLngFlow : 0;
 
   // Make-Up MCR Schedule items:
@@ -163,12 +156,13 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
     const tgtC2 = recC2;
     const tgtC3 = recC3;
 
+    // Source DCS actual baseline strictly from actualDcs inputs
     const actMap: Record<string, number> = {
-      N2: scenario.comp_N2_molpct,
-      C1: scenario.comp_C1_molpct,
-      C2: scenario.comp_C2_molpct,
-      C2H4: scenario.comp_C2H4_molpct,
-      C3: scenario.comp_C3_molpct,
+      N2: actualDcs.comp_N2_molpct ?? scenario.comp_N2_molpct,
+      C1: actualDcs.comp_C1_molpct ?? scenario.comp_C1_molpct,
+      C2: actualDcs.comp_C2_molpct ?? scenario.comp_C2_molpct,
+      C2H4: actualDcs.comp_C2H4_molpct ?? scenario.comp_C2H4_molpct,
+      C3: actualDcs.comp_C3_molpct ?? scenario.comp_C3_molpct,
     };
     const tgtMap: Record<string, number> = {
       N2: tgtN2,
@@ -318,22 +312,19 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   const totalMakeupFlowKg = isUnevaluated ? null : (activeMakeupAdvisory?.total_makeup_flow_kg_h ?? null);
   const totalMakeupFlowScfd = isUnevaluated ? null : (activeMakeupAdvisory?.total_makeup_flow_scfd ?? null);
 
-  // Composition sum
+  // Composition sum of DCS baseline inputs
   const compSum =
-    scenario.comp_N2_molpct +
-    scenario.comp_C1_molpct +
-    scenario.comp_C2_molpct +
-    scenario.comp_C2H4_molpct +
-    scenario.comp_C3_molpct;
+    (actualDcs.comp_N2_molpct ?? scenario.comp_N2_molpct) +
+    (actualDcs.comp_C1_molpct ?? scenario.comp_C1_molpct) +
+    (actualDcs.comp_C2_molpct ?? scenario.comp_C2_molpct) +
+    (actualDcs.comp_C2H4_molpct ?? scenario.comp_C2H4_molpct) +
+    (actualDcs.comp_C3_molpct ?? scenario.comp_C3_molpct);
   const isCompositionClosed = Math.abs(compSum - 100.0) < 0.05;
 
   const handleApplyRecommended = () => {
-    // Keep DCS tag values in Current Input unchanged so the operator can compare
+    // Keep DCS tag values in Current Input strictly unchanged so the operator can compare
     // Current Input (DCS) side-by-side against AI Target, while evaluating AI Target savings.
     setIsAiApplied(true);
-    if (onOptimize) {
-      onOptimize();
-    }
   };
 
   const handleResetToDcs = () => {
@@ -344,7 +335,11 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
   const handleScenarioChange = (key: keyof ScenarioInput, val: number) => {
     setIsAiApplied(false);
     onScenarioChange(key, val);
+    if (onActualChange && (key in actualDcs || key === 'feed_flow_t_h' || key === 'mcr_flow_t_h')) {
+      onActualChange(key as keyof ActualDcsState, val);
+    }
   };
+  const handleInputChange = handleScenarioChange;
 
   const handleNormalizeScenario = () => {
     setIsAiApplied(false);
@@ -573,15 +568,15 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       step="0.5"
                       min="100"
                       max="500"
-                      value={scenario.feed_flow_t_h}
-                      onChange={(e) => handleScenarioChange('feed_flow_t_h', parseFloat(e.target.value) || 0)}
+                      value={actualDcs.feed_flow_t_h ?? scenario.feed_flow_t_h}
+                      onChange={(e) => handleInputChange('feed_flow_t_h', parseFloat(e.target.value) || 0)}
                       style={{ width: '80px', padding: '5px 8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontWeight: 700, fontSize: '13px' }}
                     />
                     <div style={{ fontSize: '10.5px', color: '#475569', marginTop: '4px' }}>LNG: {scenarioLngFlow.toFixed(1)} t/h</div>
                   </div>
                   <div style={{ backgroundColor: '#ecfdf5', padding: '8px 10px', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
                     <div style={{ fontSize: '11px', color: '#065f46', fontWeight: 600, marginBottom: '4px' }}>AI Target</div>
-                    <div style={{ fontSize: '15px', fontWeight: 800, color: '#047857' }}>{scenario.feed_flow_t_h.toFixed(1)} <span style={{ fontSize: '11px', fontWeight: 600 }}>t/h</span></div>
+                    <div style={{ fontSize: '15px', fontWeight: 800, color: '#047857' }}>{(actualDcs.feed_flow_t_h ?? scenario.feed_flow_t_h).toFixed(1)} <span style={{ fontSize: '11px', fontWeight: 600 }}>t/h</span></div>
                     <div style={{ fontSize: '10px', color: '#0369a1', fontWeight: 700, marginTop: '2px' }}>Fixed Load</div>
                   </div>
                 </div>
@@ -601,16 +596,16 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       step="0.5"
                       min="400"
                       max="1200"
-                      value={scenario.mcr_flow_t_h}
-                      onChange={(e) => handleScenarioChange('mcr_flow_t_h', parseFloat(e.target.value) || 0)}
+                      value={actualDcs.mcr_flow_t_h ?? scenario.mcr_flow_t_h}
+                      onChange={(e) => handleInputChange('mcr_flow_t_h', parseFloat(e.target.value) || 0)}
                       style={{ width: '80px', padding: '5px 8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontWeight: 700, fontSize: '13px' }}
                     />
                   </div>
                   <div style={{ backgroundColor: '#ecfdf5', padding: '8px 10px', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
                     <div style={{ fontSize: '11px', color: '#065f46', fontWeight: 600, marginBottom: '4px' }}>AI Target</div>
                     <div style={{ fontSize: '15px', fontWeight: 800, color: '#047857' }}>{recMcrFlow.toFixed(1)} <span style={{ fontSize: '11px', fontWeight: 600 }}>t/h</span></div>
-                    <div style={{ fontSize: '10px', color: scenario.mcr_flow_t_h > recMcrFlow ? '#15803d' : '#475569', fontWeight: 700, marginTop: '2px' }}>
-                      {scenario.mcr_flow_t_h > recMcrFlow ? `Save ${(scenario.mcr_flow_t_h - recMcrFlow).toFixed(1)} t/h` : 'Optimal'}
+                    <div style={{ fontSize: '10px', color: (actualDcs.mcr_flow_t_h ?? scenario.mcr_flow_t_h) > recMcrFlow ? '#15803d' : '#475569', fontWeight: 700, marginTop: '2px' }}>
+                      {(actualDcs.mcr_flow_t_h ?? scenario.mcr_flow_t_h) > recMcrFlow ? `Save ${((actualDcs.mcr_flow_t_h ?? scenario.mcr_flow_t_h) - recMcrFlow).toFixed(1)} t/h` : 'Optimal'}
                     </div>
                   </div>
                 </div>
@@ -624,7 +619,8 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 { name: 'Ethylene (C₂H₄)', key: 'comp_C2H4_molpct' as const, rec: recC2H4, tag: 'comp_C2H4' },
                 { name: 'Propane (C₃H₈ / C₃)', key: 'comp_C3_molpct' as const, rec: recC3, tag: 'comp_C3' },
               ].map((comp) => {
-                const diff = comp.rec - scenario[comp.key];
+                const actVal = actualDcs[comp.key] ?? scenario[comp.key];
+                const diff = comp.rec - actVal;
                 const diffSign = diff > 0 ? '+' : '';
                 return (
                   <div key={comp.key} className="mobile-param-card">
@@ -641,8 +637,8 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                             step="0.05"
                             min="0"
                             max="100"
-                            value={scenario[comp.key]}
-                            onChange={(e) => handleScenarioChange(comp.key, parseFloat(e.target.value) || 0)}
+                            value={actVal}
+                            onChange={(e) => handleInputChange(comp.key, parseFloat(e.target.value) || 0)}
                             style={{ width: '70px', padding: '4px 6px', border: '1px solid #cbd5e1', borderRadius: '6px', fontWeight: 600, fontSize: '12.5px' }}
                           />
                           <span style={{ fontSize: '11px', color: '#64748b' }}>mol%</span>
@@ -736,7 +732,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 </th>
                 <th style={{ padding: '10px 14px', fontWeight: 700, fontSize: '13px', width: '12%', minWidth: '85px', borderBottom: '2px solid #cbd5e1' }}>DCS Tag</th>
                 <th style={{ padding: '10px 14px', fontWeight: 700, fontSize: '13px', width: '26%', minWidth: '160px', backgroundColor: '#f8fafc', borderBottom: '2px solid #cbd5e1' }}>
-                  Current Input
+                  Current Input (DCS)
                 </th>
                 <th style={{ padding: '10px 14px', fontWeight: 700, fontSize: '13px', width: '24%', minWidth: '150px', backgroundColor: '#ecfdf5', color: '#065f46', borderBottom: '2px solid #a7f3d0' }}>
                   AI Target
@@ -760,8 +756,8 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       step="0.5"
                       min="100"
                       max="500"
-                      value={scenario.feed_flow_t_h}
-                      onChange={(e) => handleScenarioChange('feed_flow_t_h', parseFloat(e.target.value) || 0)}
+                      value={actualDcs.feed_flow_t_h ?? scenario.feed_flow_t_h}
+                      onChange={(e) => handleInputChange('feed_flow_t_h', parseFloat(e.target.value) || 0)}
                       style={{
                         width: '100px',
                         padding: '6px 10px',
@@ -786,7 +782,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 </td>
                 <td style={{ padding: '10px 14px', backgroundColor: '#ecfdf5', fontWeight: 700, color: '#047857', borderBottom: '1px solid #e2e8f0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span>{scenario.feed_flow_t_h.toFixed(1)}</span>
+                    <span>{(actualDcs.feed_flow_t_h ?? scenario.feed_flow_t_h).toFixed(1)}</span>
                     <span style={{
                       backgroundColor: '#e0f2fe',
                       color: '#0369a1',
@@ -819,19 +815,19 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       step="1.0"
                       min="450"
                       max="650"
-                      value={scenario.mcr_flow_t_h}
-                      onChange={(e) => handleScenarioChange('mcr_flow_t_h', parseFloat(e.target.value) || 0)}
+                      value={actualDcs.mcr_flow_t_h ?? scenario.mcr_flow_t_h}
+                      onChange={(e) => handleInputChange('mcr_flow_t_h', parseFloat(e.target.value) || 0)}
                       style={{
                         width: '100px',
                         padding: '6px 10px',
-                        border: scenario.mcr_flow_t_h < 480 ? '2px solid #ef4444' : '1px solid #cbd5e1',
+                        border: (actualDcs.mcr_flow_t_h ?? scenario.mcr_flow_t_h) < 480 ? '2px solid #ef4444' : '1px solid #cbd5e1',
                         borderRadius: '6px',
                         fontWeight: 700,
                         fontSize: '13px',
-                        color: scenario.mcr_flow_t_h < 480 ? '#b91c1c' : '#0f172a',
+                        color: (actualDcs.mcr_flow_t_h ?? scenario.mcr_flow_t_h) < 480 ? '#b91c1c' : '#0f172a',
                       }}
                     />
-                    {scenario.mcr_flow_t_h < 480 && (
+                    {(actualDcs.mcr_flow_t_h ?? scenario.mcr_flow_t_h) < 480 && (
                       <span style={{
                         backgroundColor: '#fee2e2',
                         color: '#b91c1c',
@@ -848,7 +844,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                 <td style={{ padding: '10px 14px', backgroundColor: '#ecfdf5', fontWeight: 700, color: '#047857', borderBottom: '1px solid #e2e8f0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span>{recMcrFlow.toFixed(1)}</span>
-                    {recMcrFlow < scenario.mcr_flow_t_h ? (
+                    {recMcrFlow < (actualDcs.mcr_flow_t_h ?? scenario.mcr_flow_t_h) ? (
                       <span style={{
                         backgroundColor: '#dcfce7',
                         color: '#15803d',
@@ -857,7 +853,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                         fontSize: '11px',
                         fontWeight: 700,
                       }}>
-                        Save {(scenario.mcr_flow_t_h - recMcrFlow).toFixed(1)} t/h
+                        Save {((actualDcs.mcr_flow_t_h ?? scenario.mcr_flow_t_h) - recMcrFlow).toFixed(1)} t/h
                       </span>
                     ) : (
                       <span style={{
@@ -899,8 +895,8 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       step="0.05"
                       min="0"
                       max="100"
-                      value={scenario[comp.key]}
-                      onChange={(e) => handleScenarioChange(comp.key, parseFloat(e.target.value) || 0)}
+                      value={actualDcs[comp.key] ?? scenario[comp.key]}
+                      onChange={(e) => handleInputChange(comp.key, parseFloat(e.target.value) || 0)}
                       style={{
                         width: '100px',
                         padding: '6px 10px',
@@ -1382,11 +1378,11 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
                       DCS -44.8°C
                     </span>
-                    <span style={{ backgroundColor: isAiApplied ? '#dcfce7' : '#e2e8f0', color: isAiApplied ? '#15803d' : '#334155', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
-                      {isAiApplied ? 'AI Target' : 'Scenario'}: {isAiApplied ? (optimum?.expected_suction_temp_c ? `${optimum.expected_suction_temp_c.toFixed(1)}°C` : '-41.5°C') : '-44.8°C'}
+                    <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
+                      AI Target: {optimum?.expected_suction_temp_c ? `${optimum.expected_suction_temp_c.toFixed(1)}°C` : '-37.4°C'}
                     </span>
-                    <span style={{ backgroundColor: isAiApplied ? '#10b981' : '#f59e0b', color: '#ffffff', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 800 }} title="Interlock TAL >= -45.0 °C">
-                      {isAiApplied ? 'SAFE' : 'NEAR TAL'}
+                    <span style={{ backgroundColor: '#10b981', color: '#ffffff', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 800 }} title="Interlock TAL >= -45.0 °C">
+                      SAFE (TAL ≥ -45.0°C)
                     </span>
                   </div>
                 </div>
@@ -1395,10 +1391,10 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                   <span style={{ color: '#475569', fontWeight: 500 }}>Suction Pressure (4PI-13):</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
-                      DCS 2.28
+                      DCS 2.28 kg/cm²
                     </span>
-                    <span style={{ backgroundColor: isAiApplied ? '#dcfce7' : '#e2e8f0', color: isAiApplied ? '#15803d' : '#334155', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
-                      {isAiApplied ? 'AI 2.35' : 'Scenario 2.28'} kg/cm²
+                    <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
+                      AI Target: 2.35 kg/cm²
                     </span>
                   </div>
                 </div>
@@ -1409,8 +1405,8 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
                       DCS 62.4°C
                     </span>
-                    <span style={{ backgroundColor: isAiApplied ? '#dcfce7' : '#e2e8f0', color: isAiApplied ? '#15803d' : '#334155', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
-                      {isAiApplied ? 'AI 58.1°C' : 'Scenario 62.4°C'}
+                    <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
+                      AI Target: 58.1°C
                     </span>
                   </div>
                 </div>
@@ -1419,10 +1415,10 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                   <span style={{ color: '#475569', fontWeight: 500 }}>Discharge Pressure (4PI-1):</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
-                      DCS 36.90
+                      DCS 36.90 kg/cm²
                     </span>
-                    <span style={{ backgroundColor: isAiApplied ? '#dcfce7' : '#e2e8f0', color: isAiApplied ? '#15803d' : '#334155', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
-                      {isAiApplied ? 'AI 35.15' : 'Scenario 36.90'} kg/cm²
+                    <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
+                      AI Target: 35.15 kg/cm²
                     </span>
                   </div>
                 </div>
@@ -1456,8 +1452,8 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
                       DCS 0.067
                     </span>
-                    <span style={{ backgroundColor: isAiApplied ? '#dcfce7' : '#e2e8f0', color: isAiApplied ? '#15803d' : '#334155', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
-                      {isAiApplied ? 'AI 0.062' : 'Scenario 0.067'}
+                    <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
+                      AI Target: 0.062
                     </span>
                     <span style={{ backgroundColor: '#10b981', color: '#ffffff', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 800 }}>
                       NORMAL
@@ -1471,8 +1467,8 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
                       DCS 0.240
                     </span>
-                    <span style={{ backgroundColor: isAiApplied ? '#dcfce7' : '#e2e8f0', color: isAiApplied ? '#15803d' : '#334155', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
-                      {isAiApplied ? 'AI 0.215' : 'Scenario 0.240'}
+                    <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
+                      AI Target: 0.215
                     </span>
                     <span style={{ backgroundColor: '#10b981', color: '#ffffff', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 800 }}>
                       NORMAL
@@ -1482,16 +1478,26 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed #e2e8f0', paddingBottom: '8px' }}>
                   <span style={{ color: '#475569', fontWeight: 500 }}>Cold Separator Level (LI2):</span>
-                  <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '3px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 800 }}>
-                    39.0 %
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
+                      DCS 39.0 %
+                    </span>
+                    <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '3px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 800 }}>
+                      AI Target: 39.0 %
+                    </span>
+                  </div>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ color: '#475569', fontWeight: 500 }}>Warm Separator Level (LI3):</span>
-                  <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '3px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 800 }}>
-                    48.5 %
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
+                      DCS 48.5 %
+                    </span>
+                    <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '3px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 800 }}>
+                      AI Target: 48.5 %
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1523,8 +1529,8 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
                       DCS -151.2°C
                     </span>
-                    <span style={{ backgroundColor: isAiApplied ? '#dcfce7' : '#e2e8f0', color: isAiApplied ? '#15803d' : '#334155', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
-                      {isAiApplied ? 'AI Target' : 'Scenario'}: {isAiApplied ? '-152.0°C' : '-151.2°C'}
+                    <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
+                      AI Target: -152.0°C
                     </span>
                     <span style={{ backgroundColor: '#10b981', color: '#ffffff', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 800 }}>
                       LIMIT: ≤ -150.0°C
@@ -1538,17 +1544,22 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
                       DCS -153.6°C
                     </span>
-                    <span style={{ backgroundColor: isAiApplied ? '#dcfce7' : '#e2e8f0', color: isAiApplied ? '#15803d' : '#334155', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
-                      {isAiApplied ? 'AI Target' : 'Scenario'}: {isAiApplied ? '-153.8°C' : '-153.6°C'}
+                    <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
+                      AI Target: -153.8°C
                     </span>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed #e2e8f0', paddingBottom: '8px' }}>
                   <span style={{ color: '#475569', fontWeight: 500 }}>LNG Rundown Production (H5FI6A):</span>
-                  <span style={{ backgroundColor: '#f1f5f9', color: '#0f172a', padding: '3px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 800 }}>
-                    {scenarioLngFlow.toFixed(1)} t/h
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
+                      DCS: {(actualDcs.lng_flow_t_h ?? 232.3).toFixed(1)} t/h
+                    </span>
+                    <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
+                      AI Target: {scenarioLngFlow.toFixed(1)} t/h
+                    </span>
+                  </div>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1557,8 +1568,8 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                     <span style={{ backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
                       DCS -44.8°C
                     </span>
-                    <span style={{ backgroundColor: isAiApplied ? '#dcfce7' : '#e2e8f0', color: isAiApplied ? '#15803d' : '#334155', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
-                      {isAiApplied ? 'AI Target' : 'Scenario'}: {isAiApplied ? '-43.5°C' : '-44.8°C'}
+                    <span style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
+                      AI Target: -43.5°C
                     </span>
                   </div>
                 </div>
@@ -1617,7 +1628,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
 
         <div style={{ padding: '24px' }}>
           {/* Prominent AI Opportunity Alert Callout if current scenario is at unoptimized DCS baseline or higher power */}
-          {(isAtDcsBaseline || rawDeltaPower > 0) && (
+          {(!isAiApplied && (isAtDcsBaseline || deltaPowerSavingMw > 0)) && (
             <div style={{
               backgroundColor: '#ecfdf5',
               border: '1px solid #86efac',
@@ -1764,7 +1775,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       DCS: {baselineSecLng.toFixed(1)}
                     </span>
                     <span style={{ backgroundColor: scenarioPillBg, color: scenarioPillColor, padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
-                      {isAiApplied ? 'AI Target' : 'Scenario'}: {scenarioSecLng.toFixed(1)} kWh/t
+                      {isAiApplied ? 'Applied Target' : 'Advisory Target'}: {targetSecLng.toFixed(1)} kWh/t
                     </span>
                   </div>
                 </div>
@@ -1814,7 +1825,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       Utility Steam
                     </span>
                     <span style={{ backgroundColor: scenarioPillBg, color: scenarioPillColor, padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
-                      {isSaving ? 'More Efficient' : isNeutral ? 'Baseline Operation' : 'Load Increased'}
+                      {isAiApplied ? 'Applied Target' : 'Advisory Target'} · {isSaving ? 'Load Reduced' : isNeutral ? 'Baseline Operation' : 'Load Increased'}
                     </span>
                   </div>
                 </div>
@@ -1864,7 +1875,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       Turbine Fuel
                     </span>
                     <span style={{ backgroundColor: scenarioPillBg, color: scenarioPillColor, padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
-                      {isSaving ? 'Emissions Reduced' : isNeutral ? 'Baseline Operation' : 'Emissions Increased'}
+                      {isAiApplied ? 'Applied Target' : 'Advisory Target'} · {isSaving ? 'Emissions Reduced' : isNeutral ? 'Baseline Operation' : 'Emissions Increased'}
                     </span>
                   </div>
                 </div>
@@ -1915,7 +1926,7 @@ export const TabInputResults: React.FC<TabInputResultsProps> = ({
                       DCS: {baselinePower.toFixed(1)} MW
                     </span>
                     <span style={{ backgroundColor: scenarioPillBg, color: scenarioPillColor, padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
-                      {isAiApplied ? 'AI Target' : 'Scenario'}: {scenarioPower.toFixed(1)} MW
+                      {isAiApplied ? 'Applied Target' : 'Advisory Target'}: {targetPower.toFixed(1)} MW
                     </span>
                   </div>
                 </div>
