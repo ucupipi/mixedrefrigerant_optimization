@@ -54,3 +54,4 @@ Folder `validation_cases/` memuat 15 berkas kasus independen untuk membandingkan
    - Amati kurva komposit pendinginan (*Hot and Cold Composite Curves*).
    - Verifikasi bahwa $\text{MITA} \ge +1{,}50^\circ\text{C}$ tanpa ada perpotongan suhu ($\Delta T > 0$).
 5. Periksa daya poros kompresor `4K-1`, `4K-2`, dan `4K-3` untuk memverifikasi kesesuaian neraca energi.
+

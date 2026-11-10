@@ -1,0 +1,275 @@
+{
+  "_metadata": {
+    "project": "Badak LNG Plant-3 / Train H C3MR Mixed Refrigerant Optimization",
+    "purpose": "Single Source of Truth (SSOT) Ledger for IKMS 2026 Submission",
+    "version": "2.2.0",
+    "zero_discrepancy_enforced": true,
+    "tri_domain_architecture_enforced": true,
+    "decoupled_balances_engine": "scripts/decoupled_balances.py"
+  },
+  "plant_baseline": {
+    "facility": "PT Badak NGL, Bontang, Indonesia",
+    "unit": "Train H C3MR Liquefaction",
+    "primary_operational_dataset": "DCS Plant Historian 2024-2026 (720,734 records at 1-minute interval across 2023-2026, 170 process tags)",
+    "laboratory_gc_dataset": "2,531 shift-level gas chromatography samples (7 sample points including 4C-8 MCR)",
+    "historical_baseline_2017": "88.1 mol% CH4 (Secondary Plant Documentation)",
+    "operating_hours_per_year": 7849.9,
+    "plant_availability_percent": 89.61
+  },
+  "optimal_mcr_composition_mol_percent": {
+    "nitrogen_N2": 3.77,
+    "methane_CH4": 42.22,
+    "ethane_C2H6": 43.67,
+    "ethylene_C2H4": 1.53,
+    "propane_C3H8": 8.82,
+    "total_percent": 100.0,
+    "ilr_independent_coordinates": 4,
+    "mahalanobis_distance_DM": 1.2723,
+    "mahalanobis_threshold_95_percent": 3.0802
+  },
+  "baseload_P90": {
+    "feed_gas_flow_kNm3_h": 479.33,
+    "treated_gas_flow_t_h": 399.74,
+    "lng_production_t_h": 308.3,
+    "mcr_circulation_baseline_t_h": 681.4,
+    "mcr_circulation_optimized_t_h": 613.2,
+    "mcr_circulation_reduction_percent": 10.01,
+    "sec_baseline_kWh_t": 350.49,
+    "sec_optimized_kWh_t": 256.51,
+    "sec_reduction_percent": 26.81,
+    "compressor_power_total_baseline_kW": 108055.1,
+    "compressor_power_total_optimized_kW": 79083.4,
+    "compressor_power_total_reduction_kW": 28971.7,
+    "compressor_power_total_reduction_percent": 26.81,
+    "power_decomposition": {
+      "mcr_direct_compressors_4KT2_4KT3_baseline_kW": 78173.93,
+      "mcr_direct_compressors_4KT2_4KT3_optimized_kW": 67347.84,
+      "mcr_direct_compressors_reduction_kW": 10826.09,
+      "mcr_direct_compressors_reduction_percent": 13.85,
+      "c3_precooling_compressor_4KT1_actual_baseline_kW": 29881.21,
+      "c3_precooling_compressor_4KT1_rated_capacity_kW": 52143.14,
+      "c3_precooling_compressor_4KT1_optimized_kW": 11735.53,
+      "c3_precooling_compressor_reduction_kW": 18145.68,
+      "c3_precooling_compressor_reduction_percent_baseline": 60.73,
+      "c3_precooling_compressor_reduction_percent_rated_capacity": 34.8,
+      "residual_closure_kW": 0.0
+    },
+    "driver_steam_consumption_baseline_t_h": 483.95,
+    "driver_steam_consumption_optimized_t_h": 452.3,
+    "driver_steam_consumption_reduction_t_h": 31.65,
+    "driver_steam_consumption_reduction_percent": 6.54,
+    "boiler_fuel_gas_baseline_Nm3_h": 47281.92,
+    "boiler_fuel_gas_optimized_Nm3_h": 44189.71,
+    "boiler_fuel_gas_reduction_Nm3_h": 3092.21,
+    "boiler_fuel_gas_reduction_percent": 6.54,
+    "co2_emission_baseline_t_h": 100.79,
+    "co2_emission_optimized_t_h": 94.2,
+    "co2_emission_reduction_t_h": 6.59,
+    "co2_emission_reduction_percent": 6.54,
+    "mita_baseline_degC": 3.87,
+    "mita_optimized_degC": 1.58,
+    "mita_safety_limit_degC": 1.5,
+    "tsuct_baseline_degC": -41.62,
+    "tsuct_optimized_degC": -29.32,
+    "tsuct_safety_limit_TAL_degC": -45.0,
+    "suction_vapor_fraction": 1.0
+  },
+  "underload_P10": {
+    "feed_gas_flow_kNm3_h": 228.39,
+    "treated_gas_flow_t_h": 185.82,
+    "lng_production_t_h": 141.22,
+    "mcr_circulation_baseline_t_h": 504.0,
+    "mcr_circulation_optimized_t_h": 475.1,
+    "mcr_circulation_reduction_percent": 5.73,
+    "sec_baseline_kWh_t": 523.0,
+    "sec_optimized_kWh_t": 339.89,
+    "sec_reduction_percent": 35.01,
+    "compressor_power_total_baseline_kW": 73855.1,
+    "compressor_power_total_optimized_kW": 47999.3,
+    "compressor_power_total_reduction_kW": 25855.8,
+    "compressor_power_total_reduction_percent": 35.01,
+    "kickback_recycle_flow_4UV53_t_h": 107.58,
+    "suction_reheat_flow_4TV510_t_h": 123.55,
+    "compressor_suction_inlet_flow_t_h": 604.68,
+    "compressor_surge_margin_percent": 26.0,
+    "compressor_surge_floor_limit_t_h": 480.0,
+    "driver_steam_consumption_baseline_t_h": 354.2,
+    "driver_steam_consumption_optimized_t_h": 346.5,
+    "driver_steam_consumption_reduction_t_h": 7.7,
+    "driver_steam_consumption_reduction_percent": 2.17,
+    "boiler_fuel_gas_baseline_Nm3_h": 34605.34,
+    "boiler_fuel_gas_optimized_Nm3_h": 33853.05,
+    "boiler_fuel_gas_reduction_Nm3_h": 752.29,
+    "boiler_fuel_gas_reduction_percent": 2.17,
+    "co2_emission_baseline_t_h": 73.77,
+    "co2_emission_optimized_t_h": 72.16,
+    "co2_emission_reduction_t_h": 1.61,
+    "co2_emission_reduction_percent": 2.17,
+    "mita_baseline_degC": 4.2,
+    "mita_optimized_degC": 1.94,
+    "mita_safety_limit_degC": 1.5,
+    "tsuct_baseline_degC": -20.57,
+    "tsuct_optimized_degC": -21.14,
+    "tsuct_safety_limit_TAL_degC": -45.0,
+    "suction_vapor_fraction": 1.0
+  },
+  "annualized_impact": {
+    "operating_hours_weighted_power_reduction_kW": 28983.3,
+    "operating_hours_weighted_power_reduction_percent": 27.1,
+    "annual_energy_saved_MWh_yr": 227516.0,
+    "annual_driver_steam_saved_t_yr": 239889.7,
+    "annual_fuel_gas_saved_Nm3_yr": 23439000.0,
+    "annual_fuel_gas_saved_MNm3_yr": 23.44,
+    "annual_co2_abatement_t_yr": 49961.8,
+    "annual_cost_savings_USD_yr": 8480000.0,
+    "annual_cost_savings_million_USD_yr": 8.48,
+    "capital_expenditure_CAPEX_USD": 0.0
+  },
+  "surrogate_models_metrics": [
+    {
+      "model_key": "power",
+      "variable": "Total Compressor Shaft Power",
+      "domain": "Domain 1 (PR-EOS Thermo)",
+      "unit": "MW",
+      "sample_size": 300,
+      "test_R2": 0.9945,
+      "test_MAE": 0.179,
+      "relative_error_percent": 0.17,
+      "test_RMSE": 0.491,
+      "monotonicity": "Enforced (>= 0)"
+    },
+    {
+      "model_key": "mita_wb",
+      "variable": "Warm Bundle Pinch Approach",
+      "domain": "Domain 1 (PR-EOS Thermo)",
+      "unit": "°C",
+      "sample_size": 300,
+      "test_R2": 0.9924,
+      "test_MAE": 0.08,
+      "relative_error_percent": 0.25,
+      "test_RMSE": 0.12,
+      "monotonicity": "Enforced (>= 0)"
+    },
+    {
+      "model_key": "mita_cb",
+      "variable": "Cold Bundle Pinch Approach",
+      "domain": "Domain 1 (PR-EOS Thermo)",
+      "unit": "°C",
+      "sample_size": 300,
+      "test_R2": 0.9891,
+      "test_MAE": 0.08,
+      "relative_error_percent": 0.26,
+      "test_RMSE": 0.12,
+      "monotonicity": "Enforced (>= 0)"
+    },
+    {
+      "model_key": "exergy_destruction",
+      "variable": "MCHE Exergy Destruction",
+      "domain": "Domain 1 (PR-EOS Thermo)",
+      "unit": "MW",
+      "sample_size": 300,
+      "test_R2": 0.9942,
+      "test_MAE": 0.062,
+      "relative_error_percent": 0.17,
+      "test_RMSE": 0.095,
+      "monotonicity": "Enforced (>= 0)"
+    },
+    {
+      "model_key": "steam",
+      "variable": "Total Driver Steam Flow",
+      "domain": "Domain 2 (DCS Telemetry)",
+      "unit": "t/h",
+      "sample_size": 67916,
+      "test_R2": 0.9552,
+      "test_MAE": 3.487,
+      "relative_error_percent": 0.72,
+      "test_RMSE": 4.473,
+      "monotonicity": "Enforced (>= 0)"
+    },
+    {
+      "model_key": "suction_temp",
+      "variable": "Compressor Suction Temperature",
+      "domain": "Domain 2 (DCS Telemetry)",
+      "unit": "°C",
+      "sample_size": 67916,
+      "test_R2": 0.9664,
+      "test_MAE": 0.866,
+      "relative_error_percent": 3.27,
+      "test_RMSE": 1.257,
+      "monotonicity": "Enforced (TAL bound >= -45.0 °C)"
+    }
+  ],
+  "dataset_volume_audit": {
+    "total_unlabelled_telemetry_records": 720734,
+    "labelled_steam_records": 110176,
+    "steady_state_filtered_records": 67916,
+    "excel_export_ceiling": 65535,
+    "gc_routine_samples": 2531,
+    "thermodynamic_doe_samples": 300,
+    "thermodynamic_doe_train_samples": 240,
+    "thermodynamic_doe_test_samples": 60,
+    "thermodynamic_doe_source": "NeqSim PR-EOS 50-slice LHS (100 base points x 3 flow multipliers)"
+  },
+  "instrument_tags_audit": {
+    "H4FI031A": {
+      "tag": "H4FI031A",
+      "equipment_pump": "4G-3",
+      "surface_condenser": "4E-15",
+      "turbine_driver": "4KT-1",
+      "compressor": "4K-1 (Propane)",
+      "canonical_unit": "M3/H",
+      "physical_basis": "Liquid condensate extraction (~1.0 t/m3 at 40 °C)"
+    },
+    "H4FI029A": {
+      "tag": "H4FI029A",
+      "equipment_pump": "4G-4",
+      "surface_condenser": "4E-20",
+      "turbine_driver": "4KT-2",
+      "compressor": "4K-2 (MCR LP)",
+      "canonical_unit": "T/H",
+      "physical_basis": "Liquid condensate extraction"
+    },
+    "H4FI030A": {
+      "tag": "H4FI030A",
+      "equipment_pump": "4G-5",
+      "surface_condenser": "4E-25",
+      "turbine_driver": "4KT-3",
+      "compressor": "4K-3 (MCR HP)",
+      "canonical_unit": "T/H",
+      "physical_basis": "Liquid condensate extraction"
+    }
+  },
+  "target_classification_architecture": {
+    "domain_1_pr_eos_thermodynamic_surrogates": {
+      "description": "High-fidelity closed-form PR-EOS simulation manifolds evaluated on LHS DoE (N = 300)",
+      "targets": [
+        "Total Compressor Shaft Power (power / W_shaft)",
+        "Optimal MCHE Process Circulation Flow (mche_flow)"
+      ],
+      "metrics_criteria": "R2 >= 0.60, NMAE < 1.0%, MAE < 1.0 MW"
+    },
+    "domain_2_dcs_telemetry_operational_surrogates": {
+      "description": "Stochastic field transmitter models subject to environmental dynamics (N = 67,916)",
+      "targets": [
+        "Total Driver Steam Flow (steam)",
+        "Compressor Suction Temperature (suction_temp / H4TI004B)",
+        "Total Plant Shaft Power (plant_power)",
+        "Turbine Steam Condensate Flows (4KT-1/2/3 via H4FI031A/029A/030A)"
+      ],
+      "metrics_criteria": "R2 >= 0.60, NMAE < 1.0%, MAE < 1.0 MW"
+    },
+    "domain_3_decoupled_deterministic_balances": {
+      "description": "Exact algebraic conservation laws, stoichiometric ratios, and 100-slice Aspen HYSYS simulation benchmarks (Decoupled from ML)",
+      "targets": [
+        "Specific Energy Consumption (SEC = W_shaft / m_LNG)",
+        "Boiler Fuel Gas Demand (V_FG = m_steam * 97.70 Nm3/t)",
+        "Scope 1 CO2 Emissions (V_FG * LHV * EF_IPCC)",
+        "Compressor Suction Flow Balance (m_comp = m_MCHE + m_4UV53 + m_4TV510)",
+        "Compressor Exergy Destruction (E_D,comp = W_shaft * (1 - eta_s))",
+        "Riemann MCHE Exergy Destruction (E_D,MCHE = T0 * S_gen from 100-slice integration)",
+        "100-slice HYSYS Bundle Pinches (MITA_WB, MITA_CB verified via 100-slice Aspen HYSYS)"
+      ],
+      "metrics_criteria": "Exact algebraic closure (0.000 residual) & MITA >= 1.50 °C"
+    }
+  }
+}

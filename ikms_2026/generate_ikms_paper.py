@@ -299,7 +299,7 @@ def build_paper():
         "(3) Formulasi optimasi multivariabel dan validasi termodinamika simulator; dan (4) Evaluasi tekno-ekonomi, dekomposisi energi, dan emisi karbon. "
         "Dataset primer mencakup 720.734 rekaman data historian DCS Train H berinterval 1 menit yang dihimpun dari periode operasi 2023–2026 dengan fokus "
         "operasional lean gas 2024–2026 (mencakup 610.558 data 2023–2024, 65.535 data 2025, dan 44.641 data 2026; 170 tag proses), serta didukung oleh "
-        "2.531 sampel analisis kromatografi gas rutin laboratorium online via transmitter analyzer DCS 4AI-021 pada accumulator MCR 4C-8 dan 3AI-025 pada gas umpan (1E-1, 3C-2). Data historis rich gas tahun 2017 "
+        "2.531 sampel log analisis kromatografi gas (GC) rutin laboratorium per shift dari titik sampling suction drum MCR 4C-8 dan gas umpan (1E-1, 3C-2). Data historis rich gas tahun 2017 "
         "(88,1 mol% CH4) diintegrasikan murni sebagai dokumentasi pembanding sekunder. Pembersihan data menyaring kondisi transien ekstrim, shutdown, "
         "start-up, dan idle (laju alir LNG rundown <= 50 t/jam). Untuk menangkap seluruh spektrum beban operasi kilang secara kontinu tanpa pengkotak-kotakan sempit, "
         "data dikarakterisasi melintasi rentang kapasitas produksi LNG dari 141,2 t/jam (turndown) hingga 308,3 t/jam (beban dasar penuh) dengan tujuh titik evaluasi representatif. "
