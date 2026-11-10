@@ -191,8 +191,16 @@ def evaluate_dual_domain_surrogates() -> List[Dict[str, Any]]:
     # --------------------------------------------------------------------------
     df_f = pd.read_parquet(DATA_DIR / "features_unleakaged.parquet")
     df_t = pd.read_parquet(DATA_DIR / "target_energy.parquet")
-    df_comb = pd.concat([df_f, df_t], axis=1)
+    df_m = pd.read_parquet(DATA_DIR / "master_minute_level.parquet", columns=["H4FI029A", "H4FI030A", "H4FI031A"])
+    df_comb = pd.concat([df_f, df_t, df_m], axis=1)
     df_comb = df_comb.loc[:, ~df_comb.columns.duplicated()]
+
+    fic_cols = [f"31FIC032{i}" for i in range(1, 10)]
+    existing_fic = [c for c in fic_cols if c in df_comb.columns]
+    if existing_fic:
+        df_comb["boiler_fuel_gas_kNm3_h"] = df_comb[existing_fic].sum(axis=1)
+    else:
+        df_comb["boiler_fuel_gas_kNm3_h"] = np.nan
     
     df_comb["feed_flow_th"] = df_comb["H1FI0009"] * (16.908 / 22.414)
     df_comb["t_amb_c"] = df_comb["H1TI0002"].clip(24.0, 35.0)
@@ -302,6 +310,132 @@ def evaluate_dual_domain_surrogates() -> List[Dict[str, Any]]:
         "monotonicity": "TAL Bound (>= -45.0 °C)",
         "status": "CERTIFIED (R² >= 0.60)"
     })
+
+    # 4. Turbin Propana Steam 4KT-1 (H4FI031A)
+    if "4kt1_steam" in models:
+        mask_4kt1 = df_dcs["H4FI031A"].notna() & (df_dcs["H4FI031A"] > 5.0)
+        df_4kt1 = df_dcs[mask_4kt1]
+        X_4kt1 = pd.DataFrame({
+            "plant_total_shaft_kw": df_4kt1["plant_power_kw"],
+            "feed_flow_th": df_4kt1["feed_flow_th"],
+            "t_amb_c": df_4kt1["t_amb_c"]
+        })
+        y_4kt1 = df_4kt1["H4FI031A"]
+        _, X_te_1, _, y_te_1 = train_test_split(X_4kt1, y_4kt1, test_size=0.2, random_state=42)
+        pred_4kt1 = models["4kt1_steam"].predict(X_te_1)
+        r2_4kt1 = float(r2_score(y_te_1, pred_4kt1))
+        mae_4kt1 = float(mean_absolute_error(y_te_1, pred_4kt1))
+        rmse_4kt1 = float(np.sqrt(mean_squared_error(y_te_1, pred_4kt1)))
+        nmae_4kt1 = float((mae_4kt1 / y_te_1.mean()) * 100.0)
+        print(f"[*] 4KT-1 Steam (H4FI031A): R² = {r2_4kt1:.4f} | MAE = {mae_4kt1:.3f} t/h | NMAE = {nmae_4kt1:.2f}%")
+        assert r2_4kt1 >= 0.60, f"4KT-1 steam R² failed threshold: {r2_4kt1:.4f} < 0.60"
+        results.append({
+            "domain": "Domain 2 (DCS Telemetry)",
+            "target": "Turbin Propana Steam (4KT-1, H4FI031A)",
+            "unit": "t/h",
+            "sample_size": len(df_4kt1),
+            "test_R2": round(r2_4kt1, 4),
+            "test_MAE": round(mae_4kt1, 3),
+            "test_RMSE": round(rmse_4kt1, 3),
+            "relative_error_pct": round(nmae_4kt1, 2),
+            "monotonicity": "Enforced (>= 0)",
+            "status": "CERTIFIED (R² >= 0.60)"
+        })
+
+    # 5. Turbin LP MCR Steam 4KT-2 (H4FI029A)
+    if "4kt2_steam" in models:
+        mask_4kt2 = df_dcs["H4FI029A"].notna() & (df_dcs["H4FI029A"] > 5.0)
+        df_4kt2 = df_dcs[mask_4kt2]
+        X_4kt2 = pd.DataFrame({
+            "feed_flow_th": df_4kt2["feed_flow_th"],
+            "opt_mche_mcr_th": df_4kt2["opt_mche_mcr_th"],
+            "suction_temp_c": df_4kt2["suction_temp_c"],
+            "t_amb_c": df_4kt2["t_amb_c"]
+        })
+        y_4kt2 = df_4kt2["H4FI029A"]
+        _, X_te_2, _, y_te_2 = train_test_split(X_4kt2, y_4kt2, test_size=0.2, random_state=42)
+        pred_4kt2 = models["4kt2_steam"].predict(X_te_2)
+        r2_4kt2 = float(r2_score(y_te_2, pred_4kt2))
+        mae_4kt2 = float(mean_absolute_error(y_te_2, pred_4kt2))
+        rmse_4kt2 = float(np.sqrt(mean_squared_error(y_te_2, pred_4kt2)))
+        nmae_4kt2 = float((mae_4kt2 / y_te_2.mean()) * 100.0)
+        print(f"[*] 4KT-2 Steam (H4FI029A): R² = {r2_4kt2:.4f} | MAE = {mae_4kt2:.3f} t/h | NMAE = {nmae_4kt2:.2f}%")
+        assert r2_4kt2 >= 0.60, f"4KT-2 steam R² failed threshold: {r2_4kt2:.4f} < 0.60"
+        results.append({
+            "domain": "Domain 2 (DCS Telemetry)",
+            "target": "Turbin MCR 1st Stage (4KT-2, H4FI029A)",
+            "unit": "t/h",
+            "sample_size": len(df_4kt2),
+            "test_R2": round(r2_4kt2, 4),
+            "test_MAE": round(mae_4kt2, 3),
+            "test_RMSE": round(rmse_4kt2, 3),
+            "relative_error_pct": round(nmae_4kt2, 2),
+            "monotonicity": "Enforced (>= 0)",
+            "status": "CERTIFIED (R² >= 0.60)"
+        })
+
+    # 6. Turbin HP MCR Steam 4KT-3 (H4FI030A)
+    if "4kt3_steam" in models:
+        mask_4kt3 = df_dcs["H4FI030A"].notna() & (df_dcs["H4FI030A"] > 5.0)
+        df_4kt3 = df_dcs[mask_4kt3]
+        X_4kt3 = pd.DataFrame({
+            "feed_flow_th": df_4kt3["feed_flow_th"],
+            "opt_mche_mcr_th": df_4kt3["opt_mche_mcr_th"],
+            "suction_temp_c": df_4kt3["suction_temp_c"],
+            "t_amb_c": df_4kt3["t_amb_c"]
+        })
+        y_4kt3 = df_4kt3["H4FI030A"]
+        _, X_te_3, _, y_te_3 = train_test_split(X_4kt3, y_4kt3, test_size=0.2, random_state=42)
+        pred_4kt3 = models["4kt3_steam"].predict(X_te_3)
+        r2_4kt3 = float(r2_score(y_te_3, pred_4kt3))
+        mae_4kt3 = float(mean_absolute_error(y_te_3, pred_4kt3))
+        rmse_4kt3 = float(np.sqrt(mean_squared_error(y_te_3, pred_4kt3)))
+        nmae_4kt3 = float((mae_4kt3 / y_te_3.mean()) * 100.0)
+        print(f"[*] 4KT-3 Steam (H4FI030A): R² = {r2_4kt3:.4f} | MAE = {mae_4kt3:.3f} t/h | NMAE = {nmae_4kt3:.2f}%")
+        assert r2_4kt3 >= 0.60, f"4KT-3 steam R² failed threshold: {r2_4kt3:.4f} < 0.60"
+        results.append({
+            "domain": "Domain 2 (DCS Telemetry)",
+            "target": "Turbin MCR 2nd Stage (4KT-3, H4FI030A)",
+            "unit": "t/h",
+            "sample_size": len(df_4kt3),
+            "test_R2": round(r2_4kt3, 4),
+            "test_MAE": round(mae_4kt3, 3),
+            "test_RMSE": round(rmse_4kt3, 3),
+            "relative_error_pct": round(nmae_4kt3, 2),
+            "monotonicity": "Enforced (>= 0)",
+            "status": "CERTIFIED (R² >= 0.60)"
+        })
+
+    # 7. Boiler Fuel Gas Demand (31FIC0321..329)
+    if "fuel_gas" in models:
+        mask_fg = df_dcs["boiler_fuel_gas_kNm3_h"].notna() & (df_dcs["boiler_fuel_gas_kNm3_h"] > 1.0)
+        df_fg = df_dcs[mask_fg]
+        X_fg = pd.DataFrame({
+            "total_steam_t_h": df_fg["total_steam_t_h"],
+            "feed_flow_th": df_fg["feed_flow_th"],
+            "t_amb_c": df_fg["t_amb_c"]
+        })
+        y_fg = df_fg["boiler_fuel_gas_kNm3_h"]
+        _, X_te_fg, _, y_te_fg = train_test_split(X_fg, y_fg, test_size=0.2, random_state=42)
+        pred_fg = models["fuel_gas"].predict(X_te_fg)
+        r2_fg = float(r2_score(y_te_fg, pred_fg))
+        mae_fg = float(mean_absolute_error(y_te_fg, pred_fg))
+        rmse_fg = float(np.sqrt(mean_squared_error(y_te_fg, pred_fg)))
+        nmae_fg = float((mae_fg / y_te_fg.mean()) * 100.0)
+        print(f"[*] Boiler Fuel Gas Demand (31FIC): R² = {r2_fg:.4f} | MAE = {mae_fg:.4f} kNm³/h | NMAE = {nmae_fg:.2f}%")
+        assert r2_fg >= 0.60, f"Boiler fuel gas R² failed threshold: {r2_fg:.4f} < 0.60"
+        results.append({
+            "domain": "Domain 2 (DCS Telemetry)",
+            "target": "Boiler Fuel Gas Demand (31FIC0321..329)",
+            "unit": "kNm³/h",
+            "sample_size": len(df_fg),
+            "test_R2": round(r2_fg, 4),
+            "test_MAE": round(mae_fg, 4),
+            "test_RMSE": round(rmse_fg, 4),
+            "relative_error_pct": round(nmae_fg, 2),
+            "monotonicity": "Enforced (>= 0)",
+            "status": "CERTIFIED (R² >= 0.60)"
+        })
     
     # --------------------------------------------------------------------------
     # PART B: PR-EOS THERMODYNAMIC SURROGATES (DOMAIN 1 - DETERMINISTIC PHYSICS)
