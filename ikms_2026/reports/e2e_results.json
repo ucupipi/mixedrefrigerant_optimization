@@ -1,0 +1,1435 @@
+{
+  "timestamp": "2026-11-10T18:58:18Z",
+  "pytest_returncode": 0,
+  "elapsed_seconds": 2.41,
+  "summary": {
+    "total": 208,
+    "passed": 208,
+    "failed": 0,
+    "skipped": 0,
+    "error": 0
+  },
+  "by_tier": {
+    "Tier 1": {
+      "PASSED": 90,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "Tier 2": {
+      "PASSED": 90,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "Tier 3": {
+      "PASSED": 22,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "Tier 4": {
+      "PASSED": 6,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    }
+  },
+  "by_feature": {
+    "F1": {
+      "PASSED": 12,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "F2": {
+      "PASSED": 12,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "F3": {
+      "PASSED": 11,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "F4": {
+      "PASSED": 11,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "F5": {
+      "PASSED": 10,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "F6": {
+      "PASSED": 13,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "F7": {
+      "PASSED": 13,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "F8": {
+      "PASSED": 13,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "F9": {
+      "PASSED": 11,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "F10": {
+      "PASSED": 12,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "F11": {
+      "PASSED": 11,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "F12": {
+      "PASSED": 11,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "F13": {
+      "PASSED": 10,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "F14": {
+      "PASSED": 12,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "F15": {
+      "PASSED": 10,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "F16": {
+      "PASSED": 10,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "F17": {
+      "PASSED": 10,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "F18": {
+      "PASSED": 10,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "Scenario 1": {
+      "PASSED": 1,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "Scenario 2": {
+      "PASSED": 1,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "Scenario 3": {
+      "PASSED": 1,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "Scenario 4": {
+      "PASSED": 1,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "Scenario 5": {
+      "PASSED": 1,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    },
+    "Scenario 6": {
+      "PASSED": 1,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "ERROR": 0
+    }
+  },
+  "tests": [
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f1_01_lineage_mapping_completeness",
+      "test_name": "test_tier1_f1_01_lineage_mapping_completeness",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f1_02_historical_telemetry_provenance",
+      "test_name": "test_tier1_f1_02_historical_telemetry_provenance",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f1_03_gc_routine_sample_count",
+      "test_name": "test_tier1_f1_03_gc_routine_sample_count",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f1_04_doe_simulation_sample_size",
+      "test_name": "test_tier1_f1_04_doe_simulation_sample_size",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f1_05_lineage_report_artifact",
+      "test_name": "test_tier1_f1_05_lineage_report_artifact",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f2_01_simulation_power_metric_reproduction",
+      "test_name": "test_tier1_f2_01_simulation_power_metric_reproduction",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f2_02_simulation_pinch_approach_metrics",
+      "test_name": "test_tier1_f2_02_simulation_pinch_approach_metrics",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f2_03_simulation_exergy_destruction_metric",
+      "test_name": "test_tier1_f2_03_simulation_exergy_destruction_metric",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f2_04_telemetry_driver_steam_metric",
+      "test_name": "test_tier1_f2_04_telemetry_driver_steam_metric",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f2_05_telemetry_suction_temperature_metric",
+      "test_name": "test_tier1_f2_05_telemetry_suction_temperature_metric",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f3_01_sec_exact_algebraic_balance",
+      "test_name": "test_tier1_f3_01_sec_exact_algebraic_balance",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f3_02_boiler_fuel_gas_exact_stoichiometric_ratio",
+      "test_name": "test_tier1_f3_02_boiler_fuel_gas_exact_stoichiometric_ratio",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f3_03_scope1_co2_exact_balance",
+      "test_name": "test_tier1_f3_03_scope1_co2_exact_balance",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f3_04_suction_node_mass_balance_closure",
+      "test_name": "test_tier1_f3_04_suction_node_mass_balance_closure",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f3_05_target_selection_report_artifact",
+      "test_name": "test_tier1_f3_05_target_selection_report_artifact",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f4_01_reconcile_legacy_autocorrelation_leakage",
+      "test_name": "test_tier1_f4_01_reconcile_legacy_autocorrelation_leakage",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f4_02_authentic_dcs_r2_field_range",
+      "test_name": "test_tier1_f4_02_authentic_dcs_r2_field_range",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f4_03_pr_eos_zero_noise_justification",
+      "test_name": "test_tier1_f4_03_pr_eos_zero_noise_justification",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f4_04_data_sufficiency_diminishing_returns",
+      "test_name": "test_tier1_f4_04_data_sufficiency_diminishing_returns",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f4_05_grouped_holdout_residual_distribution",
+      "test_name": "test_tier1_f4_05_grouped_holdout_residual_distribution",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f5_01_h4fi030a_metadata_surface_condenser_4g5",
+      "test_name": "test_tier1_f5_01_h4fi030a_metadata_surface_condenser_4g5",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f5_02_h4fi029a_metadata_surface_condenser_4g4",
+      "test_name": "test_tier1_f5_02_h4fi029a_metadata_surface_condenser_4g4",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f5_03_h4fi031a_metadata_surface_condenser_4g3",
+      "test_name": "test_tier1_f5_03_h4fi031a_metadata_surface_condenser_4g3",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f5_04_condensate_density_m3h_to_th_equivalence",
+      "test_name": "test_tier1_f5_04_condensate_density_m3h_to_th_equivalence",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f5_05_total_steam_summation_closure",
+      "test_name": "test_tier1_f5_05_total_steam_summation_closure",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f6_01_h4k1_pdf_document_integrity",
+      "test_name": "test_tier1_f6_01_h4k1_pdf_document_integrity",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f6_02_4k1_section1_lp_parameters",
+      "test_name": "test_tier1_f6_02_4k1_section1_lp_parameters",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f6_03_4k1_section2_mp_parameters",
+      "test_name": "test_tier1_f6_03_4k1_section2_mp_parameters",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f6_04_4k1_section3_hp_parameters",
+      "test_name": "test_tier1_f6_04_4k1_section3_hp_parameters",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f6_05_4k1_digitized_dataset_schema_and_columns",
+      "test_name": "test_tier1_f6_05_4k1_digitized_dataset_schema_and_columns",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f7_01_h4k2_pdf_document_integrity",
+      "test_name": "test_tier1_f7_01_h4k2_pdf_document_integrity",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f7_02_4k2_head_flow_curve_range",
+      "test_name": "test_tier1_f7_02_4k2_head_flow_curve_range",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f7_03_4k2_polytropic_efficiency_range",
+      "test_name": "test_tier1_f7_03_4k2_polytropic_efficiency_range",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f7_04_4k2_power_curve_magnitude",
+      "test_name": "test_tier1_f7_04_4k2_power_curve_magnitude",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f7_05_4k2_digitized_dataset_schema_and_columns",
+      "test_name": "test_tier1_f7_05_4k2_digitized_dataset_schema_and_columns",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f8_01_h4k3_pdf_document_integrity",
+      "test_name": "test_tier1_f8_01_h4k3_pdf_document_integrity",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f8_02_4k3_head_flow_curve_range",
+      "test_name": "test_tier1_f8_02_4k3_head_flow_curve_range",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f8_03_4k3_polytropic_efficiency_range",
+      "test_name": "test_tier1_f8_03_4k3_polytropic_efficiency_range",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f8_04_4k3_discharge_pressure_range",
+      "test_name": "test_tier1_f8_04_4k3_discharge_pressure_range",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f8_05_4k3_digitized_dataset_schema_and_columns",
+      "test_name": "test_tier1_f8_05_4k3_digitized_dataset_schema_and_columns",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f9_01_interface_contract_1_schema_conformity",
+      "test_name": "test_tier1_f9_01_interface_contract_1_schema_conformity",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f9_02_flow_basis_definition_am3hr_vs_m3h",
+      "test_name": "test_tier1_f9_02_flow_basis_definition_am3hr_vs_m3h",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f9_03_confidence_rating_vocabulary",
+      "test_name": "test_tier1_f9_03_confidence_rating_vocabulary",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f9_04_tick_mark_calibration_bounds",
+      "test_name": "test_tier1_f9_04_tick_mark_calibration_bounds",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f9_05_curve_data_dictionary_artifact",
+      "test_name": "test_tier1_f9_05_curve_data_dictionary_artifact",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f10_01_p90_baseload_operating_point_linking",
+      "test_name": "test_tier1_f10_01_p90_baseload_operating_point_linking",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f10_02_p50_midload_operating_point_linking",
+      "test_name": "test_tier1_f10_02_p50_midload_operating_point_linking",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f10_03_p10_underload_operating_point_linking",
+      "test_name": "test_tier1_f10_03_p10_underload_operating_point_linking",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f10_04_centum_vp_absolute_pressure_tag_calibration",
+      "test_name": "test_tier1_f10_04_centum_vp_absolute_pressure_tag_calibration",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f10_05_governed_operating_speeds_linking",
+      "test_name": "test_tier1_f10_05_governed_operating_speeds_linking",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f11_01_pr_eos_z_calculation_accuracy",
+      "test_name": "test_tier1_f11_01_pr_eos_z_calculation_accuracy",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f11_02_suction_density_calculation",
+      "test_name": "test_tier1_f11_02_suction_density_calculation",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f11_03_mass_to_actual_volumetric_flow_conversion",
+      "test_name": "test_tier1_f11_03_mass_to_actual_volumetric_flow_conversion",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f11_04_mcr_molecular_weight_calculation",
+      "test_name": "test_tier1_f11_04_mcr_molecular_weight_calculation",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f11_05_isentropic_exponent_k_calculation",
+      "test_name": "test_tier1_f11_05_isentropic_exponent_k_calculation",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f12_01_surge_margin_calculation_formula",
+      "test_name": "test_tier1_f12_01_surge_margin_calculation_formula",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f12_02_surge_margin_safety_threshold_10pct",
+      "test_name": "test_tier1_f12_02_surge_margin_safety_threshold_10pct",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f12_03_stonewall_choke_boundary_compliance",
+      "test_name": "test_tier1_f12_03_stonewall_choke_boundary_compliance",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f12_04_maximum_continuous_speed_mcs_limit",
+      "test_name": "test_tier1_f12_04_maximum_continuous_speed_mcs_limit",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f12_05_compressor_evaluation_report_artifact",
+      "test_name": "test_tier1_f12_05_compressor_evaluation_report_artifact",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f13_01_suction_flow_floor_480_th_enforcement",
+      "test_name": "test_tier1_f13_01_suction_flow_floor_480_th_enforcement",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f13_02_kickback_4uv53_modulation_at_p10",
+      "test_name": "test_tier1_f13_02_kickback_4uv53_modulation_at_p10",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f13_03_suction_reheat_4tv510_modulation_at_p10",
+      "test_name": "test_tier1_f13_03_suction_reheat_4tv510_modulation_at_p10",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f13_04_tal_interlock_minus_45_celsius_enforcement",
+      "test_name": "test_tier1_f13_04_tal_interlock_minus_45_celsius_enforcement",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f13_05_vapor_fraction_10000_superheated_vapor",
+      "test_name": "test_tier1_f13_05_vapor_fraction_10000_superheated_vapor",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f14_01_optimum_mcr_recipe_closure_100pct",
+      "test_name": "test_tier1_f14_01_optimum_mcr_recipe_closure_100pct",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f14_02_mahalanobis_distance_dm_within_ellipsoid",
+      "test_name": "test_tier1_f14_02_mahalanobis_distance_dm_within_ellipsoid",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f14_03_mita_pinch_approach_above_150_celsius",
+      "test_name": "test_tier1_f14_03_mita_pinch_approach_above_150_celsius",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f14_04_p90_power_decomposition_closure",
+      "test_name": "test_tier1_f14_04_p90_power_decomposition_closure",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f14_05_annualized_weighted_power_savings_closure",
+      "test_name": "test_tier1_f14_05_annualized_weighted_power_savings_closure",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f15_01_figure1_4k1_operating_map_artifact",
+      "test_name": "test_tier1_f15_01_figure1_4k1_operating_map_artifact",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f15_02_figure2_4k2_operating_map_artifact",
+      "test_name": "test_tier1_f15_02_figure2_4k2_operating_map_artifact",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f15_03_figure3_4k3_operating_map_artifact",
+      "test_name": "test_tier1_f15_03_figure3_4k3_operating_map_artifact",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f15_04_figure4_baseline_vs_optimized_artifact",
+      "test_name": "test_tier1_f15_04_figure4_baseline_vs_optimized_artifact",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f15_05_figure5_power_head_efficiency_summary_artifact",
+      "test_name": "test_tier1_f15_05_figure5_power_head_efficiency_summary_artifact",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f16_01_ml_audit_report_artifact",
+      "test_name": "test_tier1_f16_01_ml_audit_report_artifact",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f16_02_target_selection_report_artifact",
+      "test_name": "test_tier1_f16_02_target_selection_report_artifact",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f16_03_compressor_evaluation_report_artifact",
+      "test_name": "test_tier1_f16_03_compressor_evaluation_report_artifact",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f16_04_optimization_integration_report_artifact",
+      "test_name": "test_tier1_f16_04_optimization_integration_report_artifact",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f16_05_cross_report_ssot_numerical_consistency",
+      "test_name": "test_tier1_f16_05_cross_report_ssot_numerical_consistency",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f17_01_manuscript_draft_file_presence",
+      "test_name": "test_tier1_f17_01_manuscript_draft_file_presence",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f17_02_manuscript_banned_ai_cliches_inspection",
+      "test_name": "test_tier1_f17_02_manuscript_banned_ai_cliches_inspection",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f17_03_manuscript_table2_proportional_mw_units",
+      "test_name": "test_tier1_f17_03_manuscript_table2_proportional_mw_units",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f17_04_manuscript_tables3_4_5_ssot_data_alignment",
+      "test_name": "test_tier1_f17_04_manuscript_tables3_4_5_ssot_data_alignment",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f17_05_manuscript_mcr_composition_and_recycle_hierarchy",
+      "test_name": "test_tier1_f17_05_manuscript_mcr_composition_and_recycle_hierarchy",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f18_01_validate_ml_surrogates_script_artifact",
+      "test_name": "test_tier1_f18_01_validate_ml_surrogates_script_artifact",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f18_02_validate_curve_digitization_script_artifact",
+      "test_name": "test_tier1_f18_02_validate_curve_digitization_script_artifact",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f18_03_validate_operating_envelope_script_artifact",
+      "test_name": "test_tier1_f18_03_validate_operating_envelope_script_artifact",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f18_04_standalone_scripts_syntax_and_importability",
+      "test_name": "test_tier1_f18_04_standalone_scripts_syntax_and_importability",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier1_feature_coverage.py::test_tier1_f18_05_scripts_execution_contract_exit_code_zero",
+      "test_name": "test_tier1_f18_05_scripts_execution_contract_exit_code_zero",
+      "status": "PASSED",
+      "tier": "Tier 1"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f1_01_empty_dataset_rejection",
+      "test_name": "test_tier2_f1_01_empty_dataset_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f1_02_negative_doe_sample_size_rejection",
+      "test_name": "test_tier2_f1_02_negative_doe_sample_size_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f1_03_out_of_range_timestamp_detection",
+      "test_name": "test_tier2_f1_03_out_of_range_timestamp_detection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f1_04_nan_composition_detection",
+      "test_name": "test_tier2_f1_04_nan_composition_detection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f1_05_excel_row_cap_truncation_detection",
+      "test_name": "test_tier2_f1_05_excel_row_cap_truncation_detection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f2_01_negative_pinch_detection",
+      "test_name": "test_tier2_f2_01_negative_pinch_detection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f2_02_defective_r2_rejection",
+      "test_name": "test_tier2_f2_02_defective_r2_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f2_03_excessive_mae_mw_rejection",
+      "test_name": "test_tier2_f2_03_excessive_mae_mw_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f2_04_relative_error_over_limit_rejection",
+      "test_name": "test_tier2_f2_04_relative_error_over_limit_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f2_05_monotonicity_violation_detection",
+      "test_name": "test_tier2_f2_05_monotonicity_violation_detection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f3_01_zero_lng_production_sec_division_by_zero",
+      "test_name": "test_tier2_f3_01_zero_lng_production_sec_division_by_zero",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f3_02_zero_steam_consumption_boiler_fuel_gas",
+      "test_name": "test_tier2_f3_02_zero_steam_consumption_boiler_fuel_gas",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f3_03_negative_kickback_flow_rejection",
+      "test_name": "test_tier2_f3_03_negative_kickback_flow_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f3_04_suction_node_mass_imbalance_alarm",
+      "test_name": "test_tier2_f3_04_suction_node_mass_imbalance_alarm",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f3_05_extreme_feed_rate_bounds",
+      "test_name": "test_tier2_f3_05_extreme_feed_rate_bounds",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f4_01_autocorrelation_temporal_leakage_flag",
+      "test_name": "test_tier2_f4_01_autocorrelation_temporal_leakage_flag",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f4_02_overfitting_train_test_divergence",
+      "test_name": "test_tier2_f4_02_overfitting_train_test_divergence",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f4_03_zero_variance_target_handling",
+      "test_name": "test_tier2_f4_03_zero_variance_target_handling",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f4_04_extreme_outlier_prediction_guard",
+      "test_name": "test_tier2_f4_04_extreme_outlier_prediction_guard",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f4_05_sensor_noise_perturbation_stability",
+      "test_name": "test_tier2_f4_05_sensor_noise_perturbation_stability",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f5_01_extreme_water_temperature_density_variation",
+      "test_name": "test_tier2_f5_01_extreme_water_temperature_density_variation",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f5_02_negative_condensate_flow_rejection",
+      "test_name": "test_tier2_f5_02_negative_condensate_flow_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f5_03_hotwell_level_transient_divergence",
+      "test_name": "test_tier2_f5_03_hotwell_level_transient_divergence",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f5_04_turbine_trip_condensate_zero",
+      "test_name": "test_tier2_f5_04_turbine_trip_condensate_zero",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f5_05_condensate_sum_residual_threshold",
+      "test_name": "test_tier2_f5_05_condensate_sum_residual_threshold",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f6_01_zero_suction_pressure_division_guard",
+      "test_name": "test_tier2_f6_01_zero_suction_pressure_division_guard",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f6_02_negative_inlet_flow_rejection",
+      "test_name": "test_tier2_f6_02_negative_inlet_flow_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f6_03_pressure_ratio_less_than_one_rejection",
+      "test_name": "test_tier2_f6_03_pressure_ratio_less_than_one_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f6_04_extreme_stonewall_flow_exceeded",
+      "test_name": "test_tier2_f6_04_extreme_stonewall_flow_exceeded",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f6_05_cryogenic_suction_temperature_limit",
+      "test_name": "test_tier2_f6_05_cryogenic_suction_temperature_limit",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f7_01_zero_flow_deep_surge_rejection",
+      "test_name": "test_tier2_f7_01_zero_flow_deep_surge_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f7_02_overspeed_trip_above_105pct_mcs",
+      "test_name": "test_tier2_f7_02_overspeed_trip_above_105pct_mcs",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f7_03_underspeed_governor_below_70pct_mcs",
+      "test_name": "test_tier2_f7_03_underspeed_governor_below_70pct_mcs",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f7_04_polytropic_efficiency_out_of_bounds",
+      "test_name": "test_tier2_f7_04_polytropic_efficiency_out_of_bounds",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f7_05_discharge_pressure_below_suction_rejection",
+      "test_name": "test_tier2_f7_05_discharge_pressure_below_suction_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f8_01_hp_stage_zero_flow_rejection",
+      "test_name": "test_tier2_f8_01_hp_stage_zero_flow_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f8_02_hp_stage_overspeed_above_105pct_mcs",
+      "test_name": "test_tier2_f8_02_hp_stage_overspeed_above_105pct_mcs",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f8_03_interstage_suction_temperature_high",
+      "test_name": "test_tier2_f8_03_interstage_suction_temperature_high",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f8_04_casing_design_pressure_limit",
+      "test_name": "test_tier2_f8_04_casing_design_pressure_limit",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f8_05_head_drop_at_choke",
+      "test_name": "test_tier2_f8_05_head_drop_at_choke",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f9_01_missing_required_contract_column",
+      "test_name": "test_tier2_f9_01_missing_required_contract_column",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f9_02_invalid_curve_type_rejection",
+      "test_name": "test_tier2_f9_02_invalid_curve_type_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f9_03_invalid_confidence_rating_rejection",
+      "test_name": "test_tier2_f9_03_invalid_confidence_rating_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f9_04_negative_coordinate_rejection",
+      "test_name": "test_tier2_f9_04_negative_coordinate_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f9_05_duplicate_coordinate_detection",
+      "test_name": "test_tier2_f9_05_duplicate_coordinate_detection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f10_01_extreme_turndown_below_p10",
+      "test_name": "test_tier2_f10_01_extreme_turndown_below_p10",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f10_02_extreme_overload_above_p90",
+      "test_name": "test_tier2_f10_02_extreme_overload_above_p90",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f10_03_atmospheric_offset_contamination_check",
+      "test_name": "test_tier2_f10_03_atmospheric_offset_contamination_check",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f10_04_ambient_temperature_extremes",
+      "test_name": "test_tier2_f10_04_ambient_temperature_extremes",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f10_05_stale_gc_composition_detection",
+      "test_name": "test_tier2_f10_05_stale_gc_composition_detection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f11_01_critical_point_approach_stability",
+      "test_name": "test_tier2_f11_01_critical_point_approach_stability",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f11_02_high_pressure_convergence",
+      "test_name": "test_tier2_f11_02_high_pressure_convergence",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f11_03_extreme_subcooled_temperature",
+      "test_name": "test_tier2_f11_03_extreme_subcooled_temperature",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f11_04_pure_component_limit_case",
+      "test_name": "test_tier2_f11_04_pure_component_limit_case",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f11_05_non_physical_molecular_weight_rejection",
+      "test_name": "test_tier2_f11_05_non_physical_molecular_weight_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f12_01_zero_surge_margin_alarm",
+      "test_name": "test_tier2_f12_01_zero_surge_margin_alarm",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f12_02_negative_surge_margin_trip",
+      "test_name": "test_tier2_f12_02_negative_surge_margin_trip",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f12_03_exact_105pct_mcs_boundary",
+      "test_name": "test_tier2_f12_03_exact_105pct_mcs_boundary",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f12_04_choke_limit_approach_warning",
+      "test_name": "test_tier2_f12_04_choke_limit_approach_warning",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f12_05_flow_hunting_oscillation_detection",
+      "test_name": "test_tier2_f12_05_flow_hunting_oscillation_detection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f13_01_sub_floor_flow_instant_kickback_response",
+      "test_name": "test_tier2_f13_01_sub_floor_flow_instant_kickback_response",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f13_02_zero_mcr_flow_full_kickback",
+      "test_name": "test_tier2_f13_02_zero_mcr_flow_full_kickback",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f13_03_exact_tal_minus_45_boundary",
+      "test_name": "test_tier2_f13_03_exact_tal_minus_45_boundary",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f13_04_sub_tal_trip_reheat_response",
+      "test_name": "test_tier2_f13_04_sub_tal_trip_reheat_response",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f13_05_two_phase_vapor_fraction_liquid_rejection",
+      "test_name": "test_tier2_f13_05_two_phase_vapor_fraction_liquid_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f14_01_composition_closure_violation_rejection",
+      "test_name": "test_tier2_f14_01_composition_closure_violation_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f14_02_negative_component_mole_fraction_rejection",
+      "test_name": "test_tier2_f14_02_negative_component_mole_fraction_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f14_03_mahalanobis_distance_out_of_bounds_rejection",
+      "test_name": "test_tier2_f14_03_mahalanobis_distance_out_of_bounds_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f14_04_zero_or_negative_mita_rejection",
+      "test_name": "test_tier2_f14_04_zero_or_negative_mita_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f14_05_power_decomposition_closure_residual_tolerance",
+      "test_name": "test_tier2_f14_05_power_decomposition_closure_residual_tolerance",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f15_01_corrupt_empty_image_file_detection",
+      "test_name": "test_tier2_f15_01_corrupt_empty_image_file_detection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f15_02_low_resolution_image_flag",
+      "test_name": "test_tier2_f15_02_low_resolution_image_flag",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f15_03_missing_figure_labels_or_legend",
+      "test_name": "test_tier2_f15_03_missing_figure_labels_or_legend",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f15_04_non_standard_image_aspect_ratio",
+      "test_name": "test_tier2_f15_04_non_standard_image_aspect_ratio",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f15_05_corrupt_png_magic_bytes_detection",
+      "test_name": "test_tier2_f15_05_corrupt_png_magic_bytes_detection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f16_01_empty_report_file_rejection",
+      "test_name": "test_tier2_f16_01_empty_report_file_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f16_02_missing_observation_section_detection",
+      "test_name": "test_tier2_f16_02_missing_observation_section_detection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f16_03_conflicting_power_numbers_detection",
+      "test_name": "test_tier2_f16_03_conflicting_power_numbers_detection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f16_04_broken_markdown_links_detection",
+      "test_name": "test_tier2_f16_04_broken_markdown_links_detection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f16_05_unescaped_special_chars_in_tables",
+      "test_name": "test_tier2_f16_05_unescaped_special_chars_in_tables",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f17_01_banned_words_detection_filter",
+      "test_name": "test_tier2_f17_01_banned_words_detection_filter",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f17_02_unconverted_kw_for_large_power_flag",
+      "test_name": "test_tier2_f17_02_unconverted_kw_for_large_power_flag",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f17_03_uncited_figure_references_detection",
+      "test_name": "test_tier2_f17_03_uncited_figure_references_detection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f17_04_static_mcr_claim_rejection",
+      "test_name": "test_tier2_f17_04_static_mcr_claim_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f17_05_missing_battery_limit_flag",
+      "test_name": "test_tier2_f17_05_missing_battery_limit_flag",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f18_01_non_existent_input_file_handling",
+      "test_name": "test_tier2_f18_01_non_existent_input_file_handling",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f18_02_unhandled_exception_rejection",
+      "test_name": "test_tier2_f18_02_unhandled_exception_rejection",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f18_03_infinite_loop_timeout_guard",
+      "test_name": "test_tier2_f18_03_infinite_loop_timeout_guard",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f18_04_invalid_cli_arguments_handling",
+      "test_name": "test_tier2_f18_04_invalid_cli_arguments_handling",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier2_boundary_corner.py::test_tier2_f18_05_missing_output_directory_auto_create",
+      "test_name": "test_tier2_f18_05_missing_output_directory_auto_create",
+      "status": "PASSED",
+      "tier": "Tier 2"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f1_f2_lineage_dataset_to_metric_reproduction",
+      "test_name": "test_tier3_cross_f1_f2_lineage_dataset_to_metric_reproduction",
+      "status": "PASSED",
+      "tier": "Tier 3"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f2_f3_surrogate_power_to_decoupled_sec",
+      "test_name": "test_tier3_cross_f2_f3_surrogate_power_to_decoupled_sec",
+      "status": "PASSED",
+      "tier": "Tier 3"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f2_f14_surrogate_power_to_power_decomposition",
+      "test_name": "test_tier3_cross_f2_f14_surrogate_power_to_power_decomposition",
+      "status": "PASSED",
+      "tier": "Tier 3"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f3_f5_decoupled_boiler_fuel_to_steam_meters",
+      "test_name": "test_tier3_cross_f3_f5_decoupled_boiler_fuel_to_steam_meters",
+      "status": "PASSED",
+      "tier": "Tier 3"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f4_f2_leakage_audit_to_dual_domain_partition",
+      "test_name": "test_tier3_cross_f4_f2_leakage_audit_to_dual_domain_partition",
+      "status": "PASSED",
+      "tier": "Tier 3"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f6_f10_4k1_curves_to_historical_telemetry",
+      "test_name": "test_tier3_cross_f6_f10_4k1_curves_to_historical_telemetry",
+      "status": "PASSED",
+      "tier": "Tier 3"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f7_f10_4k2_curves_to_historical_telemetry",
+      "test_name": "test_tier3_cross_f7_f10_4k2_curves_to_historical_telemetry",
+      "status": "PASSED",
+      "tier": "Tier 3"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f8_f10_4k3_curves_to_historical_telemetry",
+      "test_name": "test_tier3_cross_f8_f10_4k3_curves_to_historical_telemetry",
+      "status": "PASSED",
+      "tier": "Tier 3"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f6_f11_4k1_mass_flow_to_am3hr_conversion",
+      "test_name": "test_tier3_cross_f6_f11_4k1_mass_flow_to_am3hr_conversion",
+      "status": "PASSED",
+      "tier": "Tier 3"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f7_f11_4k2_pr_eos_density_to_volumetric_flow",
+      "test_name": "test_tier3_cross_f7_f11_4k2_pr_eos_density_to_volumetric_flow",
+      "status": "PASSED",
+      "tier": "Tier 3"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f8_f11_4k3_pr_eos_density_to_volumetric_flow",
+      "test_name": "test_tier3_cross_f8_f11_4k3_pr_eos_density_to_volumetric_flow",
+      "status": "PASSED",
+      "tier": "Tier 3"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f7_f12_4k2_operating_point_to_surge_margin",
+      "test_name": "test_tier3_cross_f7_f12_4k2_operating_point_to_surge_margin",
+      "status": "PASSED",
+      "tier": "Tier 3"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f8_f12_4k3_operating_point_to_surge_margin",
+      "test_name": "test_tier3_cross_f8_f12_4k3_operating_point_to_surge_margin",
+      "status": "PASSED",
+      "tier": "Tier 3"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f10_f13_p10_turndown_to_480_floor_and_kickback",
+      "test_name": "test_tier3_cross_f10_f13_p10_turndown_to_480_floor_and_kickback",
+      "status": "PASSED",
+      "tier": "Tier 3"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f11_f13_suction_thermo_to_tal_superheated_vapor",
+      "test_name": "test_tier3_cross_f11_f13_suction_thermo_to_tal_superheated_vapor",
+      "status": "PASSED",
+      "tier": "Tier 3"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f12_f14_optimum_recipe_to_compressor_envelope",
+      "test_name": "test_tier3_cross_f12_f14_optimum_recipe_to_compressor_envelope",
+      "status": "PASSED",
+      "tier": "Tier 3"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f10_f14_historical_loads_to_power_savings_decomposition",
+      "test_name": "test_tier3_cross_f10_f14_historical_loads_to_power_savings_decomposition",
+      "status": "PASSED",
+      "tier": "Tier 3"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f6_7_8_f15_digitized_curves_to_figures_1_2_3",
+      "test_name": "test_tier3_cross_f6_7_8_f15_digitized_curves_to_figures_1_2_3",
+      "status": "PASSED",
+      "tier": "Tier 3"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f14_f15_baseline_vs_opt_power_to_figure4_5",
+      "test_name": "test_tier3_cross_f14_f15_baseline_vs_opt_power_to_figure4_5",
+      "status": "PASSED",
+      "tier": "Tier 3"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f1_f16_lineage_catalog_to_technical_reports",
+      "test_name": "test_tier3_cross_f1_f16_lineage_catalog_to_technical_reports",
+      "status": "PASSED",
+      "tier": "Tier 3"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f14_f17_power_decomposition_to_manuscript_draft",
+      "test_name": "test_tier3_cross_f14_f17_power_decomposition_to_manuscript_draft",
+      "status": "PASSED",
+      "tier": "Tier 3"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f9_f18_data_dictionary_to_validation_scripts",
+      "test_name": "test_tier3_cross_f9_f18_data_dictionary_to_validation_scripts",
+      "status": "PASSED",
+      "tier": "Tier 3"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier4_real_world_scenarios.py::test_tier4_scen1_p10_deep_turndown_operation",
+      "test_name": "test_tier4_scen1_p10_deep_turndown_operation",
+      "status": "PASSED",
+      "tier": "Tier 4"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier4_real_world_scenarios.py::test_tier4_scen2_p50_nominal_mid_load_operation",
+      "test_name": "test_tier4_scen2_p50_nominal_mid_load_operation",
+      "status": "PASSED",
+      "tier": "Tier 4"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier4_real_world_scenarios.py::test_tier4_scen3_p90_baseload_liquefaction",
+      "test_name": "test_tier4_scen3_p90_baseload_liquefaction",
+      "status": "PASSED",
+      "tier": "Tier 4"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier4_real_world_scenarios.py::test_tier4_scen4_decoupled_ml_pipeline_inference",
+      "test_name": "test_tier4_scen4_decoupled_ml_pipeline_inference",
+      "status": "PASSED",
+      "tier": "Tier 4"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier4_real_world_scenarios.py::test_tier4_scen5_full_compressor_map_overlay_across_speeds",
+      "test_name": "test_tier4_scen5_full_compressor_map_overlay_across_speeds",
+      "status": "PASSED",
+      "tier": "Tier 4"
+    },
+    {
+      "nodeid": "tests/e2e/test_tier4_real_world_scenarios.py::test_tier4_scen6_research_artifact_and_paper_integrity",
+      "test_name": "test_tier4_scen6_research_artifact_and_paper_integrity",
+      "status": "PASSED",
+      "tier": "Tier 4"
+    }
+  ],
+  "raw_stdout_tail": "est_tier3_cross_f2_f14_surrogate_power_to_power_decomposition PASSED [ 87%]\ntests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f3_f5_decoupled_boiler_fuel_to_steam_meters PASSED [ 88%]\ntests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f4_f2_leakage_audit_to_dual_domain_partition PASSED [ 88%]\ntests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f6_f10_4k1_curves_to_historical_telemetry PASSED [ 89%]\ntests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f7_f10_4k2_curves_to_historical_telemetry PASSED [ 89%]\ntests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f8_f10_4k3_curves_to_historical_telemetry PASSED [ 90%]\ntests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f6_f11_4k1_mass_flow_to_am3hr_conversion PASSED [ 90%]\ntests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f7_f11_4k2_pr_eos_density_to_volumetric_flow PASSED [ 91%]\ntests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f8_f11_4k3_pr_eos_density_to_volumetric_flow PASSED [ 91%]\ntests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f7_f12_4k2_operating_point_to_surge_margin PASSED [ 92%]\ntests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f8_f12_4k3_operating_point_to_surge_margin PASSED [ 92%]\ntests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f10_f13_p10_turndown_to_480_floor_and_kickback PASSED [ 93%]\ntests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f11_f13_suction_thermo_to_tal_superheated_vapor PASSED [ 93%]\ntests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f12_f14_optimum_recipe_to_compressor_envelope PASSED [ 94%]\ntests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f10_f14_historical_loads_to_power_savings_decomposition PASSED [ 94%]\ntests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f6_7_8_f15_digitized_curves_to_figures_1_2_3 PASSED [ 95%]\ntests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f14_f15_baseline_vs_opt_power_to_figure4_5 PASSED [ 95%]\ntests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f1_f16_lineage_catalog_to_technical_reports PASSED [ 96%]\ntests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f14_f17_power_decomposition_to_manuscript_draft PASSED [ 96%]\ntests/e2e/test_tier3_cross_feature.py::test_tier3_cross_f9_f18_data_dictionary_to_validation_scripts PASSED [ 97%]\ntests/e2e/test_tier4_real_world_scenarios.py::test_tier4_scen1_p10_deep_turndown_operation PASSED [ 97%]\ntests/e2e/test_tier4_real_world_scenarios.py::test_tier4_scen2_p50_nominal_mid_load_operation PASSED [ 98%]\ntests/e2e/test_tier4_real_world_scenarios.py::test_tier4_scen3_p90_baseload_liquefaction PASSED [ 98%]\ntests/e2e/test_tier4_real_world_scenarios.py::test_tier4_scen4_decoupled_ml_pipeline_inference PASSED [ 99%]\ntests/e2e/test_tier4_real_world_scenarios.py::test_tier4_scen5_full_compressor_map_overlay_across_speeds PASSED [ 99%]\ntests/e2e/test_tier4_real_world_scenarios.py::test_tier4_scen6_research_artifact_and_paper_integrity PASSED [100%]\n\n============================= 208 passed in 0.52s =============================\n"
+}

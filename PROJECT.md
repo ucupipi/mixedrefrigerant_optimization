@@ -1,79 +1,101 @@
-# Project: Badak NGL Plant-5 OTS Standalone Web & Cooling Seawater Hybrid C3MR Optimization
+# Project: Badak LNG Plant-3 Train H C3MR Compressor Performance Curve Digitization & ML Optimization Suite (IKMS 2026)
 
 ## Architecture
-- **Frontend**: React 19 + TypeScript + Vite + TailwindCSS (`operator-website/frontend/`)
-  - Standalone Client-Side Architecture: Fully functional in browser (Vercel) without external backend API dependency
-  - Hybrid Inference Engine: `hybridSurrogate.ts` attempting ONNX Runtime Web with automatic fallback to pure TypeScript physics engine `physicsEngine.ts`
-  - Thermodynamics Engine: `thermoFlash.ts` (PR-EOS 5C-1 Flash Drum VLE phase split, 5C-2 MCR separator phase split)
-  - Cooling Seawater Model: Teluk Bontang sea water inlet temperature T_CW = 30.0 C internal parameter governing propane condenser 3E-10 and chillers 3E-14/17/18
-  - Operator UI: DCS replica `TabGrafik.tsx`, `TabInputResults.tsx`, `ExcelWorkbookView.tsx`, `SpreadsheetTable.tsx`, `ResultPanel.tsx`, `TopNavbar.tsx`
-- **Backend & Verification Suite**:
-  - Test Suite: 24 unit tests in `operator-website/backend/tests/` (13 in `test_calculations.py`, 11 in `test_ui_empirical.py`)
-  - Verification: `npm test` in frontend executes and validates all 24 unit tests
+This project integrates OEM compressor performance curves for 4K-1, 4K-2, and 4K-3 (Dresser-Rand 939B6/4, 838B4, 656B7-6) with historical DCS telemetry (720,734 records, 2,531 GC routine samples), rigorous PR-EOS thermodynamic simulation, and machine learning surrogate models into a verified optimization framework for Train H liquefaction at PT Badak NGL.
+
+The architecture decouples modeling into three distinct layers conforming strictly to `AGENTS.md` (Pasal 1 to Pasal 13):
+1. **Domain 1 — PR-EOS Thermodynamic Surrogates (Deterministic Physics):**
+   - High-fidelity surrogate models trained on 2,000 Latin Hypercube Sampling (LHS) DoE simulation points.
+   - Predicts internal unmeasurable thermodynamic variables: Warm Bundle Pinch ($\text{MITA}_{\text{WB}}$), Cold Bundle Pinch ($\text{MITA}_{\text{CB}}$), Isentropic Shaft Power ($\dot{W}_{\text{shaft}}$), and MCHE Exergy Destruction ($\dot{E}_{D, \text{MCHE}}$).
+   - Metrics: $R^2 \ge 0.989$, $\text{MAE} < 0.2\text{ MW}$ (proportional unit), $\text{NMAE} < 0.2\%$, with physics monotonicity constraints ($\text{monotonic\_cst} = +1$).
+2. **Domain 2 — DCS Operational Telemetry Surrogates (Field Stochastic Sensor Models):**
+   - Empirical machine learning models trained on 67,916 steady-state chronological minutes (2025–2026).
+   - Predicts plant utility steam ($m_{\text{steam}}$), suction drum mixed temperature ($T_{\text{suct}}$ / `H4TI004B`), and turbine driver condensate flows (`H4FI031A`, `H4FI029A`, `H4FI030A`).
+   - Metrics: Realistic industrial $R^2 \approx 0.8419\text{--}0.9664$, $\text{NMAE} < 1.0\%$.
+3. **Deterministic Physical Post-Processing & Boundary Validation Layer:**
+   - Computes deterministic variables via exact algebraic mass/energy balances without ML models: Specific Energy Consumption ($\text{SEC} = \dot{W}_{\text{shaft}} / \dot{m}_{\text{LNG}}$), Boiler Fuel Gas Demand ($\dot{V}_{\text{FG}} = \dot{m}_{\text{steam}} \times 97.70\text{ Nm}^3/\text{t}$), Scope 1 $\text{CO}_2$ emissions, and suction drum flow balance ($\dot{m}_{\text{comp}} = \dot{m}_{\text{MCHE}} + \dot{m}_{\text{4UV-53}} + \dot{m}_{\text{4TV-510}}$).
+   - Digitized OEM Compressor Performance Curves (4K-1, 4K-2, 4K-3) provide explicit operating envelope boundaries (surge limit, stonewall/choke, minimum flow floor $\ge 480.0\text{ t/h}$, speed window 70%–105% MCS) and independent aerodynamic validation.
+
+---
 
 ## Feature Inventory
 | # | Feature | Description | Milestone | Source |
-|---|---------|-------------|-----------|--------|
-| 1 | Internal Cooling Seawater T_CW = 30.0 C | Internal model parameter T_CW = 30.0 C without operator slider, driving P_sat = 14.164 kg/cm2A and T_cond = 40.5 C | M1 | R1 Survey |
-| 2 | Chiller & Condenser Thermodynamics | Physical modeling of propane chillers 3E-14/17/18 and condenser 3E-10 duties and LMTD | M1 | R1 Survey |
-| 3 | Read-only T_CW Display in UI | Display T_CW = 30.0 C and chiller duties in ExcelWorkbookView without adding interactive sliders | M1 | R1 Survey |
-| 4 | Bundled Default Snapshot Data | Static offline snapshot data in `src/data/defaultSnapshot.ts` ensuring zero-dependency initial load | M2 | R2 Survey |
-| 5 | Pure TypeScript Physics Engine | First-principles feature builder (20 features), ILR geometry, Mahalanobis D_M <= 3.0802, DCS quantile baseline, exact Ridge surrogate | M2 | R2 Survey |
-| 6 | Hybrid ONNX Runtime Web with TS Fallback | Hybrid inference wrapper in `src/utils/hybridSurrogate.ts` that tries ONNX then silently falls back to TS physics | M2 | R2 Survey |
-| 7 | Standalone Client-Side API Adapter | Seamless fallback in `src/api.ts` so `predictScenario` and `fetchDemoSnapshot` work 100% offline | M2 | R2 Survey |
-| 8 | Em-Dash and En-Dash Elimination | Eradicate all 74 Unicode em-dash (U+2014) and en-dash (U+2013) in frontend and 1 in backend test | M3 | R3 Survey |
-| 9 | Frontend npm test Script Integration | Add `"test"` script to `operator-website/frontend/package.json` that runs 24/24 unit tests green | M3 | R3 Survey |
-| 10 | Strict AGENTS.md & Plant-5 Alignment | Zero magic numbers, verify Afdal as Process Control Engineer, Plant-5 Train H terminology | M3 | R3 Survey |
-| 11 | Production Build & Lint Pass | `npm run build` exit code 0 and `npm run lint` clean pass without errors | M3 | R3 Survey |
-| 12 | Final Gate Verification | Full review, adversarial challenge, and forensic audit of all acceptance criteria | M4 | Final Gate |
+|---|---|---|:---:|:---:|
+| 1 | ML Lineage & Dataset Catalog | Complete lineage table mapping every target to script, dataset, split method, and ground truth source | M1 | Survey 1 |
+| 2 | Metric Reproduction & Dual-Domain Validation | Reproduce R², MAE (in MW), RMSE, NMAE on holdout test sets without data leakage | M1 | Survey 1 |
+| 3 | Target Decoupling (Deterministic Balances) | Decouple SEC, Boiler Fuel Gas (V_FG), and CO2 from ML into exact physical algebraic balances | M1 | Survey 1 |
+| 4 | Audit of R² ≈ 0.99 Claims | Reconcile legacy random-split temporal leakage vs authentic dual-domain metrics | M1 | Survey 1 |
+| 5 | Steam Meter Metadata Verification | Confirm H4FI030A/029A/031A as 4G-5/4/3 condensate pump discharges from 4KT-3/2/1 surface condensers | M1 | Survey 1, Survey 3 |
+| 6 | 4K-1 Curve Extraction & Digitization | Digitize Dresser-Rand 939B6/4 propane compressor curves (PR & kW vs AM³/HR for Sections 1, 2, 3) | M2 | Survey 2 |
+| 7 | 4K-2 Curve Extraction & Digitization | Digitize Dresser-Rand 838B4 LP MCR compressor curves (Head, Eff, kW, Pd vs m³/h for Cases 1, 2, 3) | M2 | Survey 2 |
+| 8 | 4K-3 Curve Extraction & Digitization | Digitize Dresser-Rand 656B7-6 HP MCR compressor curves (Head, Eff, kW, Pd vs m³/h for Cases 1, 2, 3) | M2 | Survey 2 |
+| 9 | Curve Calibration & Data Dictionary | Calibrate axes from original tick marks; produce CSV/Parquet with confidence ratings and dictionary | M2 | Survey 2 |
+| 10 | Historical DCS Telemetry Linking | Map historical steady-state operating points across production loads (P10, P50, P90) onto curves | M3 | Survey 3 |
+| 11 | Suction Thermodynamic Conversions | Compute suction Z, k, density via PR-EOS to convert mass flow into OEM actual volumetric flow | M3 | Survey 3 |
+| 12 | Operating Envelope & Surge Verification | Project baseline vs candidate optimum MR operating points onto curves; verify surge margins | M4 | Survey 2, Survey 3 |
+| 13 | 480 t/h Floor & 4UV-53 / 4TV-510 Enforcement | Verify anti-surge kickback modulation (107.6 t/h at P10) and TAL (-45°C) superheated vapor | M4 | Survey 3 |
+| 14 | Thermodynamic Feasibility & Power Decomposition | Verify candidate optimum MR recipe ($D_M = 1.2723 \le 3.0802$) and -27.10% power decomposition | M4 | Survey 3 |
+| 15 | Publication Visualizations (Figures 1–5) | High-resolution publication plots of operating maps, baseline vs optimized points, and power/head | M5 | Survey 2, Survey 3 |
+| 16 | Standalone Technical Reports | Generate ML Audit Report, Target Selection Report, Compressor Evaluation Report, Integration Report | M5 | Survey 1, Survey 2, Survey 3 |
+| 17 | IKMS 2026 Paper Revision Draft | Produce manuscript revision text, tables, and figure citations conforming to AGENTS.md rules | M5 | Survey 1, Survey 2, Survey 3 |
+| 18 | Standalone Reproducible Validation Scripts | Standalone scripts to verify digitization, thermodynamic conversions, and evaluation metrics | M5 | Survey 1, Survey 2, Survey 3 |
+
+---
 
 ## Milestones
-| # | Name | Scope | Dependencies | Status |
-|---|------|-------|-------------|--------|
-| 1 | M1: Cooling Seawater T_CW & Chiller/Condenser Integration | Implement internal parameter T_CW = 30.0 C in types.ts, thermoFlash.ts, and ExcelWorkbookView.tsx without UI slider | none | DONE (Gate PASS: T_CW=30.0C internal, 3E-10/14/17/18 duties, read-only UI, 24/24 tests green) |
-| 2 | M2: Client-Side Standalone Hybrid ONNX & TypeScript Physics Engine | Implement physicsEngine.ts, hybridSurrogate.ts, defaultSnapshot.ts, and wire api.ts for 100% standalone Vercel operation | M1 | DONE (Gate PASS: standalone offline fallback, exact 20-feat Ridge, hybrid ONNX, 24/24 tests green) |
-| 3 | M3: Em/En-Dash Sanitization, Frontend npm test, and Build Verification | Sanitize 75 dash violations, add npm test script (24/24 tests green), verify npm run build exit 0, AGENTS.md compliance | M1, M2 | DONE (Gate PASS: npm test exit 0, 24/24 green, 0 em/en-dashes, Plant-5 consistency) |
-| 4 | M4: Final Review, Adversarial Challenge, and Forensic Audit | Independent reviewer, challenger stress testing, and forensic auditor integrity verification | M1, M2, M3 | DONE (Gate PASS: 100% criteria verified, CLEAN audit verdict) |
+| # | Milestone Name | Scope | Dependencies | Status | Key Outputs |
+|---|---|---|:---:|:---:|---|
+| M1 | ML Architecture & Data Lineage Audit | Audit and restructure ML surrogate models, trace lineage, reproduce dual-domain metrics, decouple deterministic targets, verify H4FI030A | None | PLANNED | `ML_AUDIT_REPORT.md`, `TARGET_SELECTION_REPORT.md`, decoupled calculation pipeline |
+| M2 | Compressor Performance Curve Digitization | Digitize Dresser-Rand 4K-1, 4K-2, 4K-3 curves from H4K-1/2/3.pdf, calibrate axes, produce Parquet/CSV with data dictionary | None | PLANNED | `compressor_curves_4K1/2/3.parquet/.csv`, data dictionary, calibration equations |
+| M3 | DCS Telemetry Linking & Envelope Mapping | Map historical P10/P50/P90 steady-state points onto curves, compute PR-EOS suction properties, convert flows to OEM basis | M1, M2 | PLANNED | Mapped telemetry dataset, suction property conversion module, operating point ledger |
+| M4 | C3MR Optimization Integration & Mechanical Feasibility | Evaluate optimum MR recipe against compressor operating envelopes, verify 480 t/h floor, 4UV-53 kickback, TAL -45°C, and power decomposition | M1, M2, M3 | PLANNED | `COMPRESSOR_EVALUATION_REPORT.md`, `OPTIMIZATION_INTEGRATION_REPORT.md`, feasibility certificate |
+| M5 | Research Deliverables, Visualizations & Validation Scripts | Generate Figures 1–5, compile comprehensive technical reports, produce paper revision draft, and provide standalone verification scripts | M1, M2, M3, M4 | PLANNED | Figures 1–5, final paper revision text/tables, standalone validation scripts |
+
+---
 
 ## Interface Contracts
-### 1. Cooling Seawater & Chiller Contract
-- **Module**: `operator-website/frontend/src/utils/thermoFlash.ts`
-- **Constant**: `DEFAULT_COOLING_WATER = { T_CW_in_C: 30.0, delta_T_CW_C: 5.0, T_CW_out_C: 35.0, approach_C: 5.5, T_cond_C: 40.5, p_c3_disch_kgcm2a: 14.164 }`
-- **Output Types**:
-  ```typescript
-  export interface ChillerDutyResult {
-    q_high_stage_mw: number;   // 3E-14 (+18 C)
-    q_med_stage_mw: number;    // 3E-17 (-10 C)
-    q_low_stage_mw: number;    // 3E-18 (-35 C)
-    q_total_precooling_mw: number;
-    q_propane_condenser_mw: number; // 3E-10
-    lmtd_condenser_c: number;
-  }
-  ```
 
-### 2. Standalone Client-Side Prediction Contract
-- **Module**: `operator-website/frontend/src/utils/physicsEngine.ts` and `src/api.ts`
-- **Function**: `computeClientPrediction(scenario: ScenarioInput, actualDcs?: Partial<ScenarioInput>): PredictResponse`
-- **Behavior**:
-  - Matches exact return schema of `/api/v1/predict`
-  - Evaluates 20 standardized features matching `feature_builder.py`
-  - Evaluates Ridge surrogate with intercept `90.165461 MW` and exact trained coefficients
-  - Evaluates DCS 7-quantile baseline power for Plant-5 Train H
-  - Evaluates 5C-1 Flash letdown via `calculateFlashDrum5C1`
-  - Evaluates safety interlocks (TAL -45 C, Anti-surge 480 t/h, MITA pinch >= 1.5 C)
-  - Evaluates make-up injection advisory for N2, C1, C2, C3
+### 1. Compressor Curve Data Schema (M2 ↔ M3, M4, M5)
+- **Columns:**
+  - `compressor_tag`: String (`4K-1`, `4K-2`, `4K-3`)
+  - `section_or_case`: String (`Sect-1`, `Sect-2`, `Sect-3`, `Case-1`, `Case-2`, `Case-3`)
+  - `curve_type`: String (`Head`, `Power`, `Efficiency`, `Pressure_Ratio`, `Discharge_Pressure`, `Surge_Limit`, `Choke_Limit`)
+  - `speed_pct`: Float (e.g. `70.0`, `80.0`, `90.0`, `100.0`, `105.0`)
+  - `speed_rpm`: Float (e.g. `4610.0`)
+  - `flow_basis`: String (`AM3/HR` for 4K-1, `m3/h` for 4K-2 and 4K-3)
+  - `flow_value`: Float (x-coordinate)
+  - `y_unit`: String (`m-kg/kg`, `kW`, `fraction`, `ratio`, `kg/cm2A`)
+  - `y_value`: Float (y-coordinate)
+  - `source_pdf`: String (`H4K-1.pdf`, `H4K-2.pdf`, `H4K-3.pdf`)
+  - `source_page`: Integer
+  - `confidence_rating`: String (`HIGH`, `MEDIUM`, `ESTIMATED`)
+- **Format:** Parquet & CSV.
+
+### 2. Operating Point Mapping Contract (M3 ↔ M4, M5)
+- **Inputs:** Raw DCS mass flow $\dot{m}$ ($t/h$), suction pressure $P_s$ ($kg/cm^2A$), suction temperature $T_s$ ($^\circ C$), gas composition ($\mathbf{z}$).
+- **PR-EOS Conversion Function:**
+  $$Z = \text{PR\_EOS\_Z}(P_s, T_s, \mathbf{z}), \quad \rho = \frac{P_s \cdot MW}{Z \cdot R \cdot T_s}, \quad Q_{\text{actual}} = \frac{\dot{m}}{\rho} \quad [m^3/h]$$
+- **Outputs:** Operating coordinates $(Q_{\text{actual}}, H_p, \dot{W}_{\text{shaft}}, \eta_p)$ ready for overlay on digitized curve families.
+
+### 3. Optimization Feasibility & Boundary Contract (M4 ↔ M5)
+- **Inputs:** Candidate optimum operating points at P10, P50, P90.
+- **Constraints Checked:**
+  - Flow Floor: $\dot{m}_{\text{comp}} \ge 480.0\text{ t/h}$.
+  - Surge Margin: $\text{SM} = (Q_{\text{actual}} - Q_{\text{surge}}) / Q_{\text{surge}} \ge 10.0\%$.
+  - Suction Drum Temperature: $T_{\text{suct}} \ge -45.0^\circ C$ with $\text{VF} \equiv 1.0000$.
+  - Maximum Speed: $N \le 105.0\%\text{ MCS}$.
+  - MCHE Pinch: $\text{MITA} \ge 1.50^\circ C$ (zero crossover).
+  - Mahalanobis Distance: $D_M \le 3.0802$ ($\chi^2_{0.95, 4}$).
+
+---
 
 ## Code Layout
-- Frontend: `operator-website/frontend/`
-  - `src/utils/thermoFlash.ts`: 5C-1 flash drum, 5C-2 MCR phase split, cooling seawater thermodynamics
-  - `src/utils/physicsEngine.ts`: Pure TypeScript first-principles physics surrogate & feature builder
-  - `src/utils/hybridSurrogate.ts`: Hybrid ONNX Runtime Web loader with automatic physics fallback
-  - `src/data/defaultSnapshot.ts`: Bundled plant baseline snapshot data for standalone offline initialization
-  - `src/api.ts`: API client with transparent standalone client-side execution fallback
-  - `src/components/ExcelWorkbookView.tsx`: Workbook view showing T_CW = 30.0 C and chiller duties (read-only)
-  - `src/components/TopNavbar.tsx`: Author roster with Afdal as Process Control Engineer
-  - `src/components/TabGrafik.tsx`: DCS mimic layout
-  - `package.json`: Build and test scripts
-- Tests: `operator-website/backend/tests/`
-  - `test_calculations.py`: 13 engineering calculation unit tests
-  - `test_ui_empirical.py`: 11 UI empirical unit tests
+- `D:\User\Documents\KULIAH\LOMBA\IKMS 2026\`:
+  - Source PDFs: `H4K-1.pdf`, `H4K-2.pdf`, `H4K-3.pdf`.
+  - Digitized datasets: `data/digitized/compressor_curves_*.parquet` and `.csv`.
+  - Standalone validation scripts: `scripts/validate_ml_surrogates.py`, `scripts/validate_curve_digitization.py`, `scripts/validate_operating_envelope.py`.
+  - Visualizations: `figures/Figure_1_4K1_map.png`, `figures/Figure_2_4K2_map.png`, `figures/Figure_3_4K3_map.png`, `figures/Figure_4_baseline_vs_optimized.png`, `figures/Figure_5_power_head_efficiency_summary.png`.
+  - Deliverables: `reports/ML_AUDIT_REPORT.md`, `reports/TARGET_SELECTION_REPORT.md`, `reports/COMPRESSOR_EVALUATION_REPORT.md`, `reports/OPTIMIZATION_INTEGRATION_REPORT.md`, `manuscript/IKMS_2026_PAPER_REVISION_DRAFT.md`.
+- `d:\User\Documents\KULIAH\LOMBA\FINAL_FIX_OILWEEK\`:
+  - Primary telemetry and model archive: `data/MASTER_DATASET_REBUILD_20261014/`, `MR_OPTIMIZATION_REBUILD/`, `MCR_ML_REBUILD/`.
+  - Coordination and state: `.agents/teamwork/`.

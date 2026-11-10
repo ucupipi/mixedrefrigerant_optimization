@@ -1,0 +1,21 @@
+# Optimasi Komposisi dan Laju Sirkulasi Mixed Refrigerant Berbasis Machine Learning untuk Efisiensi Energi Kilang Badak LNG
+
+**Bilqiis Dara Ramadhan Sasongko¹*, Mukhammad Yusuf Iqbal¹, Hizkia Dhiego Gurning¹, Afdal Elang Arifin¹**  
+¹Jurusan Teknik Mesin, Politeknik Negeri Jakarta, Jl. Prof. DR. G.A. Siwabessy, Kukusan, Kec. Beji, Kota Depok, Jawa Barat 16425, Indonesia  
+*Penulis korespondensi: bilqiiisdara@gmail.com  
+
+---
+
+### Abstrak
+
+Sistem propane-precooled mixed refrigerant (C3MR) menyumbang 59,3% konsumsi energi internal di Kilang Badak LNG. Sistem ini dirancang untuk batas maksimum gas umpan 91,6 mol% metana. Dokumentasi historis mencatat gas umpan kaya 88,1 mol% metana pada 2017, sedangkan data operasional dan kromatografi gas periode 2024–2026 menunjukkan kilang beroperasi pada kondisi lean gas hingga 94,5 mol% metana. Pergeseran ini menaikkan beban pendinginan spesifik main cryogenic heat exchanger (MCHE) dari 637,6 menjadi 652,9 kJ/kg, sehingga memicu sirkulasi mixed refrigerant (MR) berlebih dan lonjakan konsumsi energi spesifik (SEC). Penelitian ini mengembangkan kerangka optimasi berbasis machine learning berpembatas fisika untuk menentukan komposisi dan sirkulasi MR optimal melintasi seluruh spektrum beban operasi kilang (141,2–308,3 ton/jam LNG). Dataset primer mencakup 720.734 rekaman menit DCS dan 2.531 sampel kromatografi gas periode 2024–2026. Pemetaan simpleks menerapkan transformasi Isometric Log-Ratio (ILR) berpembatas elipsoid Mahalanobis (DM <= 3,0802). Model surrogate HistGradientBoostingRegressor berpembatas monotonik mencapai R2 uji 0,9552–0,9945 dan NMAE < 2,5% (kesalahan daya poros < 0,18 MW), serta tervalidasi pada Aspen HYSYS. Formula MR optimal tunggal (3,77% N2; 42,22% C1; 43,67% C2; 1,53% C2H4; 8,82% C3) memangkas SEC beban dasar sebesar 26,81% (menjadi 256,51 kWh/ton LNG) dan menghemat uap turbin 31,65 ton/jam. Secara tahunan terbobot pada 7.849,9 jam operasi, strategi ini menghemat daya kompresor 28.983,3 kW (27,10%), menghemat uap boiler 239.889,7 ton/tahun, bahan bakar gas 23,44 juta Nm3/tahun (setara USD 8,48 Juta/tahun), dan mereduksi 49.961,8 ton CO2/tahun dengan batas keselamatan kilang terbukti aman.
+
+**Kata kunci:** Efisiensi energi spesifik, lean feed gas, liquefied natural gas, machine learning, optimasi mixed refrigerant
+
+---
+
+### Abstract
+
+The propane-precooled mixed refrigerant (C3MR) system accounts for 59.3% of internal energy consumption at Badak LNG. Designed for a maximum feed gas methane limit of 91.6 mol%, historical documentation notes rich gas at 88.1 mol% in 2017. However, plant DCS records and gas chromatography from 2024–2026 indicate persistent operation under lean conditions up to 94.5 mol% methane. This shift increased the main cryogenic heat exchanger (MCHE) specific cooling duty from 637.6 to 652.9 kJ/kg, prompting excess mixed refrigerant (MR) circulation and elevating specific energy consumption (SEC) during reduced throughput. This study develops a physics-constrained machine learning optimization framework to determine optimal MR composition and circulation across the entire recorded operating load range (141.2–308.3 tons/hour LNG). The primary dataset comprises 720,734 minute-level DCS observations and 2,531 shift-level gas chromatography samples from 2024–2026. Simplex compositional mapping employs Isometric Log-Ratio (ILR) transformation bounded by a 95% Mahalanobis distance ellipsoid (DM <= 3.0802). Monotonically constrained HistGradientBoostingRegressor surrogate models achieve test R2 of 0.9552–0.9945 and NMAE < 2.5% (shaft power error < 0.18 MW), validated via Aspen HYSYS. A single optimal MR formulation (3.77% N2, 42.22% C1, 43.67% C2, 1.53% C2H4, 8.82% C3) cuts baseload SEC by 26.81% (to 256.51 kWh/ton LNG) and saves 31.65 tons/hour of turbine steam. Across 7,849.9 annual operating hours, this framework delivers an operating-hours-weighted compressor power reduction of 28,983.3 kW (27.10%), conserving 239,889.7 tons/year of steam and 23.44 million Nm3/year of fuel gas (saving USD 8.48 million/year) while cutting 49,961.8 tons CO2/year under verified plant safety constraints.
+
+**Keywords:** Energy efficiency, lean feed gas, liquefied natural gas, machine learning, mixed refrigerant optimization

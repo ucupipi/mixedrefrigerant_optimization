@@ -60,8 +60,7 @@ htmlcov/
 /workcopies/
 /tmp/
 
-# Large binary files — NOT for GitHub
-*.hsc
+# Large binary files — NOT for GitHub (HYSYS .hsc whitelisted below for research reproducibility)
 *.rar
 *.zip
 *.parquet
@@ -141,3 +140,25 @@ iqbal_*
 rules.md
 run_e2e_tests.py
 scratch_*
+
+# ==========================================
+# ALLOW REPRODUCIBLE HYSYS MODELS & IKMS 2026
+# ==========================================
+!*.hsc
+!**/*.hsc
+!C3MR.hsc
+!MACHINELEARNINGMCR4E40ADDED_R47A3B_WORKING.hsc
+!hysys_models/
+!hysys_models/**
+!ikms_2026/
+!ikms_2026/**
+!ikms_2026/**/*.png
+!ikms_2026/**/*.pdf
+!ikms_2026/**/*.parquet
+!ikms_2026/**/*.csv
+!ikms_2026/**/*.docx
+!ikms_2026/**/*.hsc
+!ikms_2026/**/*.py
+!ikms_2026/**/*.md
+!ikms_2026/**/*.json
+
