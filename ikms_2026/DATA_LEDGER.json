@@ -11,10 +11,17 @@
     "facility": "PT Badak NGL, Bontang, Indonesia",
     "unit": "Train H C3MR Liquefaction",
     "primary_operational_dataset": "DCS Plant Historian 2024-2026 (720,734 records at 1-minute interval across 2023-2026, 170 process tags)",
-    "laboratory_gc_dataset": "2,531 shift-level gas chromatography samples (7 sample points including 4C-8 MCR)",
+    "laboratory_gc_dataset": "2,531 shift-level gas chromatography samples (7 sample points including 4C-8 MCR) in OverallComposition_2023_2024.xlsx",
     "historical_baseline_2017": "88.1 mol% CH4 (Secondary Plant Documentation)",
     "operating_hours_per_year": 7849.9,
-    "plant_availability_percent": 89.61
+    "plant_availability_percent": 89.61,
+    "unit31_boiler_instrumentation": {
+      "excess_o2_analyzers": "AI000621 to AI000625 (31-F21 to 31-F25), AI000626/AIC00626 to AI000629b/AIC00629b (31-F26 to 31-F29)",
+      "combustion_air_flow_tags": "FIC4521A to FIC4529A (31-F21 to 31-F29, kNm3/h)",
+      "main_superheated_steam_tags": "FI00621A to FI00629A (31-F21 to 31-F29, t/h)",
+      "power_generation_steam_tags": "FI002439 (PG-9), FI024310 to FI024314 (PG-10 to PG-14, t/h)",
+      "c3mr_driver_steam_tags": "H4FI031A (4KT-1), H4FI029A (4KT-2), H4FI030A (4KT-3, t/h)"
+    }
   },
   "optimal_mcr_composition_mol_percent": {
     "nitrogen_N2": 3.77,
@@ -146,13 +153,15 @@
         "notes": "Direct mechanical shaft work across 4K-1, 4K-2, 4K-3 without thermodynamic precooling credit"
       },
       "domain_C_dcs_telemetry_surrogates": {
-        "weighted_power_saving_kW": 3302.2,
-        "annual_energy_saved_GWh_yr": 25.92,
-        "weighted_steam_saving_t_h": 20.23,
-        "annual_driver_steam_saved_t_yr": 158772.5,
-        "annual_fuel_gas_saved_MNm3_yr": 11.79,
-        "annual_cost_savings_MUSD_yr": 4.26,
-        "annual_co2_abatement_t_yr": 21887.9
+        "evaluation_resolution": "100_empirical_percentiles_riemann_sum_p1_p100",
+        "weighted_power_saving_kW": 4143.8,
+        "annual_energy_saved_GWh_yr": 32.53,
+        "weighted_steam_saving_t_h": 4.37,
+        "weighted_model_steam_saving_t_h": 4.32,
+        "annual_driver_steam_saved_t_yr": 34297.4,
+        "annual_fuel_gas_saved_MNm3_yr": 3.35,
+        "annual_cost_savings_MUSD_yr": 1.21,
+        "annual_co2_abatement_t_yr": 7143.4
       },
       "domain_D_slsqp_optimizer_dcs_deck": {
         "weighted_steam_saving_t_h": 47.83,
