@@ -70,7 +70,7 @@ except ImportError:
         ilr_inverse,
     )
 
-# Import PR-EOS dew point function from stage2_optimization or local core fallback
+# Import PR-EOS dew point function from local self-contained modules
 try:
     from .pr_thermo import pr_dew_temperature
 except ImportError:
@@ -78,9 +78,12 @@ except ImportError:
         from core.pr_thermo import pr_dew_temperature
     except ImportError:
         try:
-            from analysis.stage2_optimization.pr_thermo import pr_dew_temperature
+            from src.core.pr_thermo import pr_dew_temperature
         except ImportError:
-            pr_dew_temperature = None
+            try:
+                from src.thermo.pr_thermo import pr_dew_temperature
+            except ImportError:
+                pr_dew_temperature = None
 
 # Stage-08 Conversions & Safety Invariants
 TREATED_TO_FEED_RATIO: float = 0.8136    # H3FI0004 = 0.8136 x H1FI0009

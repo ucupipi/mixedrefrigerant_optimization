@@ -162,6 +162,12 @@ def pr_dew_bubble_temperatures(P_bar: float, x_mole_frac: Any) -> Tuple[float, f
     return float(td), float(tb)
 
 
+def pr_dew_temperature(P_bar: float, x_mole_frac: Any) -> float:
+    """Return dew point temperature (K) at pressure P_bar for mixture x_mole_frac."""
+    td, _ = pr_dew_bubble_temperatures(P_bar, x_mole_frac)
+    return td
+
+
 def _h(T: float, P: float, x: Any, phase: str = "vapor") -> float:
     """Compute molar enthalpy (J/mol) including PR-EOS enthalpy departure."""
     x_norm = _x(x)
