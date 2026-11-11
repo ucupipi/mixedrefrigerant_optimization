@@ -117,13 +117,51 @@
     "operating_hours_weighted_power_reduction_kW": 28983.3,
     "operating_hours_weighted_power_reduction_percent": 27.1,
     "annual_energy_saved_MWh_yr": 227516.0,
+    "weighted_driver_steam_saved_t_h": 30.56,
     "annual_driver_steam_saved_t_yr": 239889.7,
-    "annual_fuel_gas_saved_Nm3_yr": 23439000.0,
+    "weighted_boiler_fuel_gas_saved_Nm3_h": 2985.67,
+    "annual_fuel_gas_saved_Nm3_yr": 23437223.4,
     "annual_fuel_gas_saved_MNm3_yr": 23.44,
+    "annual_fuel_gas_saved_MMBtu_yr": 844091.6,
     "annual_co2_abatement_t_yr": 49961.8,
+    "annual_co2_abatement_HHV_t_yr": 49961.8,
+    "annual_co2_abatement_LHV_t_yr": 43520.8,
     "annual_cost_savings_USD_yr": 8480000.0,
     "annual_cost_savings_million_USD_yr": 8.48,
-    "capital_expenditure_CAPEX_USD": 0.0
+    "annual_cost_savings_spot_parity_USD_yr": 8474679.67,
+    "annual_cost_savings_domestic_benchmark_USD_yr": 6752732.81,
+    "capital_expenditure_CAPEX_USD": 0.0,
+    "multi_domain_reconciliation": {
+      "domain_A_thermo_hysys_PR_EOS": {
+        "weighted_power_saving_kW": 28983.3,
+        "annual_energy_saved_GWh_yr": 227.52,
+        "annual_driver_steam_saved_t_yr": 239889.7,
+        "annual_fuel_gas_saved_MNm3_yr": 23.44,
+        "annual_cost_savings_MUSD_yr": 8.48,
+        "annual_co2_abatement_t_yr": 49961.8
+      },
+      "domain_B_oem_compressor_curves_API617": {
+        "weighted_power_saving_kW": 12290.5,
+        "annual_energy_saved_GWh_yr": 96.48,
+        "notes": "Direct mechanical shaft work across 4K-1, 4K-2, 4K-3 without thermodynamic precooling credit"
+      },
+      "domain_C_dcs_telemetry_surrogates": {
+        "weighted_power_saving_kW": 3302.2,
+        "annual_energy_saved_GWh_yr": 25.92,
+        "weighted_steam_saving_t_h": 20.23,
+        "annual_driver_steam_saved_t_yr": 158772.5,
+        "annual_fuel_gas_saved_MNm3_yr": 11.79,
+        "annual_cost_savings_MUSD_yr": 4.26,
+        "annual_co2_abatement_t_yr": 21887.9
+      },
+      "domain_D_slsqp_optimizer_dcs_deck": {
+        "weighted_steam_saving_t_h": 47.83,
+        "annual_driver_steam_saved_t_yr": 375489.7,
+        "annual_fuel_gas_saved_MNm3_yr": 36.69,
+        "annual_cost_savings_MUSD_yr": 13.27,
+        "annual_co2_abatement_t_yr": 68121.4
+      }
+    }
   },
   "surrogate_models_metrics": [
     {
