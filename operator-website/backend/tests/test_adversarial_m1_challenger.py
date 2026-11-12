@@ -1,6 +1,6 @@
 """operator-website/backend/tests/test_adversarial_m1_challenger.py
 Milestone 1 Adversarial Empirical Stress Suite & Metamorphic Oracle
-Badak LNG Plant-3 Train H C3MR Decision-Support Suite Phase 2
+Baseload LNG Plant-3 Train H C3MR Decision-Support Suite Phase 2
 
 Authored by challenger_m1_1 (Role: critic, specialist)
 This test suite executes empirical adversarial challenges against:

@@ -1,4 +1,4 @@
-"""Live SLSQP Optimization Engine for Badak LNG Train H C3MR.
+"""Live SLSQP Optimization Engine for Baseload LNG Train H C3MR.
 
 Performs live non-linear constrained optimization on-the-fly using:
   1. Surrogate ML models:

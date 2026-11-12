@@ -159,7 +159,7 @@ class MakeupAdvisoryRequest(BaseModel):
     )
     use_stream_purity: Optional[bool] = Field(
         default=True,
-        description="Apakah memperhitungkan matriks kemurnian header riil kilang Badak",
+        description="Apakah memperhitungkan matriks kemurnian header riil kilang",
     )
     c1_tag: Optional[str] = Field(
         default="H4FIC005",

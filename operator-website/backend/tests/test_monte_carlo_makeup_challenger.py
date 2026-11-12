@@ -1,13 +1,13 @@
 """operator-website/backend/tests/test_monte_carlo_makeup_challenger.py
 Milestone 2 Monte Carlo Species Conservation and Closed-Loop Expansion Stress Suite
-Badak LNG Plant-3 Train H C3MR Decision-Support Suite Phase 2
+Baseload LNG Plant-3 Train H C3MR Decision-Support Suite Phase 2
 
 Authored by Challenger M2-2 (Roles: critic, specialist)
 Governance: AGENTS.md (Pasal 1, 3, 5, 8, 9, 10, 12, 13), ORIGINAL_REQUEST.md (Requirements R3, R4)
 
 Empirical Challenge Dimensions:
   1. Operating Envelope Monte Carlo (250 trials):
-     - Randomized compositions across Badak Plant-3 Train H operating envelope.
+     - Randomized compositions across Baseload Plant-3 Train H operating envelope.
      - Exact species molar conservation: |n0 * x0 + Y @ u - nf * x_target| < 1e-4 kmol.
      - Expansion ratio lambda = nf / n0 >= 1.0000.
      - Non-negative stream injection rates: u_j >= 0.0.
@@ -60,7 +60,7 @@ from core.makeup_calculator import (
 
 
 class TestMonteCarloOperationalEnvelopePurityY(unittest.TestCase):
-    """Dimension 1: 250 randomized Monte Carlo trials on Badak Plant-3 Train H operating envelope."""
+    """Dimension 1: 250 randomized Monte Carlo trials on Baseload Plant-3 Train H operating envelope."""
 
     def setUp(self):
         np.random.seed(42001)
@@ -86,7 +86,7 @@ class TestMonteCarloOperationalEnvelopePurityY(unittest.TestCase):
         max_concentration_defect = 0.0
 
         for trial in range(n_trials):
-            # Realistic Badak Plant-3 Train H ranges:
+            # Realistic Plant-3 Train H ranges:
             # N2: 1.0-6.0%, C1: 40.0-50.0%, C2: 38.0-48.0%, C3: 3.0-9.0%
             r0 = np.array([
                 np.random.uniform(1.0, 6.0),

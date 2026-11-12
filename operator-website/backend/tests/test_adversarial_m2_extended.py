@@ -1,6 +1,6 @@
 """operator-website/backend/tests/test_adversarial_m2_extended.py
 Extended Adversarial Fuzzing and Stress Harness for Milestone 2.
-Badak LNG Plant-3 Train H C3MR Decision-Support Suite Phase 2.
+Baseload LNG Plant-3 Train H C3MR Decision-Support Suite Phase 2.
 
 Empirical verification of:
 1. Extreme loop inventories (microscopic 1.0 kg, small 10.0 kg, huge 1e8 kg, float limits).

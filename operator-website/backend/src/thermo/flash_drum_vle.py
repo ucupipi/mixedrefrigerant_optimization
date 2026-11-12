@@ -1,6 +1,6 @@
 """Pure-Python 7-Component Peng-Robinson Equation of State (PR-EOS) Flash Drum 5C-1 Engine.
 
-Rigorous thermodynamic letdown flash calculation for Badak LNG Plant-3 Train H.
+Rigorous thermodynamic letdown flash calculation for Baseload LNG Plant-3 Train H.
 Replaces static heuristic multiplier (feed * 0.9450) with first-principles phase
 equilibrium (VLE) thermodynamics and isenthalpic letdown expansion across TV-1A/B.
 

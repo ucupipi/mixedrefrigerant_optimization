@@ -1,4 +1,4 @@
-"""Scientific Publication Figure Generator for Badak LNG C3MR Optimization Suite.
+"""Scientific Publication Figure Generator for Baseload LNG C3MR Optimization Suite.
 
 Generates 300 DPI publication-grade figures in PNG and vector PDF:
 - Figure 1: Real-Data Surrogate Parity Plot (Train & Out-of-sample Test 295 shifts, R²=0.8365, MAE=0.802 MW).

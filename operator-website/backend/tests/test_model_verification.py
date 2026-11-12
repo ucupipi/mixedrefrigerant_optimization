@@ -1,7 +1,7 @@
 """
 operator-website/backend/tests/test_model_verification.py
 Milestone 2 Test Suite: ML Model, Provenance, Normalization & Preprocessing Verification
-Badak LNG Plant-3 Train H C3MR Decision-Support Suite Phase 2
+Baseload LNG Plant-3 Train H C3MR Decision-Support Suite Phase 2
 
 Test Coverage:
   TASK 1: ML Model Artifact Provenance & Immutability
@@ -542,7 +542,7 @@ class TestOutOfDomainBehaviorAndUncertainty(unittest.TestCase):
 
     def test_statistical_extrapolation_detection_and_warnings(self):
         """Confirm out-of-domain composition (D_M > 3.0802) triggers statistical extrapolation warning."""
-        # Unphysical, extreme synthetic composition far outside Badak Train H historical operational envelope
+        # Unphysical, extreme synthetic composition far outside Train H historical operational envelope
         extreme_comp = {
             "feed_flow_t_h": 250.0,
             "mcr_flow_t_h": 520.0,

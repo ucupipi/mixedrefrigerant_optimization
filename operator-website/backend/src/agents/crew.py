@@ -1,4 +1,4 @@
-"""Role-Based Multi-Agent Advisory Crew for Badak LNG C3MR Optimization (CrewAI Pattern).
+"""Role-Based Multi-Agent Advisory Crew for Baseload LNG C3MR Optimization (CrewAI Pattern).
 
 Orchestrates three specialized role-based agents in a sequential workflow:
 1. DataGovernanceAgent: Verifies SHA-256 manifest, GC closure [95%, 105%], and zero leakage.
@@ -58,7 +58,7 @@ class C3MRAdvisoryCrew:
             role="Senior LNG Telemetry & GC Data Governance Auditor",
             goal="Verify raw dataset SHA-256 integrity, GC closure [95%, 105%], and zero target leakage.",
             backstory=(
-                "Process data engineer specialized in aligning 8-hour Badak LNG laboratory GC "
+                "Process data engineer specialized in aligning 8-hour laboratory GC "
                 "samples (4C-8) with 1-minute Yokogawa Centum DCS tags without forward-fill leakage."
             ),
         )

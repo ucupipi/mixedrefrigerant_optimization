@@ -284,7 +284,7 @@ def build_parser() -> argparse.ArgumentParser:
     """Build root CLI argument parser with subparsers for each stage."""
     parser = argparse.ArgumentParser(
         prog="mcr-ml",
-        description="Badak LNG Plant-3 Train H C3MR Clean Machine Learning Rebuild Suite",
+        description="Baseload LNG Plant-3 Train H C3MR Clean Machine Learning Rebuild Suite",
     )
     parser.add_argument(
         "--config",
@@ -340,7 +340,7 @@ def build_parser() -> argparse.ArgumentParser:
     infer_parser.add_argument("--model", type=str, default=None, help="Path to trained surrogate model")
 
     mlflow_parser = subparsers.add_parser("mlflow-run", help="Run training with MLflow tracking and paired bootstrap 95% CI")
-    mlflow_parser.add_argument("--experiment-name", type=str, default="badak_lng_c3mr_rebuild", help="MLflow experiment name")
+    mlflow_parser.add_argument("--experiment-name", type=str, default="c3mr_rebuild", help="MLflow experiment name")
 
     evolve_parser = subparsers.add_parser("evolve", help="Execute A-Evolve Solve-Observe-Evolve-Gate-Reload loop")
     evolve_parser.add_argument("--generations", type=int, default=5, help="Number of evolutionary generations")

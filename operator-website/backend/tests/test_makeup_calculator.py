@@ -4,7 +4,7 @@ Covers Milestone 2 (Requirements R3 and R4) and AGENTS.md (Pasal 1, 3, 5, 8, 9, 
 1. Closed-loop component mass conservation and dilution effect.
 2. Stream purity matrix Y integration (fuel gas, de-ethanizer/de-propanizer distillates).
 3. Strict "NOT EVALUATED" boundary contracts with null flow fields (zero false zeros).
-4. Canonical Badak Plant-5 Train H DCS tag verification (H4FIC006, H4FIC007, H4FI00C8, H4FIC009/005).
+4. Canonical Plant-5 Train H DCS tag verification (H4FIC006, H4FIC007, H4FI00C8, H4FIC009/005).
 5. Dual mass (kg/h, t/h) and volumetric (Nm3/h, scfd) rate consistency & metamorphic scaling.
 6. Dedicated API endpoint integration (/api/v1/makeup-advisory & /api/makeup-advisory).
 7. Purely read-only advisory guarantees (zero valve control commands).
@@ -325,7 +325,7 @@ class TestStrictNotEvaluatedNullGuards(unittest.TestCase):
         self.assertEqual(res["status"], "NOT EVALUATED")
 
 
-class TestCanonicalBadakDCSTags(unittest.TestCase):
+class TestCanonicalDCSTags(unittest.TestCase):
     """Test group 4: Alignment with CANONICAL_TAG_DICTIONARY.csv."""
 
     def test_canonical_dcs_tags_in_metadata_dictionary(self):

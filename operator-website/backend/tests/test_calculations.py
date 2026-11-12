@@ -1,7 +1,7 @@
 """
 operator-website/backend/tests/test_calculations.py
 Milestone 1 Test Suite: Engineering Calculations, Thermodynamics & Operating Limits
-Badak LNG Plant-3 / Train-H Propane-Precooled Mixed Refrigerant (C3MR) Optimization Suite
+Baseload LNG Plant-3 / Train-H Propane-Precooled Mixed Refrigerant (C3MR) Optimization Suite
 
 Test Coverage:
   CALC-01: SEC Feed vs SEC LNG & Mass Balance (PR-EOS 5C-1 Flash: 150 t/h feed -> 141.80 t/h LNG, SBHP <= 10.0)

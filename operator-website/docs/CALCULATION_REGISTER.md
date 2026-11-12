@@ -2,7 +2,7 @@
 ## Plant-3 Train H — C3MR Optimization & Make-Up Advisory Website
 **Tanggal:** 5 November 2026  
 **Status:** Disetujui untuk Evaluasi Rekayasa  
-**Standar Rekayasa:** AGENTS.md (Hukum Anti-Dosa Rekayasa Badak LNG) & Manual Book AI C3MR Optimization.
+**Standar Rekayasa:** AGENTS.md (Hukum Anti-Dosa Rekayasa LNG) & Manual Book AI C3MR Optimization.
 
 ---
 

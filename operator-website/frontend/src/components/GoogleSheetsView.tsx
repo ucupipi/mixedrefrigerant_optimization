@@ -91,7 +91,7 @@ export const GoogleSheetsView: React.FC<GoogleSheetsViewProps> = ({
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '1.05rem', fontWeight: 600, color: '#202124' }}>
-                Badak_LNG_Plant3_TrainH_C3MR_Optimization_Advisory.xlsx
+                C3MR_TrainH_Optimization_Advisory.xlsx
               </span>
               <span style={{
                 fontSize: '0.7rem',

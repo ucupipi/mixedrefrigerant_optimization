@@ -10,7 +10,7 @@ const frontendDir = path.resolve(rootDir, 'operator-website/frontend');
 
 console.log('================================================================');
 console.log('EMPIRICAL CHALLENGER STRESS HARNESS: MILESTONE 1 VERIFICATION');
-console.log('Target: Badak LNG Plant-3 OTS - TabGrafik Header & Streams');
+console.log('Target: Baseload LNG Plant-3 OTS - TabGrafik Header & Streams');
 console.log('================================================================\n');
 
 // Read source files

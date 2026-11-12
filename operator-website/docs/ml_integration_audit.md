@@ -169,7 +169,7 @@ Model runs 100% offline. No internet, no JVM, no COM dependencies. Pure Python (
 
 | Parameter | Value | Source |
 |---|---|---|
-| Anti-surge flow floor | ≥ 480.0 t/h | Badak Operating Manual Book 5, pp. 78-80 |
+| Anti-surge flow floor | ≥ 480.0 t/h | Operating Manual Book 5, pp. 78-80 |
 | Suction drum TAL | ≥ -45.0°C | AGENTS.md, Manual Book |
 | MCHE MITA minimum | ≥ 1.50°C | AGENTS.md, Manual Book |
 | Mahalanobis D_M limit | ≤ 3.080216 | χ²₀.₉₅,₄ |

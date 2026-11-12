@@ -1,6 +1,6 @@
 """FastAPI Application Entry Point for Operator Decision-Support Website.
 
-System: Badak LNG Plant-3 Train H C3MR Decision-Support Suite
+System: Baseload LNG Plant-3 Train H C3MR Decision-Support Suite
 Mode: READ-ONLY (Zero write-back to DCS / SIS / ESD)
 Governance: AGENTS.md (Hukum Anti-Dosa Rekayasa, Pasal 1–13)
 """
@@ -30,10 +30,10 @@ logging.basicConfig(
 logger = logging.getLogger("c3mr_operator_backend")
 
 app = FastAPI(
-    title="Badak LNG Train H C3MR Operator Decision-Support API",
+    title="C3MR Operator Decision-Support API",
     description=(
         "Sistem pendukung keputusan operator berbasis machine learning fisika-terkendali "
-        "untuk pemodelan daya poros dan evaluasi efisiensi energi Train C3MR Badak LNG Plant-3. "
+        "untuk pemodelan daya poros dan evaluasi efisiensi energi Train C3MR. "
         "Aplikasi ini berspesifikasi READ-ONLY dan tidak mengirim sinyal kontrol ke DCS."
     ),
     version="1.0.0",
@@ -69,7 +69,7 @@ if os.path.exists(static_dir):
 def on_startup() -> None:
     """Initialize model cache and log system state."""
     logger.info("==================================================================")
-    logger.info("Badak LNG Plant-3 Train H C3MR Operator Decision-Support System")
+    logger.info("Baseload LNG Plant-3 Train H C3MR Operator Decision-Support System")
     logger.info("MODE: READ-ONLY (DCS write-back strictly disabled)")
     logger.info("GOVERNANCE: AGENTS.md compliance active")
     logger.info("==================================================================")

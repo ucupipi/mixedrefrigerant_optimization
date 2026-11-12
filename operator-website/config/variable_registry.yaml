@@ -243,7 +243,7 @@ safety_boundaries:
     value: 480.0
     unit: "t/h"
     tag_dcs: "H4FI011B (x 36.8 kg/m3)"
-    source: "Badak Operating Manual Book 5, pp. 78-80"
+    source: "Operating Manual Book 5, pp. 78-80"
     status: VERIFIED
 
   - id: suction_tal

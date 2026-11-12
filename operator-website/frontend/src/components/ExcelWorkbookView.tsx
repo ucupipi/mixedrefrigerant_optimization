@@ -243,7 +243,7 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
             borderRadius: '4px',
             fontSize: '0.82rem',
             letterSpacing: '0.03em',
-          }}>BADAK LNG</div>
+          }}>LNG PLANT</div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '0.92rem', fontWeight: 700 }}>
@@ -895,7 +895,7 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                 <tr style={{ backgroundColor: '#f0fdf4' }}>
                   <td style={{ ...tagCell, color: '#0284c7', fontWeight: 700 }}>T_CW</td>
                   <td style={{ ...nameCell, fontWeight: 700, color: '#0369a1' }}>
-                    Suhu Air Laut Pendingin Teluk Bontang (T_CW)
+                    Suhu Air Laut Pendingin (T_CW)
                   </td>
                   <td style={{ ...valCell, fontWeight: 700 }}>{DEFAULT_COOLING_WATER.T_CW_in_C.toFixed(1)}</td>
                   <td style={{ ...valCell, fontWeight: 700, color: '#0284c7' }}>{DEFAULT_COOLING_WATER.T_CW_in_C.toFixed(1)}</td>
@@ -904,7 +904,7 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
                     PARAMETER INTERNAL
                   </td>
                   <td style={noteCell}>
-                    Air laut Teluk Bontang (desain 30.0 °C); penentu T_cond (40.5 °C) & P_sat C3 (14.164 kg/cm²A)
+                    Air laut pendingin (desain 30.0 °C); penentu T_cond (40.5 °C) & P_sat C3 (14.164 kg/cm²A)
                   </td>
                 </tr>
 
@@ -1432,7 +1432,7 @@ export const ExcelWorkbookView: React.FC<ExcelWorkbookViewProps> = ({
             <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }} />
             Sistem Siap
           </span>
-          <span>PT Badak NGL - Plant-5 Train H (Liquefaction)</span>
+          <span>Baseload LNG Facility - Train H (Liquefaction)</span>
           <span>Disiplin: AGENTS.md</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>

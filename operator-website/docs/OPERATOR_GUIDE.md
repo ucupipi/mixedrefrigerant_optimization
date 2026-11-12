@@ -90,6 +90,6 @@ Operator konsol **DILARANG MENGGUNAKAN** rekomendasi jika terjadi salah satu kon
 ## 6. Hirarki Wewenang & Kepatuhan Prosedur
 Setiap tindakan penyesuaian operasi di lapangan maupun di konsol DCS **MUTLAK MENGACU PADA**:
 1. Distributed Control System (Yokogawa Centum VP DCS) dan Safety Instrumented System (SIS).
-2. Prosedur Operasi Standar (SOP) resmi Badak LNG Plant-3 Train H.
+2. Prosedur Operasi Standar (SOP) resmi Plant-3 Train H.
 3. Wewenang *Shift Supervisor* dan *Console Operator*.
 4. Instruksi Tertulis dari *Process Engineering Section*.

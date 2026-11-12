@@ -20,7 +20,7 @@ const AUTHORS: Author[] = [
   {
     name: 'Mukhammad Yusuf Iqbal',
     role: 'Project Engineer',
-    institution: 'LNG Academy / PT Badak NGL',
+    institution: 'Politeknik Negeri Jakarta',
     linkedin: 'https://www.linkedin.com/in/mukhyusufiqbal/',
     photo: '/authors/yusuf.jpg',
     initials: 'MYI',
@@ -28,7 +28,7 @@ const AUTHORS: Author[] = [
   {
     name: 'Afdal Elang Arifin',
     role: 'Process Control Engineer',
-    institution: 'LNG Academy / PT Badak NGL',
+    institution: 'Politeknik Negeri Jakarta',
     linkedin: 'https://www.linkedin.com/in/afdal-elang-arifin-623418371/',
     photo: '/authors/afdal.jpg',
     initials: 'AEA',
@@ -36,7 +36,7 @@ const AUTHORS: Author[] = [
   {
     name: 'Hizkia Dhiego Gurning',
     role: 'Liquefaction Operations Engineer',
-    institution: 'LNG Academy / PT Badak NGL',
+    institution: 'Politeknik Negeri Jakarta',
     linkedin: 'https://www.linkedin.com/in/hizkia-dhiego-gurning-a583b01ab/',
     photo: '/authors/gurning.jpg',
     initials: 'HDG',
@@ -44,7 +44,7 @@ const AUTHORS: Author[] = [
   {
     name: 'Bilqiis Dara Ramadhan Sasongko',
     role: 'Mechanical & Rotating Equipment Engineer',
-    institution: 'LNG Academy / PT Badak NGL',
+    institution: 'Politeknik Negeri Jakarta',
     linkedin: 'https://www.linkedin.com/in/bilqiis-sasongko-673a5a349/',
     photo: '/authors/bilqiis.jpeg',
     initials: 'BDS',
@@ -263,7 +263,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
                   </span>
                 </div>
                 <div style={{ fontSize: '12px', color: '#64748b', marginTop: '3px' }}>
-                  Badak LNG C3MR Plant-5 Process Optimization & Decision-Support System
+                  Baseload LNG C3MR Plant-5 Process Optimization & Decision-Support System
                 </div>
               </div>
               <button

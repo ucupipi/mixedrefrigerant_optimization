@@ -1,5 +1,5 @@
 # KARTU MODEL MACHINE LEARNING (MODEL CARD)
-## Physics-Residual Surrogate Model for Badak LNG Train H C3MR
+## Physics-Residual Surrogate Model for Baseload LNG Train H C3MR
 **Model Version:** v2.4-real (Artifact: `c3mr_power_surrogate_real.joblib`)  
 **Tanggal:** 5 November 2026  
 **Penyusun:** ML & Process Engineering Team  
@@ -54,7 +54,7 @@ Urutan fitur wajib identik dengan saat pelatihan:
 ---
 
 ## 4. Dataset Pelatihan & Metrik Validasi
-- **Sumber Data Primer**: Dataset operasional menit Badak LNG Train H (`master_minute_level.parquet`), 65.535 baris data menit riil tahun 2023–2024.
+- **Sumber Data Primer**: Dataset operasional menit Train H (`master_minute_level.parquet`), 65.535 baris data menit riil tahun 2023–2024.
 - **Partisi Data**: Split temporal/kronologis 80:20 (Bukan k-fold acak, mencegah data leakage).
 - **Performa Independen pada Test Set (Satuan Proporsional MW)**:
   - $R^2_{\text{test}} = 0.842 \ge 0.60$ (Lolos Syarat AGENTS.md Pasal 2)

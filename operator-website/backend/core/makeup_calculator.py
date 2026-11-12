@@ -13,7 +13,7 @@ Physical basis:
 
 References:
 - CANONICAL_TAG_DICTIONARY.csv (Tags: H4FIC006, H4FIC005, H4FI00C8, H4FIC007, H4FIC009)
-- Badak Operating Manual BOOK-5 (Plant-4/5 MCR Refrigeration System), pp. 80-128
+- Operating Manual BOOK-5 (Plant-4/5 MCR Refrigeration System), pp. 80-128
 - Normal conditions (0 deg C, 1.01325 bar): V_m = 22.414 Nm3/kmol
 - Standard conditions (60 deg F, 14.696 psia): 1 Nm3 = 37.3263 scf
 """
@@ -33,7 +33,7 @@ MW_COMPONENTS: Dict[str, float] = {
     "C3": 44.0956,
 }
 
-# Canonical Badak Plant-5 Train H DCS tags for MR make-up injection controllers
+# Canonical Plant-5 Train H DCS tags for MR make-up injection controllers
 TAG_MAKEUP_CONTROLLERS: Dict[str, Dict[str, Any]] = {
     "N2": {
         "tag": "H4FIC006",
@@ -75,7 +75,7 @@ SCFD_PER_NM3_H: float = 24.0 * SCF_PER_NM3  # ~895.83 scfd per (Nm3/h)
 # Verified nominal active MCR loop inventory [kg] (MCHE shell + tubes + drum 4C-8 + accumulator)
 ESTIMATED_MCR_LOOP_INVENTORY_KG: float = 24000.0
 
-# Typical plant stream purities in Badak LNG Plant-5 Train H (mole fraction matrix)
+# Typical plant stream purities in Plant-5 Train H (mole fraction matrix)
 # Columns represent make-up headers: [N2, C1, C2, C3, C2H4]
 DEFAULT_STREAM_PURITY_MATRIX: Dict[str, Dict[str, float]] = {
     # N2 Header: high-purity utility nitrogen (>= 99.9% N2)

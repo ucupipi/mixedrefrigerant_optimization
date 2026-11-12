@@ -1,5 +1,5 @@
 # PANDUAN CEPAT OPERATOR (OPERATOR QUICK GUIDE)
-## Aplikasi Pendukung Keputusan Operator C3MR — Badak LNG Plant-3 Train H
+## Aplikasi Pendukung Keputusan Operator C3MR — Baseload LNG Plant-3 Train H
 
 > **PERINGATAN KESELAMATAN (SAFETY NOTICE):**  
 > Aplikasi ini adalah alat bantu analisis dan simulasi **READ-ONLY (Hanya-Baca)**.  
@@ -76,7 +76,7 @@ Aplikasi terdiri dari dua komponen ringan yang berjalan pada komputer lokal (tan
 
 ### 5. Kontak Eskalasi & Bantuan Teknis
 Jika menemukan anomali prediksi, pesan kesalahan, atau membutuhkan validasi termodinamika mendalam (simulasi Aspen HYSYS / PR-EOS):
-- **Process Engineering Dept. — Badak LNG Plant-3**
+- **Process Engineering Dept. — Plant-3**
 - **Lead Reliability / Turbomachinery Engineer**
 - **Control Room Shift Supervisor**
 

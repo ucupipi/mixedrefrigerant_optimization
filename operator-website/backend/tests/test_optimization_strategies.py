@@ -1,6 +1,6 @@
 """operator-website/backend/tests/test_optimization_strategies.py
 Milestone 1 Automated Verification Suite: Multi-Strategy C3MR Optimization Engine
-Badak LNG Plant-3 Train H C3MR Decision-Support Suite Phase 2
+Baseload LNG Plant-3 Train H C3MR Decision-Support Suite Phase 2
 
 Test Coverage per Milestone 1 Specification & Requirements R2, R4, R5:
   1. Strategy CONDITION_DEPENDENT:

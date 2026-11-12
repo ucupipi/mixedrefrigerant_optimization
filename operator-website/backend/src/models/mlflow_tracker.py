@@ -23,7 +23,7 @@ class MLflowExperimentTracker:
     def __init__(
         self,
         tracking_dir: Path,
-        experiment_name: str = "badak_lng_c3mr_rebuild",
+        experiment_name: str = "c3mr_rebuild",
     ) -> None:
         self.tracking_dir = Path(tracking_dir)
         self.experiment_name = str(experiment_name)
@@ -108,7 +108,7 @@ class MLflowExperimentTracker:
             },
             "tags": tags or {},
             "model_registry": {
-                "model_name": "badak-c3mr-monotonic-surrogate",
+                "model_name": "c3mr-monotonic-surrogate",
                 "artifact_name": model_artifact_path.name if model_artifact_path else None,
                 "sha256": model_sha256,
                 "stage": "Production" if flat_metrics["mae_mw"] < 1.0 and flat_metrics["r2"] >= 0.60 else "Staging",

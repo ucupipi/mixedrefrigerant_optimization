@@ -1,7 +1,7 @@
 @echo off
 cd /d "%~dp0"
 echo =========================================================================
-echo Badak LNG Plant-3 Train H — C3MR Operator Decision-Support Suite
+echo Baseload LNG Plant-3 Train H — C3MR Operator Decision-Support Suite
 echo MODE: READ-ONLY (DCS write-back strictly disabled)
 echo =========================================================================
 echo.

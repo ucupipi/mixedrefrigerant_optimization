@@ -258,7 +258,7 @@ def add_compressor_and_jt_physics_features(df: pd.DataFrame) -> pd.DataFrame:
     - `BOOK-4 (Plant-4_Propane Refrigeration System) Rev_0.pdf`, pp. 72, 146-149
     - `BOOK-5 (Plant-4_MCR Refrigeration System) Rev_0.pdf`, pp. 16, 80, 103, 128-151
     - `BOOK-6 (Plant-5_Liquefaction Unit) Rev_0.pdf`, pp. 47-53
-    - Titin Irawati (2024), Politeknik Negeri Jakarta & PT Badak NGL, Tabel 4.1, pp. 91-92
+    - Titin Irawati (2024), Politeknik Negeri Jakarta, Tabel 4.1, pp. 91-92
     """
     out = df.copy()
     n = len(out)
@@ -409,7 +409,7 @@ def verify_mche_operational_boundaries(
     mcr_hp_disch_pah_kgcm2a: float = 54.0,
     mcr_lp_disch_tah_c: float = 160.0,
 ) -> Tuple[bool, List[str]]:
-    """Validate operating point against canonical Badak LNG MCHE, MCR (BOOK-5), and C3 (BOOK-4) safety limits."""
+    """Validate operating point against canonical MCHE, MCR (BOOK-5), and C3 (BOOK-4) safety limits."""
     violations: List[str] = []
 
     dp_w = float(observation.get("pp_H5PDI003_mean", observation.get("H4PDIC024", 0.20)))

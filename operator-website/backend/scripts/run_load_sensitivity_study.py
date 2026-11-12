@@ -1,5 +1,5 @@
 """operator-website/backend/scripts/run_load_sensitivity_study.py
-Badak LNG Plant-5 Train H (Liquefaction) - C3MR Load Sensitivity Study
+Baseload LNG Plant-5 Train H (Liquefaction) - C3MR Load Sensitivity Study
 Milestone 4: Comprehensive Operating Envelope Sweep (140.0 to 340.0 t/h)
 
 This script performs systematic multi-scenario simulation sweeps across the
@@ -14,7 +14,7 @@ Outputs:
   - Formatted console ledger with thermodynamic margin verification
 
 Safety & Governance:
-  - Badak LNG Plant-5 Train H (Liquefaction). Advisory decision support only.
+  - Baseload LNG Plant-5 Train H (Liquefaction). Advisory decision support only.
   - Zero DCS write operations.
   - 100% first-principles thermodynamics: PR-EOS, anti-surge floor 480 t/h,
     suction TAL -45.0 deg C, Mahalanobis distance <= 3.0802.
@@ -62,7 +62,7 @@ def run_load_sensitivity_sweep() -> List[Dict[str, Any]]:
     records: List[Dict[str, Any]] = []
 
     print("=" * 115)
-    print("BADAK LNG PLANT-5 TRAIN H : LOAD SENSITIVITY SWEEP (140.0 - 340.0 t/h)")
+    print("BASELOAD LNG PLANT-5 TRAIN H : LOAD SENSITIVITY SWEEP (140.0 - 340.0 t/h)")
     print("Zero DCS Write Advisory : Comparing Strategies A, B, and C against DCS Baseline")
     print("=" * 115)
 

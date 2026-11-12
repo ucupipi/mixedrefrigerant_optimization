@@ -420,7 +420,7 @@ const DH_MCR_PRECOOL = 141.65;
 
 /**
  * First-principles thermodynamic model of Propane Precooling Chillers (3E-14/17/18)
- * and Propane Refrigerant Condenser (3E-10) driven by Teluk Bontang Cooling Seawater.
+ * and Propane Refrigerant Condenser (3E-10) driven by Cooling Seawater.
  * 
  * Process Stages:
  *   High Stage (3E-14, +18 C): Precools Feed Gas & MCR from 34 C to 22 C (40.85% duty)
@@ -429,7 +429,7 @@ const DH_MCR_PRECOOL = 141.65;
  * 
  * Rejection Loop:
  *   Propane Condenser (3E-10): Total Heat Rejection = Q_precool + W_comp_c3
- *   LMTD = 7.71 C against Teluk Bontang Seawater (T_CW_in = 30.0 C -> T_CW_out = 35.0 C)
+ *   LMTD = 7.71 C against Cooling Seawater (T_CW_in = 30.0 C -> T_CW_out = 35.0 C)
  * 
  * Governance: AGENTS.md (Pasal 1, 5, 10), PROJECT.md (Interface Contract 1), ORIGINAL_REQUEST.md (§R1).
  * 

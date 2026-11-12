@@ -28,7 +28,7 @@ export const Header: React.FC<HeaderProps> = ({ timestamp, modelReady, shiftInfo
           letterSpacing: '0.05em',
           fontSize: '0.9rem'
         }}>
-          BADAK LNG
+          LNG PLANT
         </div>
         <div>
           <h1 style={{

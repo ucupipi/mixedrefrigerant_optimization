@@ -3,7 +3,7 @@
 **Tanggal Audit:** 5 November 2026  
 **Status:** Confidential / Engineering Review  
 **Tim Auditor:** Senior Full-Stack Engineer, LNG Process Engineer, Machine-Learning Engineer, Operator-Interface Designer, Software Quality Engineer.  
-**Kepatuhan Tata Kelola:** AGENTS.md (Hukum Disiplin Mutlak & Anti-Dosa Rekayasa Badak LNG) dan Master Prompt Rebuild v1.0.
+**Kepatuhan Tata Kelola:** AGENTS.md (Hukum Disiplin Mutlak & Anti-Dosa Rekayasa LNG) dan Master Prompt Rebuild v1.0.
 
 ---
 

@@ -258,7 +258,7 @@ export function enforceSimplexClosure(xi: number[]): number[] {
   return rounded;
 }
 
-// Certified 7-Quantile Pareto Points for Badak LNG Train H C3MR
+// Certified 7-Quantile Pareto Points for Baseload LNG Train H C3MR
 export interface ParetoPoint {
   feed: number;
   mcr: number;

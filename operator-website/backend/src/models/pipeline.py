@@ -210,7 +210,7 @@ def run_training_pipeline(
         blocked_cv=blocked_cv,
         model_artifact_path=model_artifact_path,
         tags={
-            "plant": "Badak_LNG_Train_H",
+            "plant": "Baseload_LNG_Train_H",
             "unit": "MW",
             "data_source": data_source,
             "governance": "AGENTS_MD_PASAL_2_13",

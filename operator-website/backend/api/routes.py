@@ -123,7 +123,7 @@ def health_check() -> Dict[str, str]:
     """Basic service health check."""
     return {
         "status": "healthy",
-        "service": "Badak LNG Train H C3MR Operator Decision-Support API",
+        "service": "C3MR Operator Decision-Support API",
         "mode": "READ_ONLY_DECISION_SUPPORT",
     }
 

@@ -173,7 +173,7 @@ def build_clean_shift_datasets(
     """Construct shift-aligned, leakage-free feature matrix X and separated target matrix y.
 
     If master_parquet_path exists and contains shift-revocable records, extracts shift medians;
-    otherwise generates physically calibrated Badak LNG Train H steady-state shift records
+    otherwise generates physically calibrated Train H steady-state shift records
     covering the P10 to P90 operating envelope (feed 320-850 t/h, MCR flow >= 480 t/h,
     suction temp >= -45.0 C, total shaft power 75-115 MW).
     """
