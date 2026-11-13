@@ -1,0 +1,5 @@
+policy_id,label,annual_energy_GWh,annual_savings_GWh,savings_pct,interaction_contribution_GWh,governor_margin_pct,surge_margin_floor
+Policy 1 (F0C0),"Historical Baseline (Circulation Unchanged, Composition Unchanged)",726.7,0.0,0.0,0.0,5.5,Compliant (Floor 480 t/h)
+Policy 2 (F0C1),Composition-Only Optimization (Circulation Unchanged),715.72,10.98,1.51,0.0,7.2,Compliant
+Policy 3 (F1C0),Flow-Only Optimization (Composition Unchanged),722.6,4.1,0.56,0.0,8.0,4UV-53 Kickback Active at Turndown
+Policy 4 (F1C1),Genuine Joint Optimization (Simultaneous Flow & Composition),709.85,16.85,2.32,1.77,10.4,4UV-53 Kickback Active at Turndown

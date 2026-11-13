@@ -1,0 +1,6 @@
+candidate_id,label,c3_mol_pct,c2_mol_pct,nominal_mita_C,operating_margin_C,combined_std_uncertainty_C,ci_95_lower_two_sided_C,ci_95_upper_two_sided_C,p5_one_sided_lower_C,prob_pinch_violation_pct,compliance_verdict,engineering_feasibility,mahalanobis_distance,projected_annual_savings_GWh
+Candidate A,Rebuild v3 Optimizer Boundary,10.0,49.04,1.592,0.092,0.622,0.373,2.811,0.569,44.12,NON-COMPLIANT / CRITICAL RISK,"REJECTED (P_viol > 30%, boundary arrest artifact)",3.04,20.06
+Candidate B,Balanced Industrial Operating Point,7.15,47.3,1.845,0.345,0.622,0.626,3.064,0.822,28.96,CONDITIONAL / MODERATE RISK,CONDITIONALLY FEASIBLE (Requires DCS multivariable APC constraint riding),2.41,16.85
+Candidate C,Conservative Interior Point,6.2,45.1,2.08,0.58,0.622,0.861,3.299,1.057,17.56,CONDITIONAL / MODERATE RISK,CONDITIONALLY FEASIBLE (Requires DCS multivariable APC constraint riding),0.95,13.4
+Candidate D,Historical Plant Baseline,5.08,44.48,2.18,0.68,0.622,0.961,3.399,1.157,13.71,CONDITIONAL / MODERATE RISK,CONDITIONALLY FEASIBLE (Requires DCS multivariable APC constraint riding),0.42,0.0
+Candidate R,Robust Feasible Benchmark (P_viol <= 5%),5.85,46.8,2.55,1.05,0.622,1.331,3.769,1.527,4.57,ROBUSTLY SAFE,ROBUSTLY FEASIBLE (Exceeds one-sided 95% confidence requirement),1.88,13.92

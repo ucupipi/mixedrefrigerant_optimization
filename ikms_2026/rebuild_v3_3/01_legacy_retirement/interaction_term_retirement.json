@@ -1,0 +1,8 @@
+{
+  "claim": "Composition-flow interaction = 1.77 GWh/year",
+  "source_location": "ikms_2026/rebuild_v3_2_1_audit/scripts/p6_joint_optimization_v3_2_1.py",
+  "code_evidence": "delta_int = 1.77  # hardcoded constant",
+  "derivation": "This value was a hardcoded literal, not derived from comparing four optimization policies through the physical model.",
+  "status": "UNSUPPORTED \u2014 HARDCODED SYNERGY CONSTANT",
+  "v3_3_action": "Must be recalculated from genuine four-policy comparison (baseline, composition-only, flow-only, joint) using physical simulator if available."
+}

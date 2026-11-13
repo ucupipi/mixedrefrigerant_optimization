@@ -1,0 +1,6 @@
+candidate_id,label,p_mita_compliant_pct,p_antisurge_floor_compliant_pct,p_governor_headroom_compliant_pct,p_simplex_mahalanobis_compliant_pct,p_makeup_feasibility_pct,joint_probability_all_satisfied_pct,primary_constraint_violator,overall_joint_verdict
+Candidate A,Rebuild v3 Optimizer Boundary,55.9,99.8,98.5,95.0,85.0,44.37,MCHE MITA (44.1% violation probability),CRITICALLY INFEASIBLE (Joint compliance = 44.3%)
+Candidate B,Balanced Industrial Operating Point,71.1,99.8,98.8,98.5,95.0,65.6,MCHE MITA (Requires active APC tracking),CONDITIONALLY FEASIBLE (Joint compliance = 65.6% in open-loop; 98%+ with APC)
+Candidate C,Conservative Interior Point,82.5,99.8,99.0,99.5,98.0,79.48,None (Moderate margin),FEASIBLE WITH DCS TRIM (Joint compliance = 79.5%)
+Candidate D,Historical Plant Baseline,86.3,99.8,99.2,99.9,99.5,84.93,None (Historical operating point),BASELINE ACCEPTED (Zero savings)
+Candidate R,Robust Feasible Benchmark (P_viol <= 5%),95.43,99.8,99.2,99.0,98.5,92.13,None (All constraints satisfied with 95%+ confidence),ROBUSTLY ACCEPTED (Joint compliance = 92.2% in open-loop)

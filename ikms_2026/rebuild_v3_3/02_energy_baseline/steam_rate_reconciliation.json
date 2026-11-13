@@ -1,0 +1,25 @@
+{
+  "legacy_circular_rate_t_MWh": 4.04,
+  "legacy_classification": "CIRCULAR (2935.9 kt / 726.7 GWh, where GWh = kt / 4.040)",
+  "iapws_machine_weighted_rate_t_MWh": 4.194,
+  "iapws_classification": "CONDITIONAL THERMODYNAMIC SCENARIO (ASSUMED EFFICIENCIES)",
+  "iapws_ideal_isentropic_rate_t_MWh": 3.157,
+  "machines": [
+    {
+      "turbine_tag": "4KT-1",
+      "specific_steam_rate_t_MWh": 4.262,
+      "classification": "CONDITIONAL THERMODYNAMIC SCENARIO"
+    },
+    {
+      "turbine_tag": "4KT-2",
+      "specific_steam_rate_t_MWh": 4.184,
+      "classification": "CONDITIONAL THERMODYNAMIC SCENARIO"
+    },
+    {
+      "turbine_tag": "4KT-3",
+      "specific_steam_rate_t_MWh": 4.109,
+      "classification": "CONDITIONAL THERMODYNAMIC SCENARIO"
+    }
+  ],
+  "recommendation": "Use machine-specific rates with stated uncertainty on isentropic efficiency assumptions."
+}

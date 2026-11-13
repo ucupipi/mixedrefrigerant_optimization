@@ -1,0 +1,6 @@
+candidate_id,label,val_dmo_asme_MUSD,val_asian_contract_asme_MUSD,val_spot_asme_MUSD,val_dmo_field_MUSD,val_asian_contract_field_MUSD,val_spot_field_MUSD,carbon_credit_asme_conditional_MUSD,carbon_credit_field_conditional_MUSD
+Candidate A,Rebuild v3 Optimizer Boundary,1.694,2.964,3.952,1.383,2.42,3.226,0.251,0.205
+Candidate B,Balanced Industrial Operating Point,1.423,2.49,3.319,1.161,2.032,2.71,0.211,0.172
+Candidate C,Conservative Interior Point,1.131,1.98,2.64,0.924,1.616,2.155,0.167,0.137
+Candidate D,Historical Plant Baseline,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+Candidate R,Robust Feasible Benchmark (P_viol <= 5%),1.175,2.057,2.742,0.959,1.679,2.239,0.174,0.142

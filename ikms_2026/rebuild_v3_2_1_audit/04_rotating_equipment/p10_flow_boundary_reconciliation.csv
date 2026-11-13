@@ -1,0 +1,101 @@
+percentile,feed_gas_flow_t_h,process_mcr_cooling_flow_t_h,anti_surge_floor_t_h,kickback_4UV53_flow_t_h,total_compressor_suction_flow_t_h,valve_4UV53_opening_pct,surge_margin_to_floor_pct,operating_regime
+1,134.49,480.0,480.0,241.93,721.93,110.0,50.4,Turndown Kickback Active
+2,169.6,480.0,480.0,179.77,659.77,81.7,37.45,Turndown Kickback Active
+3,174.29,480.0,480.0,171.47,651.47,77.9,35.72,Turndown Kickback Active
+4,167.62,480.0,480.0,183.28,663.28,83.3,38.18,Turndown Kickback Active
+5,158.33,480.0,480.0,199.72,679.72,90.8,41.61,Turndown Kickback Active
+6,182.77,480.0,480.0,156.46,636.46,71.1,32.6,Turndown Kickback Active
+7,168.64,480.0,480.0,181.47,661.47,82.5,37.81,Turndown Kickback Active
+8,160.64,480.0,480.0,195.63,675.63,88.9,40.76,Turndown Kickback Active
+9,183.29,480.0,480.0,155.54,635.54,70.7,32.4,Turndown Kickback Active
+10,187.38,480.0,480.0,148.3,628.3,67.4,30.9,Turndown Kickback Active
+11,175.36,480.0,480.0,169.58,649.58,77.1,35.33,Turndown Kickback Active
+12,174.19,480.0,480.0,171.65,651.65,78.0,35.76,Turndown Kickback Active
+13,177.34,480.0,480.0,166.07,646.07,75.5,34.6,Turndown Kickback Active
+14,179.48,480.0,480.0,162.28,642.28,73.8,33.81,Turndown Kickback Active
+15,181.31,480.0,480.0,159.04,639.04,72.3,33.13,Turndown Kickback Active
+16,179.71,480.0,480.0,161.88,641.88,73.6,33.73,Turndown Kickback Active
+17,197.65,480.0,480.0,130.12,610.12,59.1,27.11,Turndown Kickback Active
+18,185.55,480.0,480.0,151.54,631.54,68.9,31.57,Turndown Kickback Active
+19,210.76,480.0,480.0,106.91,586.91,48.6,22.27,Turndown Kickback Active
+20,192.01,480.0,480.0,140.1,620.1,63.7,29.19,Turndown Kickback Active
+21,210.85,480.0,480.0,106.75,586.75,48.5,22.24,Turndown Kickback Active
+22,195.33,480.0,480.0,134.23,614.23,61.0,27.96,Turndown Kickback Active
+23,199.57,480.0,480.0,126.72,606.72,57.6,26.4,Turndown Kickback Active
+24,209.74,480.0,480.0,108.72,588.72,49.4,22.65,Turndown Kickback Active
+25,201.79,480.0,480.0,122.79,602.79,55.8,25.58,Turndown Kickback Active
+26,193.23,480.0,480.0,137.94,617.94,62.7,28.74,Turndown Kickback Active
+27,214.1,480.0,480.0,101.0,581.0,45.9,21.04,Turndown Kickback Active
+28,214.6,480.0,480.0,100.11,580.11,45.5,20.86,Turndown Kickback Active
+29,214.85,480.0,480.0,99.67,579.67,45.3,20.76,Turndown Kickback Active
+30,209.34,480.0,480.0,109.43,589.43,49.7,22.8,Turndown Kickback Active
+31,210.35,480.0,480.0,107.64,587.64,48.9,22.42,Turndown Kickback Active
+32,218.04,480.0,480.0,94.02,574.02,42.7,19.59,Turndown Kickback Active
+33,219.49,480.0,480.0,91.46,571.46,41.6,19.05,Turndown Kickback Active
+34,200.08,480.0,480.0,125.82,605.82,57.2,26.21,Turndown Kickback Active
+35,216.59,480.0,480.0,96.59,576.59,43.9,20.12,Turndown Kickback Active
+36,218.67,480.0,480.0,92.91,572.91,42.2,19.36,Turndown Kickback Active
+37,248.84,480.0,480.0,39.5,519.5,18.0,8.23,Turndown Kickback Active
+38,223.41,480.0,480.0,84.52,564.52,38.4,17.61,Turndown Kickback Active
+39,232.61,480.0,480.0,68.23,548.23,31.0,14.21,Turndown Kickback Active
+40,236.96,480.0,480.0,60.53,540.53,27.5,12.61,Turndown Kickback Active
+41,221.16,480.0,480.0,88.5,568.5,40.2,18.44,Turndown Kickback Active
+42,246.5,480.0,480.0,43.64,523.64,19.8,9.09,Turndown Kickback Active
+43,247.7,480.0,480.0,41.52,521.52,18.9,8.65,Turndown Kickback Active
+44,248.45,480.0,480.0,40.19,520.19,18.3,8.37,Turndown Kickback Active
+45,245.13,480.0,480.0,46.07,526.07,20.9,9.6,Turndown Kickback Active
+46,251.23,480.0,480.0,35.27,515.27,16.0,7.35,Turndown Kickback Active
+47,248.88,480.0,480.0,39.43,519.43,17.9,8.21,Turndown Kickback Active
+48,245.47,480.0,480.0,45.47,525.47,20.7,9.47,Turndown Kickback Active
+49,259.16,480.0,480.0,21.23,501.23,9.7,4.42,Turndown Kickback Active
+50,267.52,480.0,480.0,6.43,486.43,2.9,1.34,Turndown Kickback Active
+51,261.05,480.0,480.0,17.89,497.89,8.1,3.73,Turndown Kickback Active
+52,265.53,480.0,480.0,9.96,489.96,4.5,2.07,Turndown Kickback Active
+53,265.94,480.0,480.0,9.23,489.23,4.2,1.92,Turndown Kickback Active
+54,269.79,480.0,480.0,2.42,482.42,1.1,0.5,Turndown Kickback Active
+55,271.03,480.0,480.0,0.22,480.22,0.1,0.05,Turndown Kickback Active
+56,272.12,481.71,480.0,0.0,481.71,0.0,0.36,Normal Baseload (Valve Closed)
+57,271.58,480.75,480.0,0.0,480.75,0.0,0.16,Normal Baseload (Valve Closed)
+58,265.59,480.0,480.0,9.85,489.85,4.5,2.05,Turndown Kickback Active
+59,274.18,485.35,480.0,0.0,485.35,0.0,1.11,Normal Baseload (Valve Closed)
+60,270.1,480.0,480.0,1.87,481.87,0.9,0.39,Turndown Kickback Active
+61,274.55,486.01,480.0,0.0,486.01,0.0,1.25,Normal Baseload (Valve Closed)
+62,318.92,564.55,480.0,0.0,564.55,0.0,17.61,Normal Baseload (Valve Closed)
+63,351.77,622.71,480.0,0.0,622.71,0.0,29.73,Normal Baseload (Valve Closed)
+64,323.91,573.39,480.0,0.0,573.39,0.0,19.46,Normal Baseload (Valve Closed)
+65,325.11,575.51,480.0,0.0,575.51,0.0,19.9,Normal Baseload (Valve Closed)
+66,355.54,629.38,480.0,0.0,629.38,0.0,31.12,Normal Baseload (Valve Closed)
+67,353.66,626.05,480.0,0.0,626.05,0.0,30.43,Normal Baseload (Valve Closed)
+68,331.11,586.13,480.0,0.0,586.13,0.0,22.11,Normal Baseload (Valve Closed)
+69,340.34,602.47,480.0,0.0,602.47,0.0,25.51,Normal Baseload (Valve Closed)
+70,336.83,596.26,480.0,0.0,596.26,0.0,24.22,Normal Baseload (Valve Closed)
+71,341.67,604.83,480.0,0.0,604.83,0.0,26.01,Normal Baseload (Valve Closed)
+72,337.99,598.31,480.0,0.0,598.31,0.0,24.65,Normal Baseload (Valve Closed)
+73,340.37,602.52,480.0,0.0,602.52,0.0,25.52,Normal Baseload (Valve Closed)
+74,342.03,605.46,480.0,0.0,605.46,0.0,26.14,Normal Baseload (Valve Closed)
+75,336.46,595.6,480.0,0.0,595.6,0.0,24.08,Normal Baseload (Valve Closed)
+76,346.73,613.78,480.0,0.0,613.78,0.0,27.87,Normal Baseload (Valve Closed)
+77,341.07,603.76,480.0,0.0,603.76,0.0,25.78,Normal Baseload (Valve Closed)
+78,348.07,616.16,480.0,0.0,616.16,0.0,28.37,Normal Baseload (Valve Closed)
+79,340.43,602.63,480.0,0.0,602.63,0.0,25.55,Normal Baseload (Valve Closed)
+80,354.22,627.04,480.0,0.0,627.04,0.0,30.63,Normal Baseload (Valve Closed)
+81,355.15,628.69,480.0,0.0,628.69,0.0,30.98,Normal Baseload (Valve Closed)
+82,368.24,651.86,480.0,0.0,651.86,0.0,35.8,Normal Baseload (Valve Closed)
+83,355.45,629.22,480.0,0.0,629.22,0.0,31.09,Normal Baseload (Valve Closed)
+84,341.07,603.76,480.0,0.0,603.76,0.0,25.78,Normal Baseload (Valve Closed)
+85,359.43,636.26,480.0,0.0,636.26,0.0,32.55,Normal Baseload (Valve Closed)
+86,367.35,650.29,480.0,0.0,650.29,0.0,35.48,Normal Baseload (Valve Closed)
+87,357.85,633.47,480.0,0.0,633.47,0.0,31.97,Normal Baseload (Valve Closed)
+88,358.93,635.38,480.0,0.0,635.38,0.0,32.37,Normal Baseload (Valve Closed)
+89,357.59,633.01,480.0,0.0,633.01,0.0,31.88,Normal Baseload (Valve Closed)
+90,377.85,668.87,480.0,0.0,668.87,0.0,39.35,Normal Baseload (Valve Closed)
+91,360.22,637.66,480.0,0.0,637.66,0.0,32.85,Normal Baseload (Valve Closed)
+92,355.98,630.16,480.0,0.0,630.16,0.0,31.28,Normal Baseload (Valve Closed)
+93,370.84,656.46,480.0,0.0,656.46,0.0,36.76,Normal Baseload (Valve Closed)
+94,370.46,655.79,480.0,0.0,655.79,0.0,36.62,Normal Baseload (Valve Closed)
+95,359.63,636.62,480.0,0.0,636.62,0.0,32.63,Normal Baseload (Valve Closed)
+96,350.67,620.76,480.0,0.0,620.76,0.0,29.32,Normal Baseload (Valve Closed)
+97,371.12,656.96,480.0,0.0,656.96,0.0,36.87,Normal Baseload (Valve Closed)
+98,369.6,654.27,480.0,0.0,654.27,0.0,36.31,Normal Baseload (Valve Closed)
+99,375.69,665.05,480.0,0.0,665.05,0.0,38.55,Normal Baseload (Valve Closed)
+100,368.54,652.39,480.0,0.0,652.39,0.0,35.91,Normal Baseload (Valve Closed)

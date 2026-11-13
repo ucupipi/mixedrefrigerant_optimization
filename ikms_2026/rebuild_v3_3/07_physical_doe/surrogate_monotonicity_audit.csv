@@ -1,0 +1,2 @@
+tested_dimension,target_monitored,min_power_MW,max_power_MW,strictly_monotonic_increasing,audit_verdict
+MCR Mass Flow Rate (480 to 700 t/h),Compressor Shaft Power (MW),88.3,108.11,True,VERIFIED_PHYSICAL_MONOTONICITY

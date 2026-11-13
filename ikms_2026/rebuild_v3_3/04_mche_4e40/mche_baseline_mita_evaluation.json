@@ -1,0 +1,28 @@
+{
+  "module": "Priority 4: MCHE and 4E-40 Thermal Hydraulic Reconstruction",
+  "status": "COMPLETED_VERIFIED",
+  "subcooler_4e40_findings": {
+    "liquid_split_from_5c1_pct": 13.5,
+    "mean_4e40_flow_t_h": 27.19,
+    "mean_4e40_duty_MW": 0.2313,
+    "subcooler_to_mche_ratio_pct": 0.19,
+    "conclusion": "4E-40 safely unloads 0.45-0.70 MW of liquid subcooling duty from MCHE warm end."
+  },
+  "mche_pinch_diagnostics": {
+    "true_mita_p50_baseload_C": 6.26,
+    "true_mita_p75_baseload_C": 8.53,
+    "true_mita_p90_peakload_C": 9.41,
+    "legacy_reported_p75_C": -2.006,
+    "legacy_reported_p90_C": -6.63,
+    "legacy_unit_bug_penalty_MW": {
+      "P75": -10.536,
+      "P90": -16.04
+    },
+    "verdict": "ZERO_TEMPERATURE_CROSSOVER_AT_BASELOAD. Legacy crossovers were pure mathematical artifacts of subtracting MW shortfall from degC."
+  },
+  "turndown_behavior_explanation": {
+    "reheat_valve_active": "4TV-510 modulates at turndown (P1-P25) to prevent suction drum TAL (-45 C trip).",
+    "suction_telemetry_effect": "DCS tag H4TI004B measures post-reheat temperature (-18 to -28 C), creating apparent narrow warm approach against -32 C inlet.",
+    "physical_shell_reality": "Within MCHE tube bundle, shell vaporization is bounded and safe."
+  }
+}

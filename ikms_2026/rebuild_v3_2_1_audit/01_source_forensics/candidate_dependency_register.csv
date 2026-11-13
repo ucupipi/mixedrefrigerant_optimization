@@ -1,0 +1,5 @@
+candidate,n2_pct,c1_pct,c2_pct,c3_pct,c2h4_pct,dm,nominal_mita_C,p_violation_mita,control_philosophy,feasibility_status,provenance
+Candidate A (Rebuild v3),3.28,37.52,49.04,10.0,0.16,3.04,1.592,44.1,Active APC (tight constraint ride),"REJECTED (High violation risk, boundary arrest artifact)",Rebuild v3 surrogate boundary arrest at C3=10%
+Candidate B (Refined Simplex Interior),4.1,41.2,47.3,7.15,0.25,2.41,1.845,28.9,Active APC (Continuous DCS MITA feedback),CONDITIONALLY VALIDATED (Feasible only with multivariable APC),Interior simplex search with Mahalanobis constraint D_M <= 2.50
+Candidate R (Robust Engineering Safe),4.5,42.5,46.8,5.85,0.35,1.88,2.55,4.57,"Passive Setpoint (Existing DCS manual setpoints, zero APC required)",ROBUSTLY VALIDATED (One-sided 95% confidence compliant),Robust optimization enforcing P_violation <= 5.0% under u_c = 0.622 C
+Candidate D (Historical DCS Median),4.88,44.92,44.75,5.07,0.38,0.94,2.18,13.7,Manual Operator Trim,BASELINE VALIDATED (Reflects actual field median telemetry),"Median of 2,531 field gas chromatograms"

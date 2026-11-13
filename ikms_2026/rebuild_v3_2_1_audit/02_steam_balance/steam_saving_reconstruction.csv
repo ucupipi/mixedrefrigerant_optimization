@@ -1,0 +1,4 @@
+candidate,energy_saving_GWh_yr,steam_rate_applied_t_MWh,calculated_steam_saving_kt_yr,true_iapws_steam_rate_t_MWh,true_steam_saving_kt_yr,saving_classification,physical_measurement_available,notes
+Candidate A (Rebuild v3),20.06,4.04,81.04,4.193,84.11,ENERGY_EQUIVALENT_CONVERSION (Not direct metered steam),False,Calculated as power difference x flat steam rate. Direct steam throttle meters do not measure counterfactual saving.
+Candidate B (Refined Simplex Interior),16.85,4.193,70.65,4.193,70.65,ENERGY_EQUIVALENT_CONVERSION (Not direct metered steam),False,"Reported 70.65 kt/yr steam saving is an energy-equivalent conversion (16,850 MWh x 4.193 t/MWh), not a metered reduction."
+Candidate R (Robust Engineering Safe),13.92,4.193,58.37,4.193,58.37,ENERGY_EQUIVALENT_CONVERSION (Not direct metered steam),False,"Reported 58.37 kt/yr steam saving is an energy-equivalent conversion (13,920 MWh x 4.193 t/MWh)."

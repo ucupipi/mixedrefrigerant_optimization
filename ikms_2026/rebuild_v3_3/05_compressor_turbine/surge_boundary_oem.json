@@ -1,0 +1,147 @@
+{
+  "4K1": {
+    "casing_tag": "4K-2",
+    "fluid": "MCR LP",
+    "n_speed_lines": 0,
+    "surge_boundary": [],
+    "choke_boundary": []
+  },
+  "4K2": {
+    "casing_tag": "4K-2",
+    "fluid": "MCR LP",
+    "n_speed_lines": 5,
+    "surge_boundary": [
+      {
+        "speed_pct": 70.0,
+        "speed_rpm": 3227.0,
+        "surge_flow_m3h": 73150.0,
+        "surge_head_m": 7570.5
+      },
+      {
+        "speed_pct": 80.0,
+        "speed_rpm": 3688.0,
+        "surge_flow_m3h": 83600.0,
+        "surge_head_m": 9888.0
+      },
+      {
+        "speed_pct": 90.0,
+        "speed_rpm": 4149.0,
+        "surge_flow_m3h": 94050.0,
+        "surge_head_m": 12514.5
+      },
+      {
+        "speed_pct": 100.0,
+        "speed_rpm": 4610.0,
+        "surge_flow_m3h": 104500.0,
+        "surge_head_m": 15450.0
+      },
+      {
+        "speed_pct": 105.7,
+        "speed_rpm": 4872.8,
+        "surge_flow_m3h": 110456.5,
+        "surge_head_m": 17261.5
+      }
+    ],
+    "choke_boundary": [
+      {
+        "speed_pct": 70.0,
+        "speed_rpm": 3227.0,
+        "choke_flow_m3h": 132300.0,
+        "choke_head_m": 5267.5
+      },
+      {
+        "speed_pct": 80.0,
+        "speed_rpm": 3688.0,
+        "choke_flow_m3h": 151200.0,
+        "choke_head_m": 6880.0
+      },
+      {
+        "speed_pct": 90.0,
+        "speed_rpm": 4149.0,
+        "choke_flow_m3h": 170100.0,
+        "choke_head_m": 8707.5
+      },
+      {
+        "speed_pct": 100.0,
+        "speed_rpm": 4610.0,
+        "choke_flow_m3h": 189000.0,
+        "choke_head_m": 10750.0
+      },
+      {
+        "speed_pct": 105.7,
+        "speed_rpm": 4872.8,
+        "choke_flow_m3h": 199773.0,
+        "choke_head_m": 12010.4
+      }
+    ]
+  },
+  "4K3": {
+    "casing_tag": "4K-3",
+    "fluid": "MCR HP",
+    "n_speed_lines": 5,
+    "surge_boundary": [
+      {
+        "speed_pct": 70.0,
+        "speed_rpm": 3123.4,
+        "surge_flow_m3h": 23450.0,
+        "surge_head_m": 7536.2
+      },
+      {
+        "speed_pct": 80.0,
+        "speed_rpm": 3569.6,
+        "surge_flow_m3h": 26800.0,
+        "surge_head_m": 9843.2
+      },
+      {
+        "speed_pct": 90.0,
+        "speed_rpm": 4015.8,
+        "surge_flow_m3h": 30150.0,
+        "surge_head_m": 12457.8
+      },
+      {
+        "speed_pct": 100.0,
+        "speed_rpm": 4462.0,
+        "surge_flow_m3h": 33500.0,
+        "surge_head_m": 15380.0
+      },
+      {
+        "speed_pct": 108.36,
+        "speed_rpm": 4835.0,
+        "surge_flow_m3h": 36300.6,
+        "surge_head_m": 18059.0
+      }
+    ],
+    "choke_boundary": [
+      {
+        "speed_pct": 70.0,
+        "speed_rpm": 3123.4,
+        "choke_flow_m3h": 41440.0,
+        "choke_head_m": 5478.2
+      },
+      {
+        "speed_pct": 80.0,
+        "speed_rpm": 3569.6,
+        "choke_flow_m3h": 47360.0,
+        "choke_head_m": 7155.2
+      },
+      {
+        "speed_pct": 90.0,
+        "speed_rpm": 4015.8,
+        "choke_flow_m3h": 53280.0,
+        "choke_head_m": 9055.8
+      },
+      {
+        "speed_pct": 100.0,
+        "speed_rpm": 4462.0,
+        "choke_flow_m3h": 59200.0,
+        "choke_head_m": 11180.0
+      },
+      {
+        "speed_pct": 108.36,
+        "speed_rpm": 4835.0,
+        "choke_flow_m3h": 64149.1,
+        "choke_head_m": 13127.4
+      }
+    ]
+  }
+}

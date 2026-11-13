@@ -1,0 +1,8 @@
+metric,rebuild_v3_value,rebuild_v3_2_1_value,discrepancy,notes
+Total Annual Motive Steam (kt/yr),2935.9,3172.82,236.92,Matches across all 100 operating quantiles (includes 42.85 t/h utility balance)
+Mean Total Driver Steam Flow (t/h),374.02,404.2,30.18,Plant driver header total flow (404.20 t/h) vs v3 baseline (374.02 t/h)
+Annual Shaft Work Basis (GWh/yr),726.7,676.35,-50.35,v3 used total_compressor_power_steam_MW (92.58 MW * 7849.61 h = 726.70 GWh)
+Specific Motive Steam Rate (t/MWh),4.04,4.194,0.154,v3 flat aggregate was 2935.9 kt / 726.7 GWh = 4.040. True weighted IAPWS-IF97 rate is 4.193 t/MWh (+3.78%)
+4KT-1 Steam Rate (t/MWh),4.04,4.262,0.222,Under-accounted in v3 by 5.50%
+4KT-2 Steam Rate (t/MWh),4.04,4.184,0.144,Under-accounted in v3 by 3.54%
+4KT-3 Steam Rate (t/MWh),4.04,4.109,0.069,Under-accounted in v3 by 1.66%

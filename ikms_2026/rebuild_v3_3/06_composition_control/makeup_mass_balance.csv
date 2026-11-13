@@ -1,0 +1,16 @@
+candidate_name,component,baseline_mol_pct,target_mol_pct,delta_mol_pct,makeup_mass_kg,plant_source,makeup_achievable
+Candidate_A,N2,3.77,3.28,-0.49,-289.9,High-Pressure Utility N2 Header (Continuous connection),True
+Candidate_A,C1,42.22,37.52,-4.7,-1592.1,Dry Scrub Column Overhead Gas (Plant fuel gas system),True
+Candidate_A,C2,46.8,49.04,2.24,1422.3,De-Ethanizer (3C-5) Overhead liquid/vapor (Manual block valve),True
+Candidate_A,C2H4,1.36,0.16,-1.2,-710.8,Unmetered commercial ethylene cylinder charging manifold,True
+Candidate_A,C3,5.85,10.0,4.15,3864.2,De-Propanizer (3C-6) Accumulator overhead (Batch transfer),True
+Candidate_B,N2,3.77,4.1,0.33,195.2,High-Pressure Utility N2 Header (Continuous connection),True
+Candidate_B,C1,42.22,41.2,-1.02,-345.5,Dry Scrub Column Overhead Gas (Plant fuel gas system),True
+Candidate_B,C2,46.8,47.3,0.5,317.5,De-Ethanizer (3C-5) Overhead liquid/vapor (Manual block valve),True
+Candidate_B,C2H4,1.36,0.25,-1.11,-657.5,Unmetered commercial ethylene cylinder charging manifold,True
+Candidate_B,C3,5.85,7.15,1.3,1210.5,De-Propanizer (3C-6) Accumulator overhead (Batch transfer),True
+Candidate_R,N2,3.77,4.5,0.73,431.8,High-Pressure Utility N2 Header (Continuous connection),True
+Candidate_R,C1,42.22,42.5,0.28,94.9,Dry Scrub Column Overhead Gas (Plant fuel gas system),True
+Candidate_R,C2,46.8,46.8,0.0,0.0,De-Ethanizer (3C-5) Overhead liquid/vapor (Manual block valve),True
+Candidate_R,C2H4,1.36,0.35,-1.01,-598.3,Unmetered commercial ethylene cylinder charging manifold,True
+Candidate_R,C3,5.85,5.85,0.0,0.0,De-Propanizer (3C-6) Accumulator overhead (Batch transfer),True

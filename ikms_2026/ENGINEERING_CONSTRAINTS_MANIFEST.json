@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Badak LNG Plant-3 C3MR Engineering Constraints & ML Hygiene Manifest",
+  "governance": "AGENTS.md - 13 Cardinal Rules of Industrial AI",
+  "facility": "PT Badak NGL - Bontang, East Kalimantan (Train H C3MR Liquefaction)",
+  "version": "3.3.0",
+  "last_updated": "2026-11-13",
+  "thermodynamic_and_process_constraints": {
+    "compressor_safe_operating_envelope": {
+      "flow_floor_th": 480.0,
+      "flow_floor_description": "Minimum suction volume flow floor to prevent aerodynamic surge on 4K-1/2/3/4",
+      "suction_temperature_alarm_low_tal_c": -45.0,
+      "tal_description": "Low suction temperature interlock to prevent liquid carryover into impellers",
+      "kickback_valve_tag": "4UV-53",
+      "kickback_valve_role": "Safety boundary constraint and bypass enabler during turndown",
+      "suction_reheat_valve_tag": "4TV-510",
+      "suction_reheat_valve_role": "Active modulation to maintain T_suct >= -45.0 C",
+      "shaft_power_equation": "W_shaft = (m_dot * delta_h_s) / eta_p"
+    },
+    "mche_cryogenic_heat_transfer": {
+      "mita_minimum_c": 1.50,
+      "mita_description": "Minimum Internal Temperature Approach across all 100 slices of MCHE",
+      "temperature_crossover_allowed": false,
+      "delta_t_floor_c": 0.0,
+      "exergy_destruction_equation": "E_D = T_0 * sum(delta_Q_i * (1/T_cold_i - 1/T_hot_i))",
+      "exergy_method": "100-slice Riemann numerical integration (no single lumped average temperatures)",
+      "compressor_exergy_equation": "E_D_comp = W_shaft * (1 - eta_s) [Gouy-Stodola]"
+    },
+    "mixed_refrigerant_compositional_geometry": {
+      "space": "Aitchison Simplex S^4 with Isometric Log-Ratio (ILR) transformation",
+      "degrees_of_freedom": 4,
+      "mahalanobis_distance_critical_chi2_95": 3.080216,
+      "optimal_point_reference": {
+        "N2_mol_pct": 3.669,
+        "C1_mol_pct": 51.2644,
+        "C2_mol_pct": 42.6182,
+        "C2H4_mol_pct": 0.4423,
+        "C3_mol_pct": 2.0061,
+        "mahalanobis_distance_dm": 3.0762,
+        "is_within_operational_ellipsoid": true
+      },
+      "dew_point_at_3_15_bar_a_c": -75.35,
+      "suction_superheat_margin_c": 34.35
+    },
+    "scrub_column_3c1_baseline_gas_composition": {
+      "N2_mol_pct": 0.0536,
+      "C1_mol_pct": 94.5096,
+      "C2_mol_pct": 2.7181,
+      "C3_mol_pct": 1.6738,
+      "iC4_mol_pct": 0.3913,
+      "nC4_mol_pct": 0.5426,
+      "iC5_mol_pct": 0.000157,
+      "gross_heating_value_hhv_btu_scf": 1076.3876,
+      "data_source": "Median of 65,535 rows of verified DCS data (scrubcolumn.xlsx)"
+    },
+    "utility_and_driver_steam_balance": {
+      "weighted_motive_steam_rate_t_mwh": 4.193,
+      "turbine_4kt1_c3_steam_rate_t_mwh": 4.262,
+      "turbine_4kt2_mcr_direct_steam_rate_t_mwh": 4.183,
+      "turbine_4kt3_mcr_direct_steam_rate_t_mwh": 4.107,
+      "boiler_fuel_gas_conversion_nm3_per_t_steam": 97.70,
+      "annual_operating_stream_hours": 7849.61
+    },
+    "power_savings_decomposition": {
+      "annualized_mean_total_c3mr_savings_mw": 14.805,
+      "annualized_direct_mcr_savings_mw": 13.251,
+      "annualized_direct_mcr_share_pct": 89.51,
+      "annualized_indirect_c3_precooling_savings_mw": 1.554,
+      "annualized_indirect_c3_share_pct": 10.49,
+      "p90_turndown_point_total_savings_mw": 28.98,
+      "p90_turndown_point_total_savings_pct": -27.10,
+      "p90_mcr_direct_savings_mw": 10.826,
+      "p90_c3_precooling_savings_mw": 18.146
+    }
+  },
+  "machine_learning_governance_rules": {
+    "split_hygiene": {
+      "training_ratio": 0.80,
+      "testing_ratio": 0.20,
+      "split_mode": "chronological or stratified time-series",
+      "rule": "MANDATORY train/test partition BEFORE fitting any scaler, encoder, or imputer. Data leakage = FATAL FAIL."
+    },
+    "acceptance_criteria": {
+      "r2_test_minimum": 0.60,
+      "nmae_relative_pct_maximum": 1.0,
+      "power_evaluation_unit": "MW",
+      "forbid_raw_kw_metric_reporting": true
+    },
+    "physics_informed_constraints": {
+      "enforce_monotonic_constraints": true,
+      "algorithm": "HistGradientBoostingRegressor or LightGBM with monotonic_cst",
+      "monotonic_cst_rules": {
+        "shaft_power_vs_mcr_flow": 1,
+        "shaft_power_vs_feed_flow": 1,
+        "suction_drum_temp_vs_feed_flow": -1,
+        "suction_drum_temp_vs_suction_pressure": 1,
+        "mita_vs_feed_flow": -1,
+        "mita_vs_mcr_flow_mche": 1
+      }
+    },
+    "experiment_tracking_mlflow": {
+      "required_params": ["model_type", "split_mode", "train_samples", "test_samples", "features", "monotonic_cst"],
+      "required_metrics": ["r2_train", "r2_test", "mae_test", "rmse_test", "nmae_relative_pct", "nmae_span_pct"],
+      "required_artifacts": ["model_artifact", "evaluation_summary_json", "residual_distribution_plot"]
+    }
+  },
+  "software_integration_specs": {
+    "neqsim": {
+      "package": "neqsim (Python/Java bridge)",
+      "role": "PR-EOS & CPA thermodynamic calculations, hydrocarbon-nitrogen VLE, phase envelope, dew point, hydrate safety"
+    },
+    "aspen_hysys": {
+      "case_file": "C3MR.hsc",
+      "role": "Train H flowsheet rig, MCHE 100-slice heat exchanger rating, centrifugal compressor polytropic curves"
+    },
+    "coolprop": {
+      "package": "CoolProp.CoolProp",
+      "role": "High-accuracy Helmholtz formulation for pure propane precooling thermodynamic properties"
+    },
+    "steam_tables": {
+      "formulation": "IAPWS-IF97",
+      "role": "Motive high/medium-pressure steam expansion and condenser heat balance"
+    }
+  }
+}

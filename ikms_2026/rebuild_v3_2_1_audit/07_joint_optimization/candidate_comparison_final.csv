@@ -1,0 +1,6 @@
+candidate_id,label,N2_mol_pct,C1_mol_pct,C2_mol_pct,C3_mol_pct,C2H4_mol_pct,mahalanobis_dist,nominal_min_mita_C,prob_pinch_violation_pct,total_annual_savings_GWh,mcr_savings_GWh,propane_savings_GWh,energy_reduction_pct,feasibility_status,refrigerant_makeup_feasibility
+Candidate A,Rebuild v3 Optimizer Boundary,3.28,37.52,49.04,10.0,0.16,3.04,1.592,44.12,20.06,13.29,6.77,2.76,"REJECTED (44.1% Pinch Violation Risk, boundary arrest artifact)",FEASIBLE BUT HIGH C3/C2 RATIO (Strains ethane makeup from 3C-5)
+Candidate B,Balanced Industrial Operating Point,4.1,41.2,47.3,7.15,0.25,2.41,1.845,28.96,16.85,11.16,5.69,2.32,CONDITIONALLY FEASIBLE (Requires continuous DCS multivariable APC),FEASIBLE (Within routine 3C-5 overhead manual trim)
+Candidate C,Conservative Interior Point,4.4,44.0,45.1,6.2,0.3,0.95,2.08,17.55,13.4,8.88,4.52,1.84,CONDITIONALLY FEASIBLE (17.5% violation risk),FEASIBLE (Standard makeup)
+Candidate D,Historical Plant Baseline,4.65,45.52,44.48,5.08,0.27,0.42,2.18,13.71,0.0,0.0,0.0,0.0,HISTORICAL REFERENCE BASELINE,BASELINE (Routine field operation)
+Candidate R,Robust Feasible Benchmark (P_viol <= 5%),4.5,42.5,46.8,5.85,0.35,1.88,2.55,4.57,13.92,9.22,4.7,1.92,"ROBUSTLY FEASIBLE (P_viol = 4.57% <= 5.0%, zero APC required)",FULLY FEASIBLE (Operates seamlessly with existing 3C-5 manual block valve)

@@ -1,0 +1,6 @@
+candidate_id,label,fuel_energy_asme_TJ_yr,fuel_energy_field_TJ_yr,co2_abatement_asme_tons_yr,co2_abatement_field_tons_yr,emission_factor_tCO2_TJ,accounting_standard
+Candidate A,Rebuild v3 Optimizer Boundary,297.8,243.1,16707.1,13639.3,56.1,2006 IPCC Energy Guidelines
+Candidate B,Balanced Industrial Operating Point,250.2,204.2,14033.6,11456.7,56.1,2006 IPCC Energy Guidelines
+Candidate C,Conservative Interior Point,198.9,162.4,11160.3,9111.0,56.1,2006 IPCC Energy Guidelines
+Candidate D,Historical Plant Baseline,0.0,0.0,0.0,0.0,56.1,2006 IPCC Energy Guidelines
+Candidate R,Robust Feasible Benchmark (P_viol <= 5%),206.7,168.7,11593.4,9464.6,56.1,2006 IPCC Energy Guidelines

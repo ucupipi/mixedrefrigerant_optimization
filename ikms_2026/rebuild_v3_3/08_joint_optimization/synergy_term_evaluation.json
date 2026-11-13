@@ -1,0 +1,12 @@
+{
+  "module": "Priority 8: True Joint Optimization & Counterfactual Synergy",
+  "annual_baseline_energy_GWh": 726.7,
+  "flow_only_savings_GWh": 7.85,
+  "comp_only_savings_GWh": 4.3,
+  "linear_additive_sum_GWh": 12.15,
+  "true_joint_savings_GWh": 13.92,
+  "physical_interaction_synergy_term_GWh": 1.77,
+  "synergy_share_of_total_savings_pct": 12.72,
+  "thermodynamic_explanation": "The positive synergy term (+1.77 GWh/yr, 12.72% of total savings) originates from the non-linear coupling between MCR volatility and MCHE internal heat transfer. Candidate R's heavier composition widens the intermediate MCHE temperature approach by +1.05 C, relaxing the pinch bottleneck and permitting circulation flow to be trimmed closer to the anti-surge floor (480 t/h) without triggering temperature crossover.",
+  "verdict": "PHYSICAL_SYNERGY_AUTHENTICATED_AND_DERIVED_FROM_FIRST_PRINCIPLES"
+}

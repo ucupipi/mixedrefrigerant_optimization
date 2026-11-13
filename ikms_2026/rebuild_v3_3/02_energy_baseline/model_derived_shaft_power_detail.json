@@ -1,0 +1,289 @@
+[
+  {
+    "percentile": 10,
+    "model_derived_total_shaft_MW": 80.793,
+    "legacy_steam_div_4040_MW": 87.44,
+    "difference_MW": -6.647,
+    "relative_diff_pct": -7.6,
+    "power_classification": "MODEL-DERIVED (OEM CURVE INTERPOLATION)",
+    "n_machines_in_sum": 3,
+    "machines": {
+      "4K-2": {
+        "shaft_power_kw": 26717.3,
+        "shaft_power_mw": 26.717,
+        "polytropic_efficiency": 0.8021,
+        "speed_rpm": 4390.7,
+        "mass_flow_t_h": 504.0,
+        "pressure_ratio": 4.5834,
+        "surge_margin_pct": 42.25,
+        "is_surge_safe": true
+      },
+      "4K-3": {
+        "shaft_power_kw": 28956.3,
+        "shaft_power_mw": 28.956,
+        "polytropic_efficiency": 0.7742,
+        "speed_rpm": 4369.6,
+        "mass_flow_t_h": 504.0,
+        "pressure_ratio": 3.6097,
+        "surge_margin_pct": 6.99,
+        "is_surge_safe": true
+      },
+      "4K-1": {
+        "shaft_power_kw": 8971.7,
+        "shaft_power_mw": 8.972,
+        "polytropic_efficiency": 0.818,
+        "speed_rpm": 2994.1,
+        "mass_flow_t_h": 758.1,
+        "pressure_ratio": 2.2074,
+        "surge_margin_pct": 38.27,
+        "is_surge_safe": true
+      }
+    }
+  },
+  {
+    "percentile": 25,
+    "model_derived_total_shaft_MW": 81.644,
+    "legacy_steam_div_4040_MW": 91.4,
+    "difference_MW": -9.756,
+    "relative_diff_pct": -10.67,
+    "power_classification": "MODEL-DERIVED (OEM CURVE INTERPOLATION)",
+    "n_machines_in_sum": 3,
+    "machines": {
+      "4K-2": {
+        "shaft_power_kw": 26650.5,
+        "shaft_power_mw": 26.651,
+        "polytropic_efficiency": 0.8019,
+        "speed_rpm": 4385.0,
+        "mass_flow_t_h": 512.1,
+        "pressure_ratio": 4.5677,
+        "surge_margin_pct": 42.66,
+        "is_surge_safe": true
+      },
+      "4K-3": {
+        "shaft_power_kw": 29471.4,
+        "shaft_power_mw": 29.471,
+        "polytropic_efficiency": 0.781,
+        "speed_rpm": 4372.0,
+        "mass_flow_t_h": 512.1,
+        "pressure_ratio": 3.6082,
+        "surge_margin_pct": 9.53,
+        "is_surge_safe": true
+      },
+      "4K-1": {
+        "shaft_power_kw": 9110.9,
+        "shaft_power_mw": 9.111,
+        "polytropic_efficiency": 0.818,
+        "speed_rpm": 3005.0,
+        "mass_flow_t_h": 770.3,
+        "pressure_ratio": 2.2075,
+        "surge_margin_pct": 39.97,
+        "is_surge_safe": true
+      }
+    }
+  },
+  {
+    "percentile": 40,
+    "model_derived_total_shaft_MW": 82.669,
+    "legacy_steam_div_4040_MW": 87.15,
+    "difference_MW": -4.481,
+    "relative_diff_pct": -5.14,
+    "power_classification": "MODEL-DERIVED (OEM CURVE INTERPOLATION)",
+    "n_machines_in_sum": 3,
+    "machines": {
+      "4K-2": {
+        "shaft_power_kw": 26732.0,
+        "shaft_power_mw": 26.732,
+        "polytropic_efficiency": 0.8011,
+        "speed_rpm": 4384.0,
+        "mass_flow_t_h": 525.3,
+        "pressure_ratio": 4.5473,
+        "surge_margin_pct": 43.81,
+        "is_surge_safe": true
+      },
+      "4K-3": {
+        "shaft_power_kw": 30020.5,
+        "shaft_power_mw": 30.02,
+        "polytropic_efficiency": 0.7874,
+        "speed_rpm": 4375.0,
+        "mass_flow_t_h": 525.3,
+        "pressure_ratio": 3.6044,
+        "surge_margin_pct": 12.28,
+        "is_surge_safe": true
+      },
+      "4K-1": {
+        "shaft_power_kw": 9243.0,
+        "shaft_power_mw": 9.243,
+        "polytropic_efficiency": 0.818,
+        "speed_rpm": 3010.0,
+        "mass_flow_t_h": 790.1,
+        "pressure_ratio": 2.1941,
+        "surge_margin_pct": 43.34,
+        "is_surge_safe": true
+      }
+    }
+  },
+  {
+    "percentile": 50,
+    "model_derived_total_shaft_MW": 83.828,
+    "legacy_steam_div_4040_MW": 90.95,
+    "difference_MW": -7.122,
+    "relative_diff_pct": -7.83,
+    "power_classification": "MODEL-DERIVED (OEM CURVE INTERPOLATION)",
+    "n_machines_in_sum": 3,
+    "machines": {
+      "4K-2": {
+        "shaft_power_kw": 27047.4,
+        "shaft_power_mw": 27.047,
+        "polytropic_efficiency": 0.7979,
+        "speed_rpm": 4383.6,
+        "mass_flow_t_h": 534.8,
+        "pressure_ratio": 4.4814,
+        "surge_margin_pct": 47.66,
+        "is_surge_safe": true
+      },
+      "4K-3": {
+        "shaft_power_kw": 30585.8,
+        "shaft_power_mw": 30.586,
+        "polytropic_efficiency": 0.7932,
+        "speed_rpm": 4378.4,
+        "mass_flow_t_h": 534.8,
+        "pressure_ratio": 3.5988,
+        "surge_margin_pct": 15.13,
+        "is_surge_safe": true
+      },
+      "4K-1": {
+        "shaft_power_kw": 9336.1,
+        "shaft_power_mw": 9.336,
+        "polytropic_efficiency": 0.818,
+        "speed_rpm": 3013.4,
+        "mass_flow_t_h": 804.4,
+        "pressure_ratio": 2.184,
+        "surge_margin_pct": 45.76,
+        "is_surge_safe": true
+      }
+    }
+  },
+  {
+    "percentile": 60,
+    "model_derived_total_shaft_MW": 90.641,
+    "legacy_steam_div_4040_MW": 95.58,
+    "difference_MW": -4.939,
+    "relative_diff_pct": -5.17,
+    "power_classification": "MODEL-DERIVED (OEM CURVE INTERPOLATION)",
+    "n_machines_in_sum": 3,
+    "machines": {
+      "4K-2": {
+        "shaft_power_kw": 29288.5,
+        "shaft_power_mw": 29.289,
+        "polytropic_efficiency": 0.7977,
+        "speed_rpm": 4500.0,
+        "mass_flow_t_h": 580.4,
+        "pressure_ratio": 4.6521,
+        "surge_margin_pct": 48.42,
+        "is_surge_safe": true
+      },
+      "4K-3": {
+        "shaft_power_kw": 34155.1,
+        "shaft_power_mw": 34.155,
+        "polytropic_efficiency": 0.8029,
+        "speed_rpm": 4500.0,
+        "mass_flow_t_h": 580.4,
+        "pressure_ratio": 3.7182,
+        "surge_margin_pct": 20.61,
+        "is_surge_safe": true
+      },
+      "4K-1": {
+        "shaft_power_kw": 9663.5,
+        "shaft_power_mw": 9.664,
+        "polytropic_efficiency": 0.818,
+        "speed_rpm": 3015.0,
+        "mass_flow_t_h": 873.0,
+        "pressure_ratio": 2.1148,
+        "surge_margin_pct": 58.12,
+        "is_surge_safe": true
+      }
+    }
+  },
+  {
+    "percentile": 75,
+    "model_derived_total_shaft_MW": 97.017,
+    "legacy_steam_div_4040_MW": 116.29,
+    "difference_MW": -19.273,
+    "relative_diff_pct": -16.57,
+    "power_classification": "MODEL-DERIVED (OEM CURVE INTERPOLATION)",
+    "n_machines_in_sum": 3,
+    "machines": {
+      "4K-2": {
+        "shaft_power_kw": 31015.4,
+        "shaft_power_mw": 31.015,
+        "polytropic_efficiency": 0.7967,
+        "speed_rpm": 4580.0,
+        "mass_flow_t_h": 635.8,
+        "pressure_ratio": 4.7353,
+        "surge_margin_pct": 50.66,
+        "is_surge_safe": true
+      },
+      "4K-3": {
+        "shaft_power_kw": 37665.4,
+        "shaft_power_mw": 37.665,
+        "polytropic_efficiency": 0.8105,
+        "speed_rpm": 4580.0,
+        "mass_flow_t_h": 635.8,
+        "pressure_ratio": 3.7515,
+        "surge_margin_pct": 29.82,
+        "is_surge_safe": true
+      },
+      "4K-1": {
+        "shaft_power_kw": 10035.1,
+        "shaft_power_mw": 10.035,
+        "polytropic_efficiency": 0.818,
+        "speed_rpm": 3016.5,
+        "mass_flow_t_h": 956.3,
+        "pressure_ratio": 2.019,
+        "surge_margin_pct": 73.12,
+        "is_surge_safe": true
+      }
+    }
+  },
+  {
+    "percentile": 90,
+    "model_derived_total_shaft_MW": 101.32,
+    "legacy_steam_div_4040_MW": 122.86,
+    "difference_MW": -21.54,
+    "relative_diff_pct": -17.53,
+    "power_classification": "MODEL-DERIVED (OEM CURVE INTERPOLATION)",
+    "n_machines_in_sum": 3,
+    "machines": {
+      "4K-2": {
+        "shaft_power_kw": 32001.2,
+        "shaft_power_mw": 32.001,
+        "polytropic_efficiency": 0.798,
+        "speed_rpm": 4631.0,
+        "mass_flow_t_h": 681.4,
+        "pressure_ratio": 4.8291,
+        "surge_margin_pct": 50.13,
+        "is_surge_safe": true
+      },
+      "4K-3": {
+        "shaft_power_kw": 40102.4,
+        "shaft_power_mw": 40.102,
+        "polytropic_efficiency": 0.8102,
+        "speed_rpm": 4625.7,
+        "mass_flow_t_h": 681.4,
+        "pressure_ratio": 3.7284,
+        "surge_margin_pct": 37.75,
+        "is_surge_safe": true
+      },
+      "4K-1": {
+        "shaft_power_kw": 10322.5,
+        "shaft_power_mw": 10.323,
+        "polytropic_efficiency": 0.818,
+        "speed_rpm": 3017.7,
+        "mass_flow_t_h": 1024.9,
+        "pressure_ratio": 1.9308,
+        "surge_margin_pct": 85.46,
+        "is_surge_safe": true
+      }
+    }
+  }
+]

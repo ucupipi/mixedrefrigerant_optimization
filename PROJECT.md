@@ -30,7 +30,7 @@ The architecture decouples modeling into three distinct layers conforming strict
 | 7 | 4K-2 Curve Extraction & Digitization | Digitize Dresser-Rand 838B4 LP MCR compressor curves (Head, Eff, kW, Pd vs m³/h for Cases 1, 2, 3) | M2 | Survey 2 |
 | 8 | 4K-3 Curve Extraction & Digitization | Digitize Dresser-Rand 656B7-6 HP MCR compressor curves (Head, Eff, kW, Pd vs m³/h for Cases 1, 2, 3) | M2 | Survey 2 |
 | 9 | Curve Calibration & Data Dictionary | Calibrate axes from original tick marks; produce CSV/Parquet with confidence ratings and dictionary | M2 | Survey 2 |
-| 10 | Historical DCS Telemetry Linking | Map historical steady-state operating points across production loads (P10, P50, P90) onto curves | M3 | Survey 3 |
+| 10 | Historical DCS Telemetry Linking | Map historical steady-state operating points across full 100 percentiles (P1 to P100) and 7 anchor quantiles (P10 to P90) onto curves | M3 | Survey 3 |
 | 11 | Suction Thermodynamic Conversions | Compute suction Z, k, density via PR-EOS to convert mass flow into OEM actual volumetric flow | M3 | Survey 3 |
 | 12 | Operating Envelope & Surge Verification | Project baseline vs candidate optimum MR operating points onto curves; verify surge margins | M4 | Survey 2, Survey 3 |
 | 13 | 480 t/h Floor & 4UV-53 / 4TV-510 Enforcement | Verify anti-surge kickback modulation (107.6 t/h at P10) and TAL (-45°C) superheated vapor | M4 | Survey 3 |
@@ -45,11 +45,10 @@ The architecture decouples modeling into three distinct layers conforming strict
 ## Milestones
 | # | Milestone Name | Scope | Dependencies | Status | Key Outputs |
 |---|---|---|:---:|:---:|---|
-| M1 | ML Architecture & Data Lineage Audit | Audit and restructure ML surrogate models, trace lineage, reproduce dual-domain metrics, decouple deterministic targets, verify H4FI030A | None | PLANNED | `ML_AUDIT_REPORT.md`, `TARGET_SELECTION_REPORT.md`, decoupled calculation pipeline |
-| M2 | Compressor Performance Curve Digitization | Digitize Dresser-Rand 4K-1, 4K-2, 4K-3 curves from H4K-1/2/3.pdf, calibrate axes, produce Parquet/CSV with data dictionary | None | PLANNED | `compressor_curves_4K1/2/3.parquet/.csv`, data dictionary, calibration equations |
-| M3 | DCS Telemetry Linking & Envelope Mapping | Map historical P10/P50/P90 steady-state points onto curves, compute PR-EOS suction properties, convert flows to OEM basis | M1, M2 | PLANNED | Mapped telemetry dataset, suction property conversion module, operating point ledger |
-| M4 | C3MR Optimization Integration & Mechanical Feasibility | Evaluate optimum MR recipe against compressor operating envelopes, verify 480 t/h floor, 4UV-53 kickback, TAL -45°C, and power decomposition | M1, M2, M3 | PLANNED | `COMPRESSOR_EVALUATION_REPORT.md`, `OPTIMIZATION_INTEGRATION_REPORT.md`, feasibility certificate |
-| M5 | Research Deliverables, Visualizations & Validation Scripts | Generate Figures 1–5, compile comprehensive technical reports, produce paper revision draft, and provide standalone verification scripts | M1, M2, M3, M4 | PLANNED | Figures 1–5, final paper revision text/tables, standalone validation scripts |
+| M1 | Baseline and Optimized Case Reconstruction (P1-P100 + 7 Anchors) | Reconstruct baseline operating points across all 100 percentiles (P1 to P100) and 7 anchor quantiles (P10 to P90) under strict throughput parity from primary source data; train ML surrogates and optimize via SLSQP | None | PLANNED | `100_percentiles_baseline_optimized.parquet/.csv`, `7_anchors_reconciliation.csv`, dual-domain validation |
+| M2 | Rotating Equipment & Utilities Energy Revalidation | Independently calculate 4K-1/2/3 shaft power, total C3MR power decomposition, turbine steam savings (H4FI031A/029A/030A density conversion), boiler fuel gas savings (97.70 Nm3/t & DCS regression) across P1-P100 | M1 | PLANNED | Shaft power models, steam savings register, boiler fuel gas ledger across 100 percentiles |
+| M3 | Environmental & Techno-Economic Revalidation | Compute Scope 1 GHG reductions (IPCC 56.1 kg/GJ on HHV vs LHV basis), Spot ($10.04) vs Domestic ($8.00) valuation, CAPEX audit (zero equipment vs MOC), 100-bin Riemann sum annualization | M1, M2 | PLANNED | Economic models, GHG emission balances, 100-bin Riemann sum annual savings ledger |
+| M4 | Reconciliation, Evidence Ledger & Reproducibility | Update `audit_deliverables_v3/01_SOURCE_AND_EXECUTION_REGISTER.csv` with side-by-side reconstructed vs historical figures and flags; run and verify `ikms_2026/scripts/validate_all_reproducible.py` | M1, M2, M3 | PLANNED | Updated 01_SOURCE_AND_EXECUTION_REGISTER.csv, reproducible test suite green log, final audit report |
 
 ---
 

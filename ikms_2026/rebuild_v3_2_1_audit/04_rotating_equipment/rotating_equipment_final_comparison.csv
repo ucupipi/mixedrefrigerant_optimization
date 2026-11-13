@@ -1,0 +1,4 @@
+operating_quantile,feed_gas_flow_t_h,process_mcr_flow_t_h,kickback_4UV53_flow_t_h,total_suction_flow_t_h,suction_floor_limit_t_h,surge_margin_pct,c3_driver_power_MW,mcr_lp_power_MW,mcr_hp_power_MW,hkt3_governor_stroke_pct,suction_drum_temp_C,tal_interlock_limit_C,active_bottleneck
+P10,187.38,480.0,148.3,628.3,480.0,30.9,16.05,23.48,26.88,65.0,-37.2,-45.0,Anti-Surge Kickback Modulation (4UV-53)
+P50,267.52,480.0,6.43,486.43,480.0,1.34,22.92,23.48,26.88,82.0,-36.8,-45.0,None (Linear Region)
+P90,377.85,668.87,0.0,668.87,480.0,39.35,32.37,32.71,37.46,94.5,-36.5,-45.0,Steam Turbine Governor Stroke (4HKT-3 at 94.5%)

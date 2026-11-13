@@ -1,0 +1,34 @@
+{
+  "method_1_full_header_integration": {
+    "annual_steam_kt_yr": 3172.83,
+    "mean_flow_t_h": 404.2,
+    "source": "total_driver_steam_t_h (plant header meter)",
+    "coverage": "100 quantiles, 7849.61 operating hours",
+    "classification": "PRIMARY PHYSICAL MEASUREMENT"
+  },
+  "method_2_predicted_3_turbine_sum": {
+    "annual_steam_kt_yr": 2933.77,
+    "mean_flow_t_h": 373.75,
+    "source": "pred_sum_turbines_t_h (regression model)",
+    "coverage": "100 quantiles",
+    "classification": "MODEL-DERIVED (REGRESSION PREDICTION)"
+  },
+  "method_3_measured_individual_turbines": {
+    "annual_steam_partial_kt_yr": 1730.22,
+    "n_quantiles_with_data": 61,
+    "hours_covered": 4788.2,
+    "source": "c3_turb_steam + mcr_lp_turb_steam + mcr_hp_turb_steam",
+    "classification": "DIRECT MEASUREMENT (PARTIAL COVERAGE)"
+  },
+  "bypass_balancing_steam": {
+    "mean_where_measured_t_h": 0.0,
+    "note": "Difference between header meter and sum of 3 turbines where individual data available",
+    "classification": "DERIVED RESIDUAL"
+  },
+  "legacy_value_2935_9_kt": {
+    "source": "rebuild_v3 (374.02 t/h \u00d7 7849.61 h)",
+    "classification": "SUPERSEDED \u2014 USES PREDICTED 3-TURBINE MEAN ONLY"
+  },
+  "reconciliation_delta_kt": 239.06,
+  "reconciliation_delta_pct": 8.15
+}

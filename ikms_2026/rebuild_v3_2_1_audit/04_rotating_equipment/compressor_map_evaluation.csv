@@ -1,0 +1,6 @@
+machine_tag,compressor_model,service,speed_pct,speed_rpm,surge_flow_m3_h,surge_mass_flow_t_h,control_line_flow_t_h,rated_polytropic_head_kJ_kg,polytropic_efficiency,choke_flow_m3_h,choke_mass_flow_t_h,operational_flow_floor_t_h
+4K-2,Dresser-Rand 838B4,MCR Low-Pressure Compressor,70.0,3227,73500,356.48,392.12,72.5,0.795,121275.0,588.18,480.0
+4K-2,Dresser-Rand 838B4,MCR Low-Pressure Compressor,80.0,3688,84000,407.4,448.14,94.8,0.812,138600.0,672.21,480.0
+4K-2,Dresser-Rand 838B4,MCR Low-Pressure Compressor,90.0,4149,94500,458.32,504.16,120.0,0.825,155925.0,756.24,480.0
+4K-2,Dresser-Rand 838B4,MCR Low-Pressure Compressor,100.0,4610,105000,509.25,560.17,148.2,0.82,173250.0,840.26,480.0
+4K-2,Dresser-Rand 838B4,MCR Low-Pressure Compressor,105.0,4840,110250,534.71,588.18,163.4,0.805,181912.0,882.28,480.0

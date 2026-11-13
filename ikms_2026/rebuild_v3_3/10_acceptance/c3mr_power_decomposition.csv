@@ -1,0 +1,4 @@
+equipment_tag,service,annual_savings_GWh,share_of_total_savings_pct,mechanism
+4KT-2 / 4KT-3 (MCR Compressors),Direct Mixed Refrigerant Compression (LP & HP Casings),9.23,66.31,Optimized continuous MCR circulation rate down to anti-surge floor (480 t/h) at turndown.
+4KT-1 (C3 Compressor),Indirect Propane Precooling Cycle,4.69,33.69,Reduced MCR mass circulation directly lowers precooling duty in 3E-14/17/18 chillers.
+Total Train H C3MR,Complete Refrigeration Battery Limit,13.92,100.0,Simultaneous joint optimization of Candidate R composition and load-dependent schedule.

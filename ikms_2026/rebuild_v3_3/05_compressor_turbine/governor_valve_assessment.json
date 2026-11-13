@@ -1,0 +1,9 @@
+{
+  "legacy_claim": "Governor valve stroke = 94.5% at P90",
+  "legacy_source": "p3_rotating_equipment_v3_2_1.py line 107 (hardcoded if/else literal)",
+  "dcs_telemetry_tags_found": [],
+  "dcs_telemetry_check": "Searched master_minute_level.parquet and Book1.csv column names for governor, ZT, POS, GV, stroke patterns. ZERO matching tags found.",
+  "classification": "THEORETICAL CAPACITY ESTIMATE (NOT DCS MEASUREMENT)",
+  "derivation_basis": "Estimated from steam demand / rated nozzle flow capacity. Cannot be verified from DCS telemetry.",
+  "v3_3_action": "94.5% may be retained as a theoretical estimate with explicit caveat. Must not be presented as measured DCS data."
+}

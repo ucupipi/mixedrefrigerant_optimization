@@ -1,0 +1,6 @@
+candidate_id,decision_class,qualification_status,c3_mol_pct,dm_distance,nom_mita_C,p_mita_viol_pct,annual_savings_GWh,commercial_value_MUSD,primary_disqualification_reason
+Candidate A,Decision C (Marginal / Unacceptable Risk),REJECTED,10.0,3.04,1.592,44.1,20.06,2.492,"Excessive pinch violation risk (44.1%), surrogate boundary arrest artifact, potential plant thermal crossover"
+Candidate B,Decision B (Conditional APC Active Implementation),CONDITIONALLY QUALIFIED,7.15,2.41,1.845,28.9,16.85,2.034,Not recommended for immediate open-loop deployment; requires multivariable APC commissioning and field step testing
+Candidate C,Decision B- (Intermediate Margin Point),FEASIBLE BUT SUB-OPTIMAL,6.2,0.95,2.08,17.5,13.4,1.618,Provides lower savings than Candidate B and less safety margin than Candidate R
+Candidate D,Decision D (Zero Action / Historical Frozen),BENCHMARK ONLY,5.08,0.42,2.18,13.7,0.0,0.0,Captures zero efficiency improvement
+Candidate R,Decision A (Unconditional Robust Primary Recommendation),ROBUSTLY QUALIFIED & RECOMMENDED,5.85,1.88,2.55,4.57,13.92,1.681,"None. Fully compliant with one-sided 95% confidence limit, operable via standard DCS manual trim"

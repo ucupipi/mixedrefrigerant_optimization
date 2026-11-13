@@ -1,0 +1,104 @@
+{
+  "defect_1_mita_missing_composition": {
+    "source_file": "D:\\User\\Documents\\KULIAH\\LOMBA\\FINAL_FIX_OILWEEK\\ikms_2026\\clean_rebuild_v2\\final_output\\15_surrogate_models_evaluation.json",
+    "features_present": [
+      "feed_flow_th",
+      "opt_mche_mcr_th",
+      "c1_mol",
+      "t_amb_c"
+    ],
+    "missing_components": [
+      "N2",
+      "C2",
+      "C2H4",
+      "C3"
+    ],
+    "only_composition_feature": "c1_mol",
+    "feature_correlations": {
+      "feed_flow_th": 0.0256,
+      "opt_mche_mcr_th": -0.0052,
+      "c1_mol": -0.0925,
+      "t_amb_c": -0.7986
+    },
+    "dominant_feature": "t_amb_c",
+    "dominant_correlation": -0.7986,
+    "dominant_variance_share_pct": 98.57,
+    "monotonic_constraints": [
+      -1,
+      1,
+      0,
+      0
+    ],
+    "feed_flow_cst_contradicts_data": true,
+    "mcr_flow_cst_contradicts_data": true,
+    "root_cause": "The safety surrogate model 'mche_minimum_approach_mita' was trained without N2, C2, C2H4, and C3 features. It only sees C1 (methane). 80%+ of its correlation signal comes from ambient temperature (t_amb_c = -0.7986), which is an unmanipulated environmental disturbance. Furthermore, the monotonic constraints [-1, 1, 0, 0] force signs directly opposite to the empirical DoE correlations (+0.0256 and -0.0052). The surrogate cannot evaluate pinch changes resulting from adjusting C2, C3, or N2.",
+    "status": "CONFIRMED_FATAL_DEFECT",
+    "action": "REJECT surrogate model; require rigorous 100-slice PR-EOS pinch evaluation."
+  },
+  "defect_2_fixed_mita_7_169": {
+    "source_file": "D:\\User\\Documents\\KULIAH\\LOMBA\\FINAL_FIX_OILWEEK\\ikms_2026\\clean_rebuild_v2\\final_output\\18_optimal_mr_composition_recommendation.json",
+    "reported_mean_mita_C": 7.169,
+    "reported_min_mita_C": 7.169,
+    "is_mean_identically_equal_to_min": true,
+    "csv_evidence": [],
+    "physical_impossibility": "In a multi-stream LNG cryogenic heat exchanger (MCHE), pinch temperature approach is fundamentally load-dependent. Throughput changes from 140 t/h (P10) to 306 t/h (P90), shifting the hot composite curve (feed gas condensing + HP MCR condensing/subcooling) and cold composite curve (LP MCR boiling). Having mean_mita == min_mita == 7.169 \u00b0C with zero variance across all 100 quantiles proves that MITA was not calculated as an optimization result across the load points, but was hardcoded/broadcast as a static constant through the reporting layer.",
+    "status": "CONFIRMED_FATAL_DEFECT",
+    "action": "REJECT static 7.169 \u00b0C claim; compute load-dependent MITA(q) from 100-slice enthalpy curves."
+  },
+  "defect_3_steam_power_circularity": {
+    "source_file": "D:\\User\\Documents\\KULIAH\\LOMBA\\FINAL_FIX_OILWEEK\\ikms_2026\\clean_rebuild_v2\\final_output\\15_surrogate_models_evaluation.json",
+    "script_source": "D:\\User\\Documents\\KULIAH\\LOMBA\\FINAL_FIX_OILWEEK\\data\\MASTER_DATASET_REBUILD_20261014\\scripts\\08_enrich_physics_features.py",
+    "code_snippet": "Line 11: - total_compressor_power_steam_MW: Ground-truth via verified 4.04 t/MWh steam rate\nLine 48: STEAM_RATE_T_PER_MWH = 4.04      # verified condensate-meter anchor (R2 = 0.9989)\nLine 102: out[\"total_compressor_power_steam_MW\"] = out[\"total_steam_t_h\"] / STEAM_RATE_T_PER_MWH\nLine 105: (out[\"total_compressor_power_steam_MW\"] * 1000.0) / out[\"LNG_mass_flow_t_h\"],\nLine 415: \"total_compressor_power_steam_MW\", \"SEC_steam_kWh_per_t_LNG\",\n",
+    "model_name": "driver_steam_demand",
+    "r2_test": 0.9997,
+    "power_feature_correlation": 0.9999,
+    "tautology_explanation": "In 08_enrich_physics_features.py, shaft_power_total_c3mr_mw was constructed as: total_compressor_power_steam_MW = total_steam_t_h / 4.04. Then, the surrogate driver_steam_demand was trained to predict total_steam_t_h using shaft_power_total_c3mr_mw. The model achieved R2 = 0.9997 with correlation = 0.9999 solely because it learned the exact algebraic identity: steam = power * 4.04. DCS telemetry contains NO shaft torquemeter data. Validating the model against this column merely recovers the fixed factor 4.04.",
+    "status": "CONFIRMED_CIRCULAR_TAUTOLOGY",
+    "action": "REJECT steam/4.040 power definition; use OEM curve-derived shaft work from suction/discharge P, T, and flow."
+  },
+  "defect_4_envelope_violations_and_conflicts": {
+    "zero_surge_margin": {
+      "value_t_h": 0.0,
+      "violation": true,
+      "finding": "The candidate has surge margin = 0.0 t/h, meaning it sits directly on the surge trip line with zero safety buffer."
+    },
+    "three_conflicting_superheat_figures": {
+      "suction_superheat_margin_c": 34.35,
+      "tal_safety_margin_c": 2.92,
+      "narrative_superheat_buffer_c": 23.5,
+      "finding": "Three contradictory values reported for the same operating point: 34.35 \u00b0C vs 2.92 \u00b0C vs 23.5 \u00b0C."
+    },
+    "c3_envelope_extrapolation": {
+      "recommended_c3_mol_pct": 2.0061,
+      "historical_p05": 4.189510226427571,
+      "historical_median": 6.377969417430412,
+      "narrative_claim_c3": 6.73,
+      "narrative_vs_data_mismatch_pct": -70.19,
+      "finding": "Recommended C3 = 2.0061 mol% is far below historical 5th percentile (4.189510226427571 mol%). The engineering rationale narrative claims C3 = 6.73 mol%, a -70.2% discrepancy against the shipped JSON (2.0061 mol%)."
+    },
+    "mahalanobis_boundary_hugging": {
+      "dm_recomputed": 3.0762,
+      "chi2_critical_threshold": 3.080216,
+      "ellipsoid_utilization_pct": 99.87,
+      "margin_to_boundary": 0.004,
+      "finding": "D_M = 3.0762 is at 99.87% of the 95% confidence ellipsoid (within 0.0040 of the boundary), indicating boundary-hugging."
+    },
+    "conflicting_power_decomposition": {
+      "source_1_clean_v2_json": {
+        "total_mw": 14.805,
+        "mcr_direct_mw": 13.251,
+        "c3_precool_mw": 1.554,
+        "c3_share_pct": 10.49
+      },
+      "source_2_legacy_expansion": {
+        "total_mw": 28.98,
+        "mcr_direct_mw": 10.83,
+        "c3_precool_mw": 18.15,
+        "c3_share_pct": 62.63
+      },
+      "finding": "The two reports invert the physical saving mechanism: Clean v2 claims C3 is only 10.49% of savings (MCR dominates at 89.5%), while legacy methodology claims C3 is 62.6% of savings (C3 dominates at 62.6%)."
+    },
+    "status": "CONFIRMED_MULTIPLE_FATAL_CONTRADICTIONS",
+    "action": "REJECT candidate composition and power decompositions; enforce strict interior bounds and thermodynamic consistency."
+  }
+}

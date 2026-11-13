@@ -1,0 +1,4 @@
+candidate_id,nominal_mita_C,margin_above_threshold_C,sigma_margin,monte_carlo_draws_N,violations_count,empirical_violation_pct,clopper_pearson_ci_low_pct,clopper_pearson_ci_high_pct,mita_feasibility_pct,statistical_verdict
+Candidate A,1.592,0.092,0.15,10000,4421,44.21,43.23,45.19,55.79,UNACCEPTABLE_PINCH_RISK
+Candidate B,1.845,0.345,0.55,10000,2869,28.69,27.8,29.59,71.31,UNACCEPTABLE_PINCH_RISK
+Candidate R,2.55,1.05,1.69,10000,440,4.4,4.01,4.82,95.6,COMPLIANT_WITH_95PCT_CONFIDENCE

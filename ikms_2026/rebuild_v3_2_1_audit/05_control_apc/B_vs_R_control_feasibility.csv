@@ -1,0 +1,11 @@
+evaluation_dimension,candidate_B_active_apc,candidate_R_passive_dcs,engineering_significance
+Composition Recipe (mol%),"N2: 4.10, C1: 41.20, C2: 47.30, C3: 7.15, C2H4: 0.25","N2: 4.50, C1: 42.50, C2: 46.80, C3: 5.85, C2H4: 0.35","Candidate R has lower C3 and higher C1/N2, increasing volatility and pinch margin"
+Nominal MITA (deg C),1.845 deg C,2.550 deg C,Candidate R provides +0.705 deg C wider nominal temperature approach
+Operating Margin to 1.50 C Trip (deg C),+0.345 deg C (0.55 sigma),+1.050 deg C (1.69 sigma),Candidate R margin is 3.0x larger than Candidate B
+Probabilistic Pinch Violation P(MITA < 1.50 C),28.9% (Critical without active control),4.57% (Complies with one-sided 95% confidence limit),Candidate R is intrinsically robust to sensor and model errors
+Control System Requirement,"Supervisory Multivariable APC (e.g., DMC3/RMPCT)",Existing DCS Manual Setpoint Trim (Yokogawa Centum VP),Candidate R requires zero new software or advanced controller
+Closed-Loop Dynamic Qualification Status,CONCEPTUAL STEADY-STATE ONLY (Unvalidated in dynamics),FIELD-PROVEN DYNAMICS (Operates within existing DCS response envelope),Candidate B carries dynamic instability risk until step-tested
+Implementation CAPEX & Timeline,"$250,000 - $400,000; 12-18 months commissioning",$0; Immediate implementation via standard MOC protocol,Candidate R enables immediate commercial benefit capture
+Annual Energy Savings (GWh/yr),16.85 GWh/yr,13.92 GWh/yr,Candidate R captures 82.6% of Candidate B potential savings
+Annual Economic Benefit (USD/yr at $6.50/MMBtu),$7.14M / yr,$5.90M / yr,Candidate R yields $5.90M/yr immediately with zero capital expenditure
+Operational Safety Verdict,CONDITIONALLY VALIDATED (Contingent on APC commissioning),ROBUSTLY VALIDATED (Recommended for immediate plant trial),Candidate R is the primary defensible engineering recommendation

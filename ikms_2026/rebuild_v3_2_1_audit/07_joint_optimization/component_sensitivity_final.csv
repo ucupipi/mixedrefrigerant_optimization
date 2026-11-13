@@ -1,0 +1,21 @@
+perturbed_component,perturbation_delta_mol_pct,perturbed_mol_pct,mahalanobis_distance,dm_compliant,total_shaft_power_MW,propane_power_MW,mcr_power_MW,mita_degC,prob_pinch_violation_pct,physical_impact_summary
+N2,-2.0,2.1,2.97,True,89.435,40.135,51.382,1.397,56.6,Higher N2 shifts warm-end approach and alters molecular weight
+N2,-1.0,3.1,1.758,True,89.573,38.429,51.19,1.402,56.2,Higher N2 shifts warm-end approach and alters molecular weight
+N2,1.0,5.1,2.771,True,89.269,38.312,51.127,1.502,49.9,Higher N2 shifts warm-end approach and alters molecular weight
+N2,2.0,6.1,3.57,False,89.284,38.389,51.16,1.56,46.1,Higher N2 shifts warm-end approach and alters molecular weight
+C1,-2.0,39.2,2.834,True,89.165,38.811,50.39,1.46,52.6,Higher C1 shifts warm-end approach and alters molecular weight
+C1,-1.0,40.2,2.412,True,89.332,38.734,50.559,1.478,51.4,Higher C1 shifts warm-end approach and alters molecular weight
+C1,1.0,42.2,1.583,True,89.512,38.464,51.015,1.482,51.1,Higher C1 shifts warm-end approach and alters molecular weight
+C1,2.0,43.2,1.177,True,89.605,38.317,51.535,1.485,50.9,Higher C1 shifts warm-end approach and alters molecular weight
+C2,-2.0,45.3,1.476,True,89.394,38.559,51.254,1.453,53.0,Higher C2 shifts warm-end approach and alters molecular weight
+C2,-1.0,46.3,1.724,True,89.406,38.526,51.018,1.478,51.4,Higher C2 shifts warm-end approach and alters molecular weight
+C2,1.0,48.3,2.282,True,89.312,38.666,50.694,1.482,51.2,Higher C2 shifts warm-end approach and alters molecular weight
+C2,2.0,49.3,2.579,True,89.189,38.658,50.588,1.483,51.1,Higher C2 shifts warm-end approach and alters molecular weight
+C3,-2.0,5.15,1.948,True,89.381,38.181,51.658,1.647,40.6,Higher C3 shifts warm-end approach and alters molecular weight
+C3,-1.0,6.15,1.95,True,89.375,38.552,51.047,1.535,47.8,Higher C3 shifts warm-end approach and alters molecular weight
+C3,1.0,8.15,2.067,True,89.451,38.656,50.397,1.398,56.5,Higher C3 shifts warm-end approach and alters molecular weight
+C3,2.0,9.15,2.154,True,89.538,40.989,49.899,1.349,59.6,Higher C3 shifts warm-end approach and alters molecular weight
+C2H4,-2.0,0.1,1.952,True,89.366,38.623,50.652,1.478,51.4,Higher C2H4 shifts warm-end approach and alters molecular weight
+C2H4,-1.0,0.1,1.952,True,89.366,38.623,50.652,1.478,51.4,Higher C2H4 shifts warm-end approach and alters molecular weight
+C2H4,1.0,1.25,2.094,True,89.413,38.441,50.717,1.478,51.4,Higher C2H4 shifts warm-end approach and alters molecular weight
+C2H4,2.0,2.25,2.137,True,89.461,38.409,50.736,1.467,52.1,Higher C2H4 shifts warm-end approach and alters molecular weight

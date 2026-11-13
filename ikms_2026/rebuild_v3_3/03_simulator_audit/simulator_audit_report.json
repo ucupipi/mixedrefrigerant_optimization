@@ -1,0 +1,76 @@
+{
+  "model_specification": {
+    "simulator": "Aspen HYSYS V12.1",
+    "property_package": "Peng-Robinson Equation of State (PR-EOS)",
+    "eos": "Peng-Robinson (1976)",
+    "binary_interaction_parameters": "HYSYS DEFAULT (NOT INDEPENDENTLY VERIFIED)",
+    "components": [
+      "Nitrogen (N2)",
+      "Methane (C1)",
+      "Ethane (C2)",
+      "Ethylene (C2H4)",
+      "Propane (C3)",
+      "i-Butane (iC4)",
+      "n-Butane (nC4)",
+      "i-Pentane (iC5)"
+    ],
+    "flow_basis": "DCS telemetry Train H, 2024-2026",
+    "primary_cases": [
+      {
+        "filename": "C3MR.hsc",
+        "description": "Base C3MR Train H flowsheet: 3-stage propane precooling + MCR cycle",
+        "feed_pressure_kgcm2g": 41.2,
+        "mche_inlet_temp_C": -33.0
+      },
+      {
+        "filename": "MACHINELEARNINGMCR4E40ADDED_R47A3B_WORKING.hsc",
+        "description": "Enhanced model with 4E-40 subcooler, 4UV-53 kickback, 4TV-510 reheat"
+      }
+    ],
+    "validation_cases_count": 15,
+    "validation_quantiles": [
+      "P10",
+      "P25",
+      "P40",
+      "P50",
+      "P60",
+      "P75",
+      "P90"
+    ],
+    "convergence_status": "UNKNOWN \u2014 REQUIRES HYSYS RUNTIME TO VERIFY",
+    "material_balance_closure": "UNKNOWN \u2014 REQUIRES HYSYS RUNTIME TO VERIFY",
+    "energy_balance_closure": "UNKNOWN \u2014 REQUIRES HYSYS RUNTIME TO VERIFY",
+    "equipment_models": {
+      "MCHE_5E1": "LNG Multi-Stream Heat Exchanger",
+      "4K-1": "Centrifugal Compressor (3-section, Propane)",
+      "4K-2": "Centrifugal Compressor (single casing, MCR LP)",
+      "4K-3": "Centrifugal Compressor (single casing, MCR HP)",
+      "4KT-1": "Steam Turbine Driver (C3 compressor)",
+      "4KT-2": "Steam Turbine Driver (MCR LP)",
+      "4KT-3": "Steam Turbine Driver (MCR HP)",
+      "4E-40": "Heavy MCR Subcooler"
+    },
+    "stream_boundaries": {
+      "feed_gas": "From Scrub Column 3C-1 overhead",
+      "lng_product": "MCHE 5E-1 cold end rundown",
+      "mcr_circuit": "Closed loop: 4K-2 \u2192 4K-3 \u2192 aftercooler \u2192 MCHE \u2192 separator \u2192 4K-2",
+      "c3_circuit": "Closed loop: 4K-1 \u2192 condensers \u2192 chillers \u2192 4K-1",
+      "steam": "HP header 60 barg / 440\u00b0C \u2192 turbines \u2192 surface condenser 0.12 bara"
+    },
+    "control_assumptions": "UNKNOWN \u2014 REQUIRES CASE FILE INSPECTION IN HYSYS"
+  },
+  "execution_assessment": {
+    "hysys_com_automation": true,
+    "hysys_com_check_result": "HYSYS COM SERVER ACCESSIBLE",
+    "can_execute_physical_doe": true,
+    "can_verify_convergence": true,
+    "can_extract_composite_curves": true,
+    "can_read_stream_results": true,
+    "alternative_without_hysys": "CoolProp PR-EOS can compute single-phase and two-phase properties for pure components and simple mixtures. However, it CANNOT replicate the full Aspen HYSYS flowsheet (multi-stream heat exchanger rating, compressor characteristic map matching, recycle convergence, or coupled separator-MCHE-compressor loop). CoolProp-based DoE would be a REDUCED-FIDELITY SURROGATE, not a physical simulator replacement.",
+    "blocker_if_no_hysys": "Without HYSYS COM automation, Priority 7 (Physical DoE) and Priority 8 (True Joint Optimization) CANNOT produce genuine physical simulator results. The optimization must be reported as BLOCKED PENDING HYSYS RUNTIME."
+  },
+  "hsc_file_count": 186,
+  "primary_model_count": 2,
+  "validation_case_count": 15,
+  "working_copy_count": 132
+}

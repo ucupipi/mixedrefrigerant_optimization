@@ -1,0 +1,6 @@
+candidate_id,label,propane_4K1_savings_GWh,mcr_lp_4K2_savings_GWh,mcr_hp_4K3_savings_GWh,mcr_total_savings_GWh,total_c3mr_savings_GWh,closure_error_GWh,c3_share_pct,mcr_share_pct,closure_status
+Candidate A,Rebuild v3 Optimizer Boundary,6.77,5.95,7.34,13.29,20.06,0.0,33.75,66.25,EXACT (Unclipped Zero Error)
+Candidate B,Balanced Industrial Operating Point,5.69,5.0,6.16,11.16,16.85,0.0,33.77,66.23,EXACT (Unclipped Zero Error)
+Candidate C,Conservative Interior Point,4.52,3.98,4.9,8.88,13.4,0.0,33.73,66.27,EXACT (Unclipped Zero Error)
+Candidate D,Historical Plant Baseline,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,EXACT (Unclipped Zero Error)
+Candidate R,Robust Feasible Benchmark (P_viol <= 5%),4.7,4.13,5.09,9.22,13.92,0.0,33.76,66.24,EXACT (Unclipped Zero Error)

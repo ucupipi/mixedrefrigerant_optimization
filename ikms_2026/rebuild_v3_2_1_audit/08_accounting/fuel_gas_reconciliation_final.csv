@@ -1,0 +1,6 @@
+candidate_id,label,power_savings_GWh,motive_steam_savings_kton_yr,fuel_gas_asme_MNm3_yr,fuel_gas_field_MNm3_yr,sfc_asme_Nm3_t,sfc_field_Nm3_t,fuel_gas_lhv_MJ_Nm3
+Candidate A,Rebuild v3 Optimizer Boundary,20.06,84.11,8.218,6.709,97.7,79.76,36.24
+Candidate B,Balanced Industrial Operating Point,16.85,70.65,6.903,5.635,97.7,79.76,36.24
+Candidate C,Conservative Interior Point,13.4,56.19,5.489,4.481,97.7,79.76,36.24
+Candidate D,Historical Plant Baseline,0.0,0.0,0.0,0.0,97.7,79.76,36.24
+Candidate R,Robust Feasible Benchmark (P_viol <= 5%),13.92,58.37,5.702,4.655,97.7,79.76,36.24

@@ -1,0 +1,16 @@
+{
+  "n_checks": 40,
+  "by_class": {
+    "CONDITIONAL": 16,
+    "UNSUPPORTED": 15,
+    "VALIDATED": 7,
+    "UNRESOLVED": 2
+  },
+  "embedded_steam_rate_constant": 4.040039278213429,
+  "implied_eta_s": 0.7814499906180982,
+  "ideal_steam_rate": 3.1570886560566325,
+  "turbine_bins": 61,
+  "in_domain_bins": 20,
+  "doe_synthetic": true,
+  "interaction_hardcoded": true
+}

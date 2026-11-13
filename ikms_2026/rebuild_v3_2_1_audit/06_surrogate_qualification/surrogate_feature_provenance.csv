@@ -1,0 +1,7 @@
+feature_name,description,units,lower_bound,upper_bound,data_provenance,monotonicity_expectation
+feed_gas_flow_t_h,Natural gas feed flow rate to Train H,t/h,250.0,620.0,DCS Tag H4FI001 / Book1.csv feed header telemetry,Positive monotonic correlation with refrigeration duty and power
+mcr_flow_t_h,Total mixed refrigerant mass circulation rate to MCHE,t/h,330.0,650.0,DCS Tag H4FI029A/030A sum & 4FIC001,Positive monotonic correlation with compressor power and hydraulic dP
+z1,First Aitchison ILR coordinate: log-ratio of N2 vs C1,dimensionless,-2.85,-1.2,OverallComposition_2023_2024.xlsx GC analysis (z = Psi * clr(x)),Non-linear thermodynamic interaction with cold-end bubble point
+z2,"Second Aitchison ILR coordinate: log-ratio of (N2, C1) vs C2",dimensionless,-0.85,0.45,OverallComposition_2023_2024.xlsx GC analysis,Non-linear thermodynamic interaction with intermediate condensation
+z3,"Third Aitchison ILR coordinate: log-ratio of (N2, C1, C2) vs C3",dimensionless,0.15,1.65,OverallComposition_2023_2024.xlsx GC analysis,Directly governs warm bundle pre-cooling capacity and MITA location
+z4,"Fourth Aitchison ILR coordinate: log-ratio of (N2, C1, C2, C3) vs C2H4",dimensionless,1.8,4.5,OverallComposition_2023_2024.xlsx GC analysis,Fine tuning of ethylene fraction on mid-bundle heat capacity

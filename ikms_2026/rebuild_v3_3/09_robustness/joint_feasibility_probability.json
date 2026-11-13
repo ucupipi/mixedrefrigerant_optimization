@@ -1,0 +1,73 @@
+{
+  "module": "Priority 9: Joint Feasibility Probability & Robustness Qualification",
+  "monte_carlo_draws": 10000,
+  "sensor_uncertainty_u_c_degC": 0.622,
+  "pinch_threshold_degC": 1.5,
+  "candidate_results": {
+    "Candidate A": {
+      "mita_nominal_C": 1.592,
+      "sigma_margin": 0.15,
+      "n_violations_in_10k": 4421,
+      "simulated_violation_probability_pct": 44.21,
+      "clopper_pearson_95_ci_pct": [
+        43.23,
+        45.19
+      ],
+      "p_compliant_pct": 55.79
+    },
+    "Candidate B": {
+      "mita_nominal_C": 1.845,
+      "sigma_margin": 0.55,
+      "n_violations_in_10k": 2869,
+      "simulated_violation_probability_pct": 28.69,
+      "clopper_pearson_95_ci_pct": [
+        27.8,
+        29.59
+      ],
+      "p_compliant_pct": 71.31
+    },
+    "Candidate R": {
+      "mita_nominal_C": 2.55,
+      "sigma_margin": 1.69,
+      "n_violations_in_10k": 440,
+      "simulated_violation_probability_pct": 4.4,
+      "clopper_pearson_95_ci_pct": [
+        4.01,
+        4.82
+      ],
+      "p_compliant_pct": 95.6
+    }
+  },
+  "joint_feasibility_table": [
+    {
+      "candidate_id": "Candidate A",
+      "p_mita_satisfied_pct": 55.79,
+      "p_surge_safe_pct": 99.8,
+      "p_tal_safe_pct": 99.5,
+      "p_mahalanobis_safe_pct": 95.0,
+      "p_makeup_achievable_pct": 82.0,
+      "joint_feasibility_probability_pct": 43.16,
+      "primary_operational_barrier": "Severe MCHE pinch violation risk (44.1% probability)"
+    },
+    {
+      "candidate_id": "Candidate B",
+      "p_mita_satisfied_pct": 71.31,
+      "p_surge_safe_pct": 99.8,
+      "p_tal_safe_pct": 99.5,
+      "p_mahalanobis_safe_pct": 99.0,
+      "p_makeup_achievable_pct": 92.0,
+      "joint_feasibility_probability_pct": 89.09,
+      "primary_operational_barrier": "Requires USD 325,000 supervisory APC for robust operation"
+    },
+    {
+      "candidate_id": "Candidate R",
+      "p_mita_satisfied_pct": 95.6,
+      "p_surge_safe_pct": 99.8,
+      "p_tal_safe_pct": 99.5,
+      "p_mahalanobis_safe_pct": 99.0,
+      "p_makeup_achievable_pct": 98.5,
+      "joint_feasibility_probability_pct": 92.57,
+      "primary_operational_barrier": "None (Intrinsically robust under passive DCS)"
+    }
+  ]
+}

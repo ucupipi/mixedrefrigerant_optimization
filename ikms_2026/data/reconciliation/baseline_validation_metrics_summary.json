@@ -1,0 +1,178 @@
+{
+  "summary_title": "PT Badak NGL Train H C3MR Baseline Validation Performance (P1-P100)",
+  "overall_metrics": [
+    {
+      "variable": "Total Driver Steam",
+      "unit": "t/h",
+      "mean_actual": 404.2,
+      "MAE": 2.087,
+      "RMSE": 2.588,
+      "MBE": -0.045,
+      "Max_Abs_Error": 6.62,
+      "NMAE_pct": 0.52,
+      "R2": 0.9978
+    },
+    {
+      "variable": "Compressor Shaft Power",
+      "unit": "MW",
+      "mean_actual": 100.05,
+      "MAE": 0.517,
+      "RMSE": 0.641,
+      "MBE": -0.01,
+      "Max_Abs_Error": 1.64,
+      "NMAE_pct": 0.52,
+      "R2": 0.9978
+    },
+    {
+      "variable": "4C-7 Suction Temperature",
+      "unit": "\u00b0C",
+      "mean_actual": -35.42,
+      "MAE": 0.297,
+      "RMSE": 0.444,
+      "MBE": -0.04,
+      "Max_Abs_Error": 2.3,
+      "NMAE_pct": -0.84,
+      "R2": 0.996
+    },
+    {
+      "variable": "4KT-1 Propane Turbine Steam",
+      "unit": "t/h",
+      "mean_actual": 152.99,
+      "MAE": 1.48,
+      "RMSE": 1.832,
+      "MBE": -0.041,
+      "Max_Abs_Error": 5.09,
+      "NMAE_pct": 0.97,
+      "R2": 0.7899
+    },
+    {
+      "variable": "4KT-2 MCR LP Turbine Steam",
+      "unit": "t/h",
+      "mean_actual": 101.08,
+      "MAE": 0.936,
+      "RMSE": 1.206,
+      "MBE": -0.101,
+      "Max_Abs_Error": 4.14,
+      "NMAE_pct": 0.93,
+      "R2": 0.9432
+    },
+    {
+      "variable": "4KT-3 MCR HP Turbine Steam",
+      "unit": "t/h",
+      "mean_actual": 107.28,
+      "MAE": 0.932,
+      "RMSE": 1.128,
+      "MBE": -0.292,
+      "Max_Abs_Error": 3.28,
+      "NMAE_pct": 0.87,
+      "R2": 0.9372
+    }
+  ],
+  "regime_segmented_metrics": {
+    "Turndown_P1_P30": {
+      "Total_Driver_Steam": {
+        "variable": "Total Driver Steam",
+        "unit": "t/h",
+        "mean_actual": 354.34,
+        "MAE": 2.037,
+        "RMSE": 2.699,
+        "MBE": -0.024,
+        "Max_Abs_Error": 6.04,
+        "NMAE_pct": 0.57,
+        "R2": 0.6921
+      },
+      "Compressor_Shaft_Power_MW": {
+        "variable": "Compressor Shaft Power",
+        "unit": "MW",
+        "mean_actual": 87.71,
+        "MAE": 0.505,
+        "RMSE": 0.669,
+        "MBE": -0.006,
+        "Max_Abs_Error": 1.49,
+        "NMAE_pct": 0.58,
+        "R2": 0.6917
+      },
+      "Suction_Temperature_C": {
+        "variable": "Suction Temperature",
+        "unit": "\u00b0C",
+        "mean_actual": -26.48,
+        "MAE": 0.412,
+        "RMSE": 0.63,
+        "MBE": -0.106,
+        "Max_Abs_Error": 2.3,
+        "NMAE_pct": -1.55,
+        "R2": 0.9862
+      }
+    },
+    "Intermediate_P31_P70": {
+      "Total_Driver_Steam": {
+        "variable": "Total Driver Steam",
+        "unit": "t/h",
+        "mean_actual": 388.15,
+        "MAE": 2.387,
+        "RMSE": 2.808,
+        "MBE": -0.238,
+        "Max_Abs_Error": 6.62,
+        "NMAE_pct": 0.61,
+        "R2": 0.995
+      },
+      "Compressor_Shaft_Power_MW": {
+        "variable": "Compressor Shaft Power",
+        "unit": "MW",
+        "mean_actual": 96.07,
+        "MAE": 0.59,
+        "RMSE": 0.695,
+        "MBE": -0.057,
+        "Max_Abs_Error": 1.64,
+        "NMAE_pct": 0.61,
+        "R2": 0.995
+      },
+      "Suction_Temperature_C": {
+        "variable": "Suction Temperature",
+        "unit": "\u00b0C",
+        "mean_actual": -37.71,
+        "MAE": 0.252,
+        "RMSE": 0.355,
+        "MBE": -0.05,
+        "Max_Abs_Error": 1.03,
+        "NMAE_pct": -0.67,
+        "R2": 0.9881
+      }
+    },
+    "Baseload_P71_P100": {
+      "Total_Driver_Steam": {
+        "variable": "Total Driver Steam",
+        "unit": "t/h",
+        "mean_actual": 475.47,
+        "MAE": 1.736,
+        "RMSE": 2.128,
+        "MBE": 0.191,
+        "Max_Abs_Error": 5.01,
+        "NMAE_pct": 0.37,
+        "R2": 0.9859
+      },
+      "Compressor_Shaft_Power_MW": {
+        "variable": "Compressor Shaft Power",
+        "unit": "MW",
+        "mean_actual": 117.69,
+        "MAE": 0.43,
+        "RMSE": 0.527,
+        "MBE": 0.047,
+        "Max_Abs_Error": 1.24,
+        "NMAE_pct": 0.37,
+        "R2": 0.9858
+      },
+      "Suction_Temperature_C": {
+        "variable": "Suction Temperature",
+        "unit": "\u00b0C",
+        "mean_actual": -41.3,
+        "MAE": 0.241,
+        "RMSE": 0.305,
+        "MBE": 0.041,
+        "Max_Abs_Error": 0.75,
+        "NMAE_pct": -0.58,
+        "R2": 0.6416
+      }
+    }
+  }
+}

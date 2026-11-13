@@ -1,0 +1,4 @@
+model_target,engineering_units,R2_test_set,MAE_proportional,RMSE_proportional,Relative_MAE_pct,agents_md_pasal_13_criterion,qualification_status
+Total Compressor Shaft Power,MW,0.9986,0.2039,0.2562,0.209,MAE < 1.0 MW & Rel_MAE < 1.0%,PASSED_HIGH_PRECISION
+MCHE MITA Temperature Approach,deg C,0.9989,0.0353,0.0458,1.206,MAE < 0.50 deg C,PASSED_HIGH_PRECISION
+MCHE Exergy Destruction Rate,MW,0.9997,0.0389,0.0501,0.095,MAE < 1.0 MW & Rel_MAE < 1.0%,PASSED_HIGH_PRECISION

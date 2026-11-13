@@ -1,0 +1,6 @@
+candidate_id,delta_mita_vs_baseline_C,delta_c3_vs_baseline_pct,delta_savings_vs_baseline_GWh,relative_risk_ratio
+Candidate A,-0.588,4.92,20.06,3.22
+Candidate B,-0.335,2.07,16.85,2.11
+Candidate C,-0.1,1.12,13.4,1.28
+Candidate D,0.0,0.0,0.0,1.0
+Candidate R,0.37,0.77,13.92,0.33

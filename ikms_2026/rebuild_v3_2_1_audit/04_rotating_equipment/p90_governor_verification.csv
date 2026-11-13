@@ -1,0 +1,4 @@
+component,rated_shaft_power_MW,p90_operating_power_MW,power_headroom_MW,governor_valve_tag,governor_valve_stroke_p90_pct,governor_saturation_threshold_pct,governor_headroom_pct,aerodynamic_compressor_choke_flow_t_h,p90_compressor_mass_flow_t_h,choke_headroom_flow_t_h,choke_headroom_margin_pct,true_p90_bottleneck,prior_mischaracterization
+4HKT-3 High-Pressure MCR Turbine Driver,39.0,34.8,4.2,4HKT-3-CV,94.5,95.0,5.5,775.0,580.0,195.0,33.6,STEAM TURBINE GOVERNOR VALVE STROKE (94.5% saturation),COMPRESSOR AERODYNAMIC CHOKE (Proven false; choke has 33.6% margin)
+4HKT-2 Low-Pressure MCR Turbine Driver,34.0,28.6,5.4,4HKT-2-CV,84.2,95.0,15.8,775.0,580.0,195.0,33.6,None (Operates within continuous design envelope),N/A
+4HKT-1 Propane Turbine Driver,38.5,34.1,4.4,4HKT-1-CV,88.5,95.0,11.5,680.0,465.0,215.0,31.6,None (Operates within continuous design envelope),N/A

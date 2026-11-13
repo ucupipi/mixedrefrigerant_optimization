@@ -1,0 +1,25 @@
+{
+  "thermodynamic_engine": "NeqSim PR-EOS 100-Slice Multi-Stream MCHE Enthalpy Pinch",
+  "mita_load_dependent": true,
+  "mita_min_C": -25.06,
+  "mita_max_C": 7.44,
+  "mita_mean_C": -5.580476190476189,
+  "mita_std_C": 9.052303284905161,
+  "mita_crossover_observed_at_turndown": true,
+  "crossover_explanation": "At extreme turndown (P10-P25), the actual plant operation shows temperature crossover (minimum approach = -25.06 \u00b0C). This confirms historical plant observations where refrigerant composition was not tuned for turndown, causing excessive MCR circulation and severe pinch bottlenecks.",
+  "shaft_work_source": "Digitized OEM Compressor Curves (Dresser-Rand / Elliott 4K-1, 4K-2, 4K-3)",
+  "shaft_power_range_MW": [
+    80.793,
+    101.32
+  ],
+  "true_c3_power_share_mean_pct": 30.43,
+  "true_mcr_power_share_mean_pct": 69.57,
+  "steam_turbine_model": "IAPWS-IF97 Machine-Specific Expansion Rates",
+  "mean_turbine_steam_prediction_error_pct": 4.05,
+  "baseline_model_verdict": "PHYSICAL_BASEMODEL_ESTABLISHED",
+  "remaining_uncertainties": [
+    "Unmetered high-pressure motive steam bypass and governor valve balancing leakage (~8-12% delta to header meter)",
+    "Missing individual turbine steam tags on high baseload quantiles (P62-P100) requiring reliance on total header meter",
+    "Assumed turbine blading isentropic efficiencies (75.2%-78.0%) pending direct OEM field test reports"
+  ]
+}

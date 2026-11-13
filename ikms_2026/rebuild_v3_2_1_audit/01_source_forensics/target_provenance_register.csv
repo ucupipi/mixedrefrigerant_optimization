@@ -1,0 +1,8 @@
+target_variable,domain,units,source_data_type,sensor_tags,validation_status,uncertainty
+W_shaft_MCR (4K-2/3),Compressor Power,MW,DCS Telemetry & ASME PTC 6 Isentropic Expansion,"H4FI029A, H4FI030A, H4PI008, H4PI013, H4TI004B, H4TI016",VALIDATED,"0.179 MW (MAE < 1.0 MW, Relative MAE 0.42%)"
+W_shaft_C3 (4K-1),Compressor Power,MW,DCS Telemetry & Condensate Flow Balance,"H4FI031A (condensate discharge), 3E-14/17/18 chillers",VALIDATED,"0.142 MW (MAE < 1.0 MW, Relative MAE 0.48%)"
+MITA (Minimum Internal Temperature Approach),MCHE Heat Transfer,deg C,PR-EOS 100-slice rigorous simulation,"H4TI004B, H4TI016, H4TI001, H4TI008",VALIDATED (Deterministic EOS),u_c = 0.622 deg C (expanded U_95 = 1.219 deg C)
+E_dest_MCHE (Exergy Destruction),Thermodynamic Irreversibility,MW,Gouy-Stodola Riemann Sum over PR-EOS slices,Calculated property,VALIDATED (Deterministic EOS),"0.062 MW (MAE < 1.0 MW, Relative MAE 0.58%)"
+Motive Steam Consumption,Utility Steam Balance,tonnes/year,Turbine Specific Steam Rates x Shaft Work,"H4FI029A, H4FI030A, H4FI031A (condensate proxy)",VALIDATED (Machine-specific IF97),Aggregate steam rate = 4.193 +/- 0.045 t/MWh
+Boiler Fuel Gas Demand,Boiler Fuel Accounting,Nm3/year,ASME PTC 4.1 & DCS Field SFC,Boiler fuel header chromatographs & steam production logs,"VALIDATED (Dual SFC: ASME 97.70, Field 79.76 Nm3/t)",+/- 1.5% fuel gas volumetric balance
+CO2 Emissions,Environmental Accounting,tonnes CO2/year,IPCC 2006 Fuel Gas Stoichiometric Combustion,"Fuel gas composition (2,531 GC records)",VALIDATED,EF = 1.954 kg CO2 / Nm3 fuel gas

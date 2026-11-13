@@ -3,8 +3,8 @@ def write_markdown_paper(OUTPUT_MD, abs_id, abs_en, p1, p2, p3, p4, p_met1, p_me
     sections = []
     sections.append("# Optimasi Komposisi dan Laju Sirkulasi Mixed Refrigerant Berbasis Machine Learning untuk Efisiensi Energi Kilang Badak LNG\n")
     sections.append("**Bilqiis Dara Ramadhan Sasongko¹*, Mukhammad Yusuf Iqbal¹, Hizkia Dhiego Gurning¹, Afdal Elang Arifin¹**  \n¹Jurusan Teknik Mesin, Politeknik Negeri Jakarta, Jl. Prof. DR. G.A. Siwabessy, Kukusan, Kec. Beji, Kota Depok, Jawa Barat 16425, Indonesia  \n*Penulis korespondensi: bilqiiisdara@gmail.com  \n\n---")
-    sections.append(f"### Abstrak\n{abs_id}\n\n**Kata kunci:** Efisiensi energi spesifik, lean feed gas, liquefied natural gas, machine learning, optimasi mixed refrigerant\n\n---")
-    sections.append(f"### Abstract\n{abs_en}\n\n**Keywords:** Energy efficiency, lean feed gas, liquefied natural gas, machine learning, mixed refrigerant optimization\n\n---")
+    sections.append(f"### Abstrak\n{abs_id}\n\n**Kata kunci:** C3MR, dekarbonisasi, efisiensi energi spesifik, lean feed gas, machine learning, optimasi mixed refrigerant\n\n---")
+    sections.append(f"### Abstract\n{abs_en}\n\n**Keywords:** C3MR, decarbonization, energy efficiency, lean feed gas, machine learning, mixed refrigerant optimization\n\n---")
     
     sections.append("## PENDAHULUAN\n")
     sections.append(p1 + "\n")
@@ -46,17 +46,17 @@ def write_markdown_paper(OUTPUT_MD, abs_id, abs_en, p1, p2, p3, p4, p_met1, p_me
     
     t1_md = """#### Tabel 1. Parameter Baseline Operasional Train H Kilang Badak LNG Melintasi Spektrum Beban Operasi Aktual
 
-| Parameter Operasi | Satuan | 141 t/jam | 167 t/jam | 195 t/jam | 218 t/jam | 248 t/jam | 280 t/jam | 308 t/jam |
+| Parameter Operasi | Satuan | P1 (Turndown) | P10 | P25 | P50 (Median) | P75 | P90 | P100 (Puncak) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| Laju Gas Umpan Mentah | kNm³/jam | 228,39 | 269,72 | 315,57 | 352,30 | 415,72 | 453,26 | 479,33 |
-| Laju Gas Terolah | t/jam | 185,82 | 219,45 | 256,75 | 286,63 | 325,91 | 367,96 | 399,74 |
-| Laju Produksi LNG | t/jam | 141,22 | 166,78 | 195,13 | 217,84 | 247,69 | 279,65 | 308,30 |
-| Laju Sirkulasi MCR | t/jam | 504,0 | 507,8 | 508,4 | 534,8 | 546,5 | 662,5 | 681,4 |
-| Rasio MCR / LNG | kg/kg | 3,569 | 2,956 | 2,522 | 2,369 | 2,182 | 2,283 | 2,210 |
-| Laju Uap Turbin Penggerak | t/jam | 355,29 | 361,69 | 363,10 | 376,79 | 412,61 | 465,63 | 484,74 |
-| Konsumsi Energi Spesifik (SEC) | kWh/t LNG | 523,00 | 453,17 | 421,96 | 384,58 | 373,68 | 372,97 | 350,49 |
-| Jam Operasi per Tahun | jam/thn | 13,6 | 5,0 | 38,5 | 130,7 | 112,1 | 329,1 | 7.220,9 |
-| Proporsi Durasi Beban | % | 0,17% | 0,06% | 0,49% | 1,67% | 1,43% | 4,19% | 91,99% |
+| Laju Gas Umpan Mentah (H1FI0009) | kNm³/jam | 342,55 | 430,90 | 447,29 | 459,80 | 479,65 | 500,76 | 509,02 |
+| Laju Gas Umpan Mentah | ton/jam | 258,41 | 325,05 | 337,41 | 346,85 | 361,82 | 377,75 | 383,98 |
+| Laju Gas Terolah (H3FI0004) | kNm³/jam | 273,56 | 354,67 | 364,57 | 378,58 | 393,13 | 400,99 | 409,39 |
+| Laju Produksi LNG Estimasi | ton/jam | 194,84 | 245,09 | 254,41 | 261,53 | 272,82 | 284,82 | 289,52 |
+| Laju Sirkulasi MCR Baseline | ton/jam | 514,18 | 648,25 | 662,75 | 675,07 | 680,05 | 687,06 | 691,80 |
+| Rasio MCR / Gas Umpan | kg/kg | 1,990 | 1,994 | 1,964 | 1,946 | 1,880 | 1,819 | 1,802 |
+| Laju Uap Turbin Penggerak | ton/jam | 382,09 | 450,21 | 461,27 | 471,78 | 482,32 | 497,89 | 503,04 |
+| Daya Poros Kompresor Total | MW | 98,41 | 116,05 | 118,89 | 121,74 | 124,30 | 128,44 | 129,77 |
+| Konsumsi Energi Spesifik (SEC) | kWh/t LNG | 505,09 | 473,51 | 467,31 | 465,51 | 455,62 | 450,95 | 448,23 |
 """
     sections.append(t1_md + "\n")
     sections.append("![Gambar 4. Hubungan konsumsi energi spesifik (SEC) terhadap laju produksi LNG melintasi seluruh spektrum operasi kilang](figures/image4.png)\n*Gambar 4. Hubungan konsumsi energi spesifik (SEC) terhadap laju produksi LNG melintasi seluruh spektrum operasi kilang*\n")
@@ -66,19 +66,16 @@ def write_markdown_paper(OUTPUT_MD, abs_id, abs_en, p1, p2, p3, p4, p_met1, p_me
     
     t2_md = """#### Tabel 2. Metrik Evaluasi Model Surrogate Machine Learning pada Data Telemetri DCS Lapangan dan Termodinamika PR-EOS
 
-| Variabel Target & Simbol | Satuan | Sumber Data Uji Ground Truth | Ukuran Sampel (N) | Test R² | Test MAE | Relative Error (NMAE) | Batasan Fisika |
+| Variabel Target & Simbol | Satuan | Sumber Ground Truth | Sampel Uji (N) | Test R² | Test MAE | Relative Error (NMAE) | Batasan Fisika |
 | :--- | :---: | :--- | :---: | :---: | :---: | :---: | :--- |
-| Total Plant Power (W_plant, DCS) | MW | Telemetri Daya Poros DCS Riil | 67.916 data | 0,8419 | 0,461 | 0,43% | Monoton beban umpan |
-| Specific Energy Consumption (SEC) | kWh/t | Telemetri DCS & Neraca Massa | 67.916 data | 0,8419 | 1,510 | 0,43% | Monoton beban umpan |
-| Total Driver Steam Flow (m_steam) | t/jam | Telemetri Uap Fiskal DCS | 67.916 data | 0,9552 | 3,487 | 0,72% | Monoton beban umpan |
-| Boiler Fuel Gas Demand (V_FG) | Nm³/jam | Telemetri DCS & Neraca Boiler | 67.916 data | 0,9552 | 340,7 | 0,72% | Monoton beban uap (97,7 Nm³/t) |
-| Turbin MCR 1st Stage (4KT-2) | t/jam | Transmitter DCS H4FI029A | 65.535 data | 0,9450 | 0,828 | 0,65% | Monoton beban kompresor MCR |
-| Turbin MCR 2nd Stage (4KT-3) | t/jam | Transmitter DCS H4FI030A | 65.535 data | 0,9361 | 1,828 | 1,67% | Monoton beban kompresor MCR |
-| Turbin Propana Steam (4KT-1) | t/jam | Transmitter DCS H4FI031A | 65.535 data | 0,8115 | 1,479 | 1,12% | Monoton beban chiller |
-| Suction Temperature (T_suct) | °C | Transmitter DCS H4TI004B | 67.916 data | 0,9664 | 0,866 | 0,95% | Bound TAL (>= -45,0 °C) |
-| Warm Bundle Pinch (MITA_WB) | °C | Diskritisasi PR-EOS HYSYS | 2.000 kasus | 0,9924 | 0,082 | 2,12% | Non-negatif (>= 0 °C) |
-| Cold Bundle Pinch (MITA_CB) | °C | Diskritisasi PR-EOS HYSYS | 2.000 kasus | 0,9891 | 0,095 | 2,45% | Non-negatif (>= 0 °C) |
-| MCHE Exergy Destruction (E_D) | MW | Integral Riemann PR-EOS | 2.000 kasus | 0,9942 | 0,062 | 0,17% | Non-negatif (Hukum II Termo) |
+| Total C3MR Shaft Power | MW | Telemetri DCS 2024–2026 | 8.667 data | 0,9557 | 0,8247 | 0,677% | Monotonik umpan & MCR |
+| MCR Direct Shaft Power | MW | Telemetri DCS 4KT-2/3 | 8.667 data | 0,9565 | 0,6588 | 0,851% | Monotonik beban kompresor MCR |
+| Propane Precooling Power | MW | Telemetri DCS 4KT-1 | 8.667 data | 0,7809 | 0,3727 | 0,839% | Monotonik beban chiller C3 |
+| Total Driver Steam Demand | ton/jam | Telemetri Uap DCS | 8.667 data | 0,9997 | 0,2726 | 0,058% | Monotonik daya poros total |
+| MCR Direct Driver Steam | ton/jam | Transmitter H4FI029/30A | 8.667 data | 0,9998 | 0,1851 | 0,062% | Monotonik daya poros MCR |
+| Suction Drum Temperature | °C | Transmitter H4TI004B | 8.664 data | 0,6677 | 0,3892 | 0,949% | Batas TAL (>= -45,0 °C) |
+| MCHE Approach Pinch (MITA) | °C | NeqSim PR-EOS Slicing | 60 kasus | 0,6761 | 0,0657 | 0,952% | Batas Crossover (>= 1,50 °C) |
+| Boiler Fuel Gas Demand | Nm³/jam | Neraca Massa Boiler OLS | 43.334 data | 0,9646 | 312,4 | 0,475% | Slope 77,0424 Nm³/ton uap |
 """
     sections.append(t2_md + "\n")
     sections.append("![Gambar 5. Parity plot evaluasi akurasi model surrogate HGBR terhadap data uji independen untuk empat variabel kunci proses](figures/image9.png)\n*Gambar 5. Parity plot evaluasi akurasi model surrogate HGBR terhadap data uji independen untuk empat variabel kunci proses*\n")
@@ -86,22 +83,24 @@ def write_markdown_paper(OUTPUT_MD, abs_id, abs_en, p1, p2, p3, p4, p_met1, p_me
     sections.append("### 3.3 Kinerja Optimasi Komposisi dan Laju Sirkulasi MR Melintasi Spektrum Beban Operasi Kilang\n")
     sections.append(p_res3 + "\n")
     
-    t3_md = """#### Tabel 3. Perbandingan Parameter Teknis Baseline vs Optimasi pada Beban Penuh dan Kondisi Turndown
+    t3_md = """#### Tabel 3. Perbandingan Parameter Teknis Baseline vs Optimasi pada Beban Puncak, Median, dan Kondisi Turndown
 
-| Parameter Operasional | Satuan | Baseline Penuh (308 t/j) | Optimasi Penuh (308 t/j) | Selisih Penuh (%) | Baseline Turndown (141 t/j) | Optimasi Turndown (141 t/j) | Selisih Turndown (%) |
+| Parameter Operasional | Satuan | Baseline Puncak | Optimasi Puncak | Selisih (%) | Baseline Turndown | Optimasi Turndown | Selisih (%) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| Laju Sirkulasi MCR MCHE | t/jam | 681,4 | 613,2 | -10,01% | 504,0 | 475,1 | -5,73% |
-| Daya Poros Kompresor Total | kW | 108.055,1 | 79.083,4 | -26,81% | 73.855,1 | 47.999,3 | -35,01% |
-| Konsumsi Energi Spesifik (SEC) | kWh/t LNG | 350,49 | 256,51 | -26,81% | 523,00 | 339,89 | -35,01% |
-| Konsumsi Uap Turbin Penggerak | t/jam | 483,95 | 452,30 | -6,54% | 354,20 | 346,50 | -2,17% |
-| Konsumsi Gas Bahan Bakar Boiler | Nm³/jam | 47.281,92 | 44.189,71 | -6,54% | 34.605,34 | 33.853,05 | -2,17% |
-| Laju Emisi CO2 Scope 1 | t/jam | 100,79 | 94,20 | -6,54% | 73,77 | 72,16 | -2,17% |
-| Pendekatan Jepit Minimum (MITA) | °C | 3,87 | 1,58 | - | 4,20 | 1,94 | - |
-| Suhu Hisap Kompresor (Tsuct) | °C | -41,62 | -29,32 | - | -20,57 | -21,14 | - |
-| Fraksi Uap Hisap (VF) | - | 1,0000 | 1,0000 | - | 1,0000 | 1,0000 | - |
+| Laju Gas Umpan Mentah | ton/jam | 383,98 | 383,98 | 0,00% | 258,41 | 258,41 | 0,00% |
+| Laju Sirkulasi MCR MCHE | ton/jam | 691,80 | 504,76 | -27,04% | 514,18 | 480,00 | -6,65% |
+| Daya Poros Kompresor Total | MW | 129,77 | 113,43 | -12,60% | 98,41 | 95,58 | -2,87% |
+|  - Daya MCR Langsung (4KT-2/3) | MW | 83,05 | 68,35 | -17,70% | 62,62 | 60,09 | -4,04% |
+|  - Daya Propana (4KT-1) | MW | 46,72 | 45,08 | -3,52% | 35,79 | 35,49 | -0,84% |
+| Konsumsi Energi Spesifik (SEC) | kWh/t | 448,23 | 391,77 | -12,60% | 505,09 | 490,57 | -2,87% |
+| Konsumsi Uap Turbin Penggerak | ton/jam | 503,04 | 439,87 | -12,56% | 382,09 | 371,17 | -2,86% |
+| Konsumsi Bahan Bakar Gas Boiler | Nm³/jam | 38.755,0 | 33.888,4 | -12,56% | 29.437,1 | 28.595,5 | -2,86% |
+| Laju Emisi CO2 Scope 1 | ton/jam | 82,72 | 72,33 | -12,56% | 62,83 | 61,03 | -2,86% |
+| Pendekatan Jepit Minimum (MITA) | °C | 8,85 | 7,17 | - | 8,85 | 7,17 | - |
+| Suhu Hisap Suction Drum (Tsuct) | °C | -41,76 | -41,76 | - | -38,56 | -38,56 | - |
 """
     sections.append(t3_md + "\n")
-    sections.append("![Gambar 6. Validasi termodinamika MCHE 5E-1 pada kondisi beban dasar (308,3 t/jam): (a) Kurva komposit pendinginan T-Q; (b) Gaya dorong temperatur membuktikan tidak ada crossover dan MITA di atas batas 1,50 °C](figures/image7.png)\n*Gambar 6. Validasi termodinamika MCHE 5E-1 pada kondisi beban dasar (308,3 t/jam): (a) Kurva komposit pendinginan T-Q; (b) Gaya dorong temperatur membuktikan tidak ada crossover dan MITA di atas batas 1,50 °C*\n")
+    sections.append("![Gambar 6. Validasi termodinamika MCHE 5E-1 pada beban puncak: (a) Kurva komposit pendinginan T-Q; (b) Gaya dorong temperatur membuktikan bebas crossover dan MITA aman di atas batas 1,50 °C](figures/image7.png)\n*Gambar 6. Validasi termodinamika MCHE 5E-1 pada beban puncak: (a) Kurva komposit pendinginan T-Q; (b) Gaya dorong temperatur membuktikan bebas crossover dan MITA aman di atas batas 1,50 °C*\n")
     sections.append("![Gambar 7. Perbandingan kurva SEC baseline operasi kilang vs. optimasi melintasi seluruh spektrum laju produksi LNG](figures/image10.png)\n*Gambar 7. Perbandingan kurva SEC baseline operasi kilang vs. optimasi melintasi seluruh spektrum laju produksi LNG*\n")
     if p_res3b:
         sections.append(p_res3b + "\n")
@@ -111,16 +110,16 @@ def write_markdown_paper(OUTPUT_MD, abs_id, abs_en, p1, p2, p3, p4, p_met1, p_me
     
     t4_md = """#### Tabel 4. Ledger Kinerja Tekno-Ekonomi, Energi, dan Lingkungan Tahunan Terbobot Jam Operasi Melintasi Spektrum Beban
 
-| Laju Produksi LNG (t/jam) | Jam Operasi (jam/thn) | Penghematan Daya (kW) | Energi Terhemat (MWh/thn) | Uap Terhemat (ton/thn) | Bahan Bakar Gas Terhemat (10⁶ Nm³/thn) | Penghematan Finansial (USD/thn) | Reduksi Emisi CO2 (ton/thn) |
+| Persentil Operasi | Umpan (t/jam) | Hemat Daya (MW) | Energi Hemat (MWh/th) | Uap Hemat (ton/th) | Bahan Bakar (10⁶ Nm³/th) | Nilai BL 2 (USD/th) | Reduksi CO2 (ton/th) |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| 141,2 | 13,6 | 25.855,7 | 351,6 | 104,7 | 0,01 | 3.700 | 21,8 |
-| 166,8 | 5,0 | 25.145,9 | 125,7 | 37,6 | 0,00 | 1.300 | 7,8 |
-| 195,1 | 38,5 | 29.096,2 | 1.120,2 | 338,4 | 0,03 | 12.000 | 70,4 |
-| 217,8 | 130,7 | 24.770,4 | 3.237,5 | 967,6 | 0,09 | 34.200 | 201,5 |
-| 247,7 | 112,1 | 26.696,1 | 2.992,6 | 895,1 | 0,09 | 31.700 | 186,4 |
-| 279,7 | 329,1 | 31.863,3 | 10.486,2 | 3.138,8 | 0,31 | 111.000 | 653,4 |
-| 308,3 | 7.220,9 | 28.971,8 | 209.202,4 | 234.407,5 | 22,90 | 8.286.100 | 48.820,5 |
-| **Total / Rata-rata** | **7.849,9** | **28.983,3** | **227.516,0** | **239.889,7** | **23,44** | **8.480.000** | **49.961,8** |
+| P1 (Turndown) | 258,41 | 2,827 | 221,9 | 857,5 | 0,066 | 16.077 | 141,0 |
+| P10 | 325,05 | 13,760 | 1.080,1 | 4.174,1 | 0,322 | 78.256 | 686,4 |
+| P25 | 337,41 | 14,828 | 1.164,0 | 4.497,8 | 0,347 | 84.326 | 739,6 |
+| P50 (Median) | 346,85 | 15,295 | 1.200,6 | 4.639,5 | 0,357 | 86.982 | 762,9 |
+| P75 | 361,82 | 15,553 | 1.220,9 | 4.717,9 | 0,363 | 88.452 | 775,8 |
+| P90 | 377,75 | 16,117 | 1.265,2 | 4.888,8 | 0,377 | 91.656 | 803,9 |
+| P100 (Puncak) | 383,98 | 16,347 | 1.283,2 | 4.958,6 | 0,382 | 92.964 | 815,4 |
+| **Total / Rata-rata** | **346,85** | **14,805** | **116.215,3** | **449.087,3** | **34,60** | **8.419.500** | **73.845,9** |
 """
     sections.append(t4_md + "\n")
     sections.append("![Gambar 8. Analisis dampak tekno-ekonomi dan lingkungan optimasi C3MR: (a) Penghematan finansial tahunan dan reduksi emisi CO2; (b) Analisis sensitivitas terhadap variasi harga bahan bakar, uap, dan jam operasi](figures/image8.png)\n*Gambar 8. Analisis dampak tekno-ekonomi dan lingkungan optimasi C3MR: (a) Penghematan finansial tahunan dan reduksi emisi CO2; (b) Analisis sensitivitas terhadap variasi harga bahan bakar, uap, dan jam operasi*\n")

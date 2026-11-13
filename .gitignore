@@ -59,6 +59,14 @@ htmlcov/
 /scratch/
 /workcopies/
 /tmp/
+~$*
+**/~$*
+
+# Obsolete legacy rebuilds (superseded by rebuild_v3_3)
+ikms_2026/clean_rebuild_v2/
+ikms_2026/rebuild_v3/
+ikms_2026/rebuild_v3_1_audit/
+ikms_2026/rebuild_v3_2/
 
 # Large binary files — NOT for GitHub (HYSYS .hsc whitelisted below for research reproducibility)
 *.rar
@@ -161,4 +169,16 @@ scratch_*
 !ikms_2026/**/*.py
 !ikms_2026/**/*.md
 !ikms_2026/**/*.json
+
+# Exclude temporary files and obsolete legacy rebuilds
+ikms_2026/**/~$*
+ikms_2026/**/__pycache__/
+ikms_2026/clean_rebuild_v2/
+ikms_2026/rebuild_v3/
+ikms_2026/rebuild_v3_1_audit/
+ikms_2026/rebuild_v3_2/
+ikms_2026/~$*
+_test_*.py
+test_tokengateway.py
+Book1.csv
 

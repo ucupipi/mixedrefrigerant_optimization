@@ -1,0 +1,6 @@
+candidate_id,nominal_mita_C,threshold_C,z_score,prob_violation_pct,one_sided_95_compliant,safety_margin_standard_deviations
+Candidate A,1.592,1.5,-0.1479,44.12,False,0.15
+Candidate B,1.845,1.5,-0.5547,28.96,False,0.55
+Candidate C,2.08,1.5,-0.9325,17.56,False,0.93
+Candidate D,2.18,1.5,-1.0932,13.71,False,1.09
+Candidate R,2.55,1.5,-1.6881,4.57,True,1.69

@@ -1,0 +1,6 @@
+domain,parameter,symbol,standard_uncertainty_value,units,governing_distribution,governing_standard
+Thermal Hydraulics (MCHE),MCHE MITA Standard Uncertainty,u_MITA,0.622,deg C,Normal (k=1),JCGM 100:2008 / IEC 60751
+Compressor Aerodynamics,Anti-Surge Flow Floor,Q_floor,5.0,t/h,Rectangular,ASME PTC 10 Field Flow Orifice
+Driver Mechanics,Turbine Governor Valve Stroke,S_gov,1.2,% travel,Normal,OEM Woodward Governor Tolerance
+Compositional Simplex,Mahalanobis Distance D_M,D_M,0.12,dimensionless,Chi-squared (df=4),Rousseeuw FastMCD & ISO 6974 GC
+Refrigerant Makeup,3C-5 Deethanizer Overhead Ethane Purity,y_C2_makeup,1.5,mol%,Normal,DCS Field Lab Shift Analysis

@@ -1,0 +1,8 @@
+percentile,actual_speed_pct,actual_vol_flow_m3h,actual_mass_flow_t_h,suction_density_kg_m3,oem_surge_flow_at_speed_m3h,surge_floor_with_10pct_margin_m3h,surge_floor_mass_t_h,actual_surge_margin_pct,kickback_4UV53_required_t_h,is_surge_safe_without_kickback,classification,note
+10,95.24,142259.2,504.0,3.543,99528.9,109481.8,387.9,42.93,0.0,True,OEM CURVE-DERIVED (SPEED-DEPENDENT),480.0 t/h fixed floor is an approximation; actual floor varies with speed
+25,95.12,142483.5,512.1,3.594,99399.7,109339.6,393.0,43.34,0.0,True,OEM CURVE-DERIVED (SPEED-DEPENDENT),480.0 t/h fixed floor is an approximation; actual floor varies with speed
+40,95.1,143597.8,525.3,3.658,99377.0,109314.7,399.9,44.5,0.0,True,OEM CURVE-DERIVED (SPEED-DEPENDENT),480.0 t/h fixed floor is an approximation; actual floor varies with speed
+50,95.09,147426.6,534.8,3.627,99367.9,109304.7,396.5,48.36,0.0,True,OEM CURVE-DERIVED (SPEED-DEPENDENT),480.0 t/h fixed floor is an approximation; actual floor varies with speed
+60,97.61,152126.1,580.4,3.815,102006.5,112207.2,428.1,49.13,0.0,True,OEM CURVE-DERIVED (SPEED-DEPENDENT),480.0 t/h fixed floor is an approximation; actual floor varies with speed
+75,99.35,157159.3,635.8,4.046,103820.0,114202.0,462.0,51.38,0.0,True,OEM CURVE-DERIVED (SPEED-DEPENDENT),480.0 t/h fixed floor is an approximation; actual floor varies with speed
+90,100.46,158357.2,681.4,4.303,104976.0,115473.6,496.9,50.85,0.0,True,OEM CURVE-DERIVED (SPEED-DEPENDENT),480.0 t/h fixed floor is an approximation; actual floor varies with speed

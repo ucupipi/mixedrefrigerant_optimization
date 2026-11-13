@@ -1,0 +1,4 @@
+partition,sample_count,split_ratio_pct,sampling_method,data_leakage_risk
+Full DoE Dataset,2500,100.0,Latin Hypercube & Sobol Sequence,None (Generated strictly from PR-EOS thermodynamic simulator)
+Training Set,2000,80.0,Stratified random holdout split (seed=42),None (Used strictly for tree gradient fitting)
+Holdout Test Set,500,20.0,Completely unseen out-of-sample points,Zero data leakage verified; no feature preprocessing shared

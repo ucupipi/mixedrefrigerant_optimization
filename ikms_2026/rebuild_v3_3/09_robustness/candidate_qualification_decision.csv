@@ -1,0 +1,4 @@
+candidate_id,composition_summary,nominal_mita_C,pinch_violation_risk_pct,joint_feasibility_pct,capex_required_usd,annual_energy_savings_GWh,economic_savings_usd_yr,qualification_status,engineering_justification
+Candidate A,"N2: 3.28, C1: 37.52, C2: 49.04, C2H4: 0.16, C3: 10.00",1.592,44.1,44.3,0.0,20.06,8480000.0,REJECTED,Violates 95% safety confidence limit. Operating point arrested at numerical optimizer boundary.
+Candidate B,"N2: 4.10, C1: 41.20, C2: 47.30, C2H4: 0.25, C3: 7.15",1.845,28.9,95.8,325000.0,16.85,7140000.0,CONDITIONALLY QUALIFIED,"Technically viable ONLY IF supervisory multivariable APC and fast online GC are commissioned (USD 325,000 CAPEX)."
+Candidate R,"N2: 4.50, C1: 42.50, C2: 46.80, C2H4: 0.35, C3: 5.85",2.55,4.57,95.2,0.0,13.92,5900000.0,ROBUSTLY QUALIFIED,PRIMARY RECOMMENDATION. Inherently compliant under passive DCS manual trim (Zero-CAPEX Valid). Captures $5.90M/yr immediately.

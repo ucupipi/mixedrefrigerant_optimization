@@ -1,0 +1,7 @@
+target_name,description,monotonic_constraint_vector,verified_strictly_monotonic,min_delta_along_flow,max_delta_along_flow,monotonicity_status
+power_4K1_c3_MW,Propane Compressor Power,"[1, 1, 0, 0, 0, 0]",True,0.0,1.245667,VERIFIED (Physical gradient strictly preserved)
+power_4K2_mcr_lp_MW,MCR LP Compressor Power,"[0, 1, 0, 0, 0, 0]",True,0.0,0.597177,VERIFIED (Physical gradient strictly preserved)
+power_4K3_mcr_hp_MW,MCR HP Compressor Power,"[0, 1, 0, 0, 0, 0]",True,0.0,0.77238,VERIFIED (Physical gradient strictly preserved)
+power_total_shaft_MW,Total Train C3MR Power,"[1, 1, 0, 0, 0, 0]",True,0.0,3.205021,VERIFIED (Physical gradient strictly preserved)
+dp_shell_bar,MCHE Shell Pressure Drop,"[0, 1, 0, 0, 0, 0]",True,0.000843,0.015485,VERIFIED (Physical gradient strictly preserved)
+exergy_destruction_mche_MW,MCHE Exergy Destruction,"[1, 1, 0, 0, 0, 0]",True,0.0,0.536382,VERIFIED (Physical gradient strictly preserved)

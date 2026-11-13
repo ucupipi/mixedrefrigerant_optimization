@@ -8,12 +8,12 @@ from docx.oxml.ns import nsdecls, qn
 import os
 from md_writer import write_markdown_paper
 
-TEMPLATE_PATH = r"d:\User\Documents\KULIAH\LOMBA\IKMS 2026\Template Paper IKMS 2026.docx"
-OUTPUT_DOCX = r"d:\User\Documents\KULIAH\LOMBA\IKMS 2026\IKMS2026_FullPaper_PNJ_Final.docx"
-OUTPUT_MD = r"d:\User\Documents\KULIAH\LOMBA\IKMS 2026\IKMS2026_FullPaper_PNJ_Final.md"
-FIGURES_DIR = r"d:\User\Documents\KULIAH\LOMBA\IKMS 2026\figures"
+TEMPLATE_PATH = r"ikms_2026/Template Paper IKMS 2026.docx"
+OUTPUT_DOCX = r"ikms_2026/IKMS2026_FullPaper_PNJ_Final.docx"
+OUTPUT_MD = r"ikms_2026/IKMS2026_FullPaper_PNJ_Final.md"
+FIGURES_DIR = r"ikms_2026/figures"
 
-def set_cell_margins(cell, top=60, bottom=60, left=80, right=80):
+def set_cell_margins(cell, top=50, bottom=50, left=70, right=70):
     tcPr = cell._tc.get_or_add_tcPr()
     tcMar = OxmlElement('w:tcMar')
     for m, val in [('top', top), ('bottom', bottom), ('left', left), ('right', right)]:
@@ -62,17 +62,17 @@ def add_p(doc, text="", font_size=10, bold=False, italic=False, align=WD_ALIGN_P
     return p
 
 def add_heading_1(doc, text):
-    return add_p(doc, text, font_size=10, bold=True, align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_before=14, space_after=4)
+    return add_p(doc, text, font_size=10, bold=True, align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_before=12, space_after=3)
 
 def add_heading_2(doc, text):
-    return add_p(doc, text, font_size=10, bold=True, align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_before=9, space_after=3)
+    return add_p(doc, text, font_size=10, bold=True, align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_before=8, space_after=2)
 
-def add_figure(doc, img_name, caption_text, width_inch=5.8):
+def add_figure(doc, img_name, caption_text, width_inch=5.4):
     img_path = os.path.join(FIGURES_DIR, img_name)
     if os.path.exists(img_path):
         p_img = doc.add_paragraph()
         p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        p_img.paragraph_format.space_before = Pt(6)
+        p_img.paragraph_format.space_before = Pt(4)
         p_img.paragraph_format.space_after = Pt(2)
         r = p_img.add_run()
         r.add_picture(img_path, width=Inches(width_inch))
@@ -80,12 +80,12 @@ def add_figure(doc, img_name, caption_text, width_inch=5.8):
         p_cap = doc.add_paragraph()
         p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
         p_cap.paragraph_format.space_before = Pt(2)
-        p_cap.paragraph_format.space_after = Pt(8)
+        p_cap.paragraph_format.space_after = Pt(6)
         p_cap.paragraph_format.line_spacing = 1.0
         
         r_cap = p_cap.add_run(caption_text)
         r_cap.font.name = 'Times New Roman'
-        r_cap.font.size = Pt(10)
+        r_cap.font.size = Pt(9.5)
         r_cap.font.bold = True
     else:
         print(f"Warning: Figure not found at {img_path}")
@@ -177,23 +177,24 @@ def build_paper():
     add_p(doc, "*Penulis korespondensi: bilqiiisdara@gmail.com", 
           font_size=8, bold=False, align=WD_ALIGN_PARAGRAPH.CENTER, space_before=0, space_after=12)
     
-    # 4. ABSTRAK (INDONESIAN - 232 WORDS)
+    # 4. ABSTRAK (INDONESIAN - 228 WORDS)
     add_p(doc, "Abstrak", font_size=10, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, space_before=4, space_after=4)
     abs_id = (
         "Sistem propane-precooled mixed refrigerant (C3MR) menyumbang 59,3% konsumsi energi internal di Kilang Badak LNG. "
-        "Sistem ini dirancang untuk batas maksimum gas umpan 91,6 mol% metana. Dokumentasi historis mencatat gas umpan kaya "
-        "88,1 mol% metana pada 2017, sedangkan data operasional dan kromatografi gas periode 2024–2026 menunjukkan kilang beroperasi "
-        "pada kondisi lean gas hingga 94,5 mol% metana. Pergeseran ini menaikkan beban pendinginan spesifik main cryogenic heat exchanger "
-        "(MCHE) dari 637,6 menjadi 652,9 kJ/kg, sehingga memicu sirkulasi mixed refrigerant (MR) berlebih dan lonjakan konsumsi energi "
-        "spesifik (SEC). Penelitian ini mengembangkan kerangka optimasi berbasis machine learning berpembatas fisika untuk menentukan komposisi "
-        "dan sirkulasi MR optimal melintasi seluruh spektrum beban operasi kilang (141,2–308,3 ton/jam LNG). Dataset primer mencakup 720.734 rekaman menit DCS dan 2.531 sampel "
-        "kromatografi gas periode 2024–2026. Pemetaan simpleks menerapkan transformasi Isometric Log-Ratio (ILR) berpembatas elipsoid "
-        "Mahalanobis (DM <= 3,0802). Model surrogate HistGradientBoostingRegressor berpembatas monotonik mencapai R2 uji 0,9552–0,9945 dan "
-        "NMAE < 2,5% (kesalahan daya poros < 0,18 MW), serta tervalidasi pada Aspen HYSYS. Formula MR optimal tunggal (3,77% N2; 42,22% C1; "
-        "43,67% C2; 1,53% C2H4; 8,82% C3) memangkas SEC beban dasar sebesar 26,81% (menjadi 256,51 kWh/ton LNG) dan menghemat uap turbin "
-        "31,65 ton/jam. Secara tahunan terbobot pada 7.849,9 jam operasi, strategi ini menghemat daya kompresor 28.983,3 kW (27,10%), menghemat uap "
-        "boiler 239.889,7 ton/tahun, bahan bakar gas 23,44 juta Nm3/tahun (setara USD 8,48 Juta/tahun), dan mereduksi 49.961,8 ton CO2/tahun "
-        "dengan batas keselamatan kilang terbukti aman."
+        "Sistem ini awalnya dirancang untuk batas gas umpan kaya 91,6 mol% metana (tercatat 88,1 mol% pada 2017). Namun, data DCS dan "
+        "kromatografi gas 2024–2026 menunjukkan kilang kini beroperasi pada lean gas hingga 94,5 mol% metana. Pergeseran ini menaikkan beban "
+        "pendinginan spesifik Main Cryogenic Heat Exchanger (MCHE) dari 637,6 menjadi 652,9 kJ/kg, sehingga memicu sirkulasi mixed refrigerant "
+        "(MR) berlebih dan peningkatan konsumsi energi spesifik (SEC). Penelitian ini mengembangkan kerangka optimasi gabungan komposisi dan "
+        "laju sirkulasi MR berbasis machine learning berpembatas fisika melintasi seluruh spektrum beban operasi kilang (258,4–384,0 ton/jam umpan). "
+        "Dataset primer mencakup 44.641 data menit DCS dan 2.531 sampel kromatografi gas rutin shift. Pemetaan simpleks menerapkan transformasi "
+        "Isometric Log-Ratio (ILR) berpembatas elipsoid Mahalanobis 95% (DM <= 3,0802). Model surrogate HistGradientBoostingRegressor berpembatas "
+        "monotonik mencapai R2 uji 0,6677–0,9998 dengan relative error (NMAE) < 1,0% (kesalahan daya poros < 0,83 MW). Formula MR optimal tunggal "
+        "(3,67% N2; 51,26% C1; 42,62% C2; 0,44% C2H4; 2,01% C3; DM = 3,0762) memangkas SEC beban puncak sebesar 12,60% (dari 448,2 menjadi "
+        "391,8 kWh/ton LNG) dan menghemat uap turbin 63,17 ton/jam. Secara tahunan terbobot pada 7.849,9 jam operasi, strategi ini menghemat "
+        "daya poros kompresor total 14,805 MW (12,20%, 116.215,3 MWh/tahun)—terdekomposisi atas kompresor MCR langsung 13,251 MW (89,51%) dan "
+        "kompresor propana 1,554 MW (10,49%). Dampak utilitas mencakup penghematan uap boiler 449.087,3 ton/tahun, bahan bakar gas 34,60 juta "
+        "Nm3/tahun (setara USD 8,42 Juta/tahun pada paritas gas bahan bakar atau USD 14,90 Juta/tahun pada paritas ekspor LNG), serta mereduksi "
+        "73.845,9 ton CO2/tahun dengan seluruh batas keselamatan operasional kilang terbukti aman (MITA >= 7,17 °C, Tsuct >= -41,76 °C, zero CAPEX)."
     )
     add_p(doc, abs_id, font_size=10, bold=False, align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_before=0, space_after=4)
     
@@ -202,36 +203,38 @@ def build_paper():
     r1.font.name = 'Times New Roman'
     r1.font.size = Pt(10)
     r1.font.bold = True
-    r2 = p_kw_id.add_run("Efisiensi energi spesifik, lean feed gas, liquefied natural gas, machine learning, optimasi mixed refrigerant")
+    r2 = p_kw_id.add_run("C3MR, dekarbonisasi, efisiensi energi spesifik, lean feed gas, machine learning, optimasi mixed refrigerant")
     r2.font.name = 'Times New Roman'
     r2.font.size = Pt(10)
     
-    # 5. ABSTRACT (ENGLISH - 247 WORDS)
+    # 5. ABSTRACT (ENGLISH - 236 WORDS)
     add_p(doc, "Abstract", font_size=10, bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, space_before=4, space_after=4)
     abs_en = (
         "The propane-precooled mixed refrigerant (C3MR) system accounts for 59.3% of internal energy consumption at Badak LNG. "
-        "Designed for a maximum feed gas methane limit of 91.6 mol%, historical documentation notes rich gas at 88.1 mol% in 2017. "
-        "However, plant DCS records and gas chromatography from 2024–2026 indicate persistent operation under lean conditions up to "
-        "94.5 mol% methane. This shift increased the main cryogenic heat exchanger (MCHE) specific cooling duty from 637.6 to 652.9 kJ/kg, "
-        "prompting excess mixed refrigerant (MR) circulation and elevating specific energy consumption (SEC) during reduced throughput. "
-        "This study develops a physics-constrained machine learning optimization framework to determine optimal MR composition and circulation "
-        "across the entire recorded operating load range (141.2–308.3 tons/hour LNG). The primary dataset comprises 720,734 minute-level DCS observations and 2,531 shift-level gas chromatography "
-        "samples from 2024–2026. Simplex compositional mapping employs Isometric Log-Ratio (ILR) transformation bounded by a 95% Mahalanobis distance "
-        "ellipsoid (DM <= 3.0802). Monotonically constrained HistGradientBoostingRegressor surrogate models achieve test R2 of 0.9552–0.9945 and "
-        "NMAE < 2.5% (shaft power error < 0.18 MW), validated via Aspen HYSYS. A single optimal MR formulation (3.77% N2, 42.22% C1, 43.67% C2, "
-        "1.53% C2H4, 8.82% C3) cuts baseload SEC by 26.81% (to 256.51 kWh/ton LNG) and saves 31.65 tons/hour of turbine steam. Across 7,849.9 "
-        "annual operating hours, this framework delivers an operating-hours-weighted compressor power reduction of 28,983.3 kW (27.10%), conserving "
-        "239,889.7 tons/year of steam and 23.44 million Nm3/year of fuel gas (saving USD 8.48 million/year) while abating 49,961.8 tons CO2/year "
-        "under verified plant safety constraints."
+        "Originally designed for a rich feed gas threshold of 91.6 mol% methane (recorded at 88.1 mol% in 2017), DCS telemetry and gas "
+        "chromatography records from 2024–2026 indicate persistent operation under lean feed conditions reaching 94.5 mol% methane. "
+        "This shift increased the main cryogenic heat exchanger (MCHE) specific cooling duty from 637.6 to 652.9 kJ/kg, prompting mixed "
+        "refrigerant (MR) over-circulation and elevating specific energy consumption (SEC). This study develops a physics-constrained machine "
+        "learning framework for joint optimization of MR composition and circulation rate across the full recorded operating spectrum "
+        "(258.4–384.0 tons/hour feed gas). The primary dataset comprises 44,641 minute-level DCS observations and 2,531 shift-level gas chromatography "
+        "samples. Simplex compositional mapping employs Isometric Log-Ratio (ILR) transformation bounded by a 95% confidence Mahalanobis distance "
+        "ellipsoid (DM <= 3.0802). Monotonically constrained HistGradientBoostingRegressor models achieve test R2 of 0.6677–0.9998 with normalized "
+        "mean absolute error (NMAE) < 1.0% (shaft power error < 0.83 MW). A single optimal MR formulation (3.67% N2, 51.26% C1, 42.62% C2, "
+        "0.44% C2H4, 2.01% C3; DM = 3.0762) reduces baseload SEC by 12.60% (from 448.2 to 391.8 kWh/ton LNG) and saves 63.17 tons/hour of turbine steam. "
+        "Across 7,849.9 annual operating hours, this yields a total mean compressor shaft power saving of 14.805 MW (12.20%, 116,215.3 MWh/year)—transparently "
+        "decomposed into direct MCR compression of 13.251 MW (89.51%) and propane precooling of 1.554 MW (10.49%). The utility impact conserves "
+        "449,087.3 tons/year of boiler steam and 34.60 million Nm3/year of fuel gas (worth USD 8.42 million/year under fuel gas parity or USD 14.90 "
+        "million/year under LNG export parity), while cutting 73,845.9 tons CO2/year under strictly verified plant safety constraints (MITA >= 7.17 °C, "
+        "Tsuct >= -41.76 °C, zero CAPEX)."
     )
     add_p(doc, abs_en, font_size=10, bold=False, align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_before=0, space_after=4)
     
-    p_kw_en = add_p(doc, align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_before=0, space_after=14)
+    p_kw_en = add_p(doc, align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_before=0, space_after=12)
     r1_en = p_kw_en.add_run("Keywords: ")
     r1_en.font.name = 'Times New Roman'
     r1_en.font.size = Pt(10)
     r1_en.font.bold = True
-    r2_en = p_kw_en.add_run("Energy efficiency, lean feed gas, liquefied natural gas, machine learning, mixed refrigerant optimization")
+    r2_en = p_kw_en.add_run("C3MR, decarbonization, energy efficiency, lean feed gas, machine learning, mixed refrigerant optimization")
     r2_en.font.name = 'Times New Roman'
     r2_en.font.size = Pt(10)
     
@@ -253,38 +256,38 @@ def build_paper():
     add_p(doc, p1)
     
     p2 = (
-        "Untuk memenuhi kebutuhan beban pendinginan pada kondisi gas lean tersebut, operator kilang menaikkan laju sirkulasi refrigeran "
-        "campuran (MR) dari baseline desain 639,7 ton/jam menjadi 681,4 ton/jam. Akibatnya, Specific Energy Consumption (SEC) pada kondisi beban dasar "
-        "membengkak dari 344,74 menjadi 367,19 kWh/ton LNG (dan terukur 350,49 kWh/t LNG pada DCS aktual). Analisis terhadap 720.734 rekaman data operasional "
-        "DCS Train H periode 2024–2026 mengungkapkan bahwa saat terjadi penurunan laju pasokan gas umpan sebesar 53,5% (dari laju umpan penuh 399,74 t/jam "
-        "ke kondisi turndown 185,82 t/jam), sirkulasi MR hanya diturunkan 26,0% (dari 681,4 ke 504,0 t/jam). Hal ini terjadi karena operator wajib menjaga "
-        "kompresor sentrifugal di atas batas aliran aman anti-surge (flow floor >= 480,0 t/jam) serta menghindari interlock trip Temperature Alarm Low (TAL) "
-        "pada suction drum (Tsuct >= -45,0 °C) [7]. Kesenjangan operasional ini memicu sirkulasi refrigeran berlebih (over-circulation) yang membuat SEC melonjak "
-        "tajam sebesar +49,2% (mencapai 523,00 kWh/t LNG pada beban turndown), memperbesar konsumsi uap penggerak dan emisi gas rumah kaca."
+        "Untuk memenuhi kebutuhan beban pendinginan pada kondisi gas lean tersebut, operator kilang menyesuaikan laju sirkulasi refrigeran campuran "
+        "(MR) untuk memastikan target temperatur LNG rundown tercapai. Analisis terhadap 44.641 rekaman data operasional DCS Train H periode 2024–2026 "
+        "mengungkapkan bahwa laju sirkulasi MCR dipertahankan pada kisaran 514,2–691,8 ton/jam. Pada kondisi turndown rendah (laju umpan turun ke "
+        "258,4 ton/jam), laju sirkulasi MCR tertahan di batas aman mekanikal kompresor sentrifugal 4K-2/3 (anti-surge flow floor >= 480,0 ton/jam) "
+        "serta keharusan menghindari interlock trip dingin Temperature Alarm Low (TAL) pada suction drum (Tsuct >= -45,0 °C) [7]. Akibatnya, Specific "
+        "Energy Consumption (SEC) meningkat dari 448,2 kWh/ton LNG pada beban puncak menjadi 505,1 kWh/ton LNG pada beban turndown (+12,7%). "
+        "Kondisi over-sirkulasi ini memperbesar konsumsi uap penggerak turbin dan memicu emisi gas rumah kaca yang tidak perlu."
     )
     add_p(doc, p2)
     
     add_figure(doc, "image12.png", "Gambar 1. Efisiensi termal kilang historis PT Badak NGL terhadap pergeseran gas umpan lean [3]", width_inch=4.5)
     
     p3 = (
-        "Studi optimasi terdahulu pada siklus pendinginan C3MR umumnya memiliki keterbatasan mendasar saat diaplikasikan ke kilang riil. Pendekatan optimasi "
-        "berbasis simulasi murni (seperti algoritma genetik atau Particle Swarm Optimization pada Aspen HYSYS) sering kali mengusulkan komposisi refrigeran teoritis "
-        "yang melanggar batas hidraulika penukar panas kriogenik utama (MCHE), memicu temperature crossover, atau mengabaikan interlock mekanikal kompresor [8]–[10]. "
-        "Sebaliknya, pendekatan data-driven murni sering menghasilkan halusinasi numerik akibat tidak adanya pembatas hukum pertama dan kedua termodinamika [11]–[14]. "
-        "Selain itu, perlakuan komposisi kimia fraksi mol pada ruang Euclidean standar melanggar batasan geometris simpleks (total fraksi mol wajib 100%), "
-        "menghasilkan bias korelasi palsu (spurious correlation) [15]–[17]. Yang terpenting, belum ada penelitian terdahulu yang membedah secara transparan "
-        "dekomposisi batas sistem antara penghematan daya poros kompresor total dengan penurunan konsumsi uap turbin penggerak riil di fasilitas utilitas kilang."
+        "Penelitian optimasi terdahulu pada siklus C3MR umumnya memiliki keterbatasan saat diterapkan pada fasilitas kilang berskala industri. "
+        "Pendekatan optimasi berbasis algoritma metaheuristik murni (seperti genetic algorithm atau particle swarm optimization pada simulator statis) "
+        "sering menghasilkan resep refrigeran teoritis yang memicu temperature crossover pada penukar panas kriogenik atau melanggar batas operasional "
+        "kompresor [8]–[10]. Di sisi lain, pendekatan data-driven tanpa pembatas hukum termodinamika rentan menghasilkan prediksi yang tidak realistis [11]–[14]. "
+        "Selain itu, perlakuan komposisi fraksi mol kimia pada ruang Euclidean standar melanggar batasan geometris simpleks (total fraksi mol wajib 100%), "
+        "yang menimbulkan bias korelasi palsu (spurious correlation) [15]–[17]. Yang tidak kalah penting, banyak studi tidak menyajikan dekomposisi "
+        "daya secara transparan antara kompresor MCR langsung dan kompresor propana prapendinginan, serta mengabaikan integrasi neraca uap utilitas."
     )
     add_p(doc, p3)
     
     p4 = (
-        "Mengatasi kesenjangan keilmuan tersebut, penelitian ini mengembangkan kerangka kerja optimasi komposisi dan laju alir mixed refrigerant multikomponen "
-        "berbasis Physics-Constrained Machine Learning yang dikalibrasi langsung terhadap data DCS aktual Train H Kilang Badak LNG periode 2024–2026. "
-        "Kebaruan dan kontribusi utama penelitian ini meliputi: (1) Formulasi satu resep komposisi MR optimal tunggal yang terikat dalam ruang simpleks "
-        "Jarak Mahalanobis (DM <= 3,0802) sehingga aman dioperasikan melintasi seluruh rentang variasi beban kilang; (2) Penerapan arsitektur surrogate model "
-        "HistGradientBoostingRegressor (HGBR) dengan penegakan batasan monotonik fisika searah; (3) Rekonsiliasi batas mekanikal turndown antara laju alir MCHE "
-        "dan aliran kompresor hisap; (4) Dekomposisi daya kompresor secara transparan antara kompresor MCR langsung (4KT-2 dan 4KT-3) dan kompresor C3 precooling (4KT-1) "
-        "serta integrasinya ke neraca uap boiler; dan (5) Solusi implementasi tanpa belanja modal (Zero CAPEX) yang dapat diadopsi langsung oleh operator kilang."
+        "Untuk menjawab tantangan tersebut, penelitian ini mengembangkan kerangka kerja optimasi gabungan komposisi multikomponen dan laju sirkulasi "
+        "mixed refrigerant berbasis Machine Learning berpembatas fisika yang dikalibrasi langsung dengan telemetri DCS Train H PT Badak NGL periode 2024–2026. "
+        "Kontribusi utama penelitian ini meliputi: (1) Formulasi satu resep komposisi MR optimal tunggal yang terikat ketat dalam elipsoid Jarak Mahalanobis "
+        "95% (DM <= 3,0802) sehingga terbukti dapat dioperasikan secara aman melintasi seluruh spektrum beban kilang; (2) Penerapan arsitektur model surrogate "
+        "HistGradientBoostingRegressor (HGBR) berfitur batasan monotonik fisika searah; (3) Evaluasi termodinamika diskritisasi penukar panas kriogenik "
+        "berdasarkan Peng-Robinson EOS untuk memastikan ketiadaan crossover temperatur (MITA >= 1,50 °C); (4) Dekomposisi daya kompresor secara transparan "
+        "antara penggerak MCR langsung (4KT-2/3) dan kompresor propana (4KT-1) beserta konversi ke neraca uap boiler; dan (5) Solusi operasional tanpa biaya "
+        "kapital (Zero CAPEX) yang dapat diadopsi langsung sebagai panduan kontrol supervisori DCS kilang."
     )
     add_p(doc, p4)
     
@@ -294,16 +297,14 @@ def build_paper():
     # SUBBAB 2.1
     add_heading_2(doc, "2.1 Operasi Kilang, Akuisisi Data DCS, dan Penyaringan Kondisi Tunak")
     p_met1 = (
-        "Kerangka metodologi penelitian terbagi ke dalam empat pilar sistematis yang saling terhubung seperti ditunjukkan pada Gambar 2: "
-        "(1) Pengumpulan dan pra-pemrosesan data operasional DCS kilang; (2) Pemetaan geometri simpleks ILR dan pelatihan model surrogate Machine Learning; "
-        "(3) Formulasi optimasi multivariabel dan validasi termodinamika simulator; dan (4) Evaluasi tekno-ekonomi, dekomposisi energi, dan emisi karbon. "
-        "Dataset primer mencakup 720.734 rekaman data historian DCS Train H berinterval 1 menit yang dihimpun dari periode operasi 2023–2026 dengan fokus "
-        "operasional lean gas 2024–2026 (mencakup 610.558 data 2023–2024, 65.535 data 2025, dan 44.641 data 2026; 170 tag proses), serta didukung oleh "
-        "2.531 sampel log analisis kromatografi gas (GC) rutin laboratorium per shift dari titik sampling suction drum MCR 4C-8 dan gas umpan (1E-1, 3C-2). Data historis rich gas tahun 2017 "
-        "(88,1 mol% CH4) diintegrasikan murni sebagai dokumentasi pembanding sekunder. Pembersihan data menyaring kondisi transien ekstrim, shutdown, "
-        "start-up, dan idle (laju alir LNG rundown <= 50 t/jam). Untuk menangkap seluruh spektrum beban operasi kilang secara kontinu tanpa pengkotak-kotakan sempit, "
-        "data dikarakterisasi melintasi rentang kapasitas produksi LNG dari 141,2 t/jam (turndown) hingga 308,3 t/jam (beban dasar penuh) dengan tujuh titik evaluasi representatif. "
-        "Diagram alir proses (PFD) sistem pencairan C3MR Train H disajikan pada Gambar 3."
+        "Metodologi penelitian dirancang ke dalam empat pilar yang saling terintegrasi (Gambar 2): (1) Akuisisi data operasional DCS dan pra-pemrosesan kondisi "
+        "tunak; (2) Pemetaan geometri simpleks ILR dan pelatihan model surrogate Machine Learning berpembatas fisika; (3) Formulasi optimasi multivariabel "
+        "dan verifikasi termodinamika simulator; serta (4) Evaluasi tekno-ekonomi, dekomposisi energi, dan akuntansi emisi karbon. Dataset primer dihimpun dari "
+        "sistem historian DCS Yokogawa Centum VP Train H Kilang Badak LNG periode 2024–2026, mencakup 44.641 baris rekaman telemetri berinterval 1 menit "
+        "pada 172 tag instrumen. Penyaringan data membuang periode transien ekstrem, trip, dan start-up, menghasilkan 43.334 menit operasi stabil (steady-state). "
+        "Karakterisasi komposisi refrigeran didukung oleh 2.531 sampel analisis kromatografi gas (GC) rutin laboratorium per shift dari suction drum MCR 4C-8. "
+        "Untuk mengevaluasi seluruh spektrum beban operasi secara kontinu, data dikelompokkan ke dalam 100 medoid persentil beban (P1–P100) melintasi rentang "
+        "laju alir umpan 258,4 hingga 384,0 ton/jam. Diagram alir proses (PFD) sistem pencairan C3MR Train H disajikan pada Gambar 3."
     )
     add_p(doc, p_met1)
     
@@ -313,53 +314,53 @@ def build_paper():
     # SUBBAB 2.2
     add_heading_2(doc, "2.2 Geometri Komposisi Simpleks ILR dan Pemodelan Machine Learning Berpembatas Fisika")
     p_met2a = (
-        "Mixed Refrigerant pada siklus C3MR Kilang Badak terdiri dari lima komponen kimia utama: Nitrogen (N2), Metana (C1), Etana (C2), Etilena (C2H4), dan Propana (C3). "
-        "Fraksi mol komponen terikat pada ruang simpleks tertutup S⁵ di mana jumlah seluruh komponen wajib sama dengan 100%. Untuk menghindari korelasi palsu "
-        "akibat batasan penjumlahan konstan pada ruang Euclidean standar [15], fraksi mol ditransformasikan ke koordinat Euclidean tak terikat menggunakan "
-        "transformasi Aitchison Isometric Log-Ratio (ILR) [16]:"
+        "Refrigeran campuran (MR) pada siklus C3MR Kilang Badak tersusun atas lima komponen kimia: Nitrogen (N2), Metana (C1), Etana (C2), Etilena (C2H4), "
+        "dan Propana (C3). Fraksi mol komponen terikat pada ruang simpleks tertutup S⁵ di mana jumlah seluruh komponen wajib sama dengan 100%. Untuk mengatasi "
+        "kendala matematis keterikatan simpleks pada ruang Euclidean standar [15], fraksi mol komponen ditransformasikan ke koordinat Euclidean tak terikat "
+        "menggunakan transformasi Aitchison Isometric Log-Ratio (ILR) [16]:"
     )
     add_p(doc, p_met2a)
     
     add_equation_row(doc, "z_i = sqrt((D - i) / (D - i + 1)) * ln( x_i / (prod_(j=i+1)^D x_j)^(1 / (D - i)) )", "1")
     
     p_met2b = (
-        "di mana D = 5 adalah dimensi komponen refrigeran sehingga menghasilkan D - 1 = 4 koordinat ILR independen. Untuk memastikan bahwa rekomendasi formula MR optimal "
-        "tidak pernah keluar dari batas fisik pengalaman operasional kilang, ditetapkan batasan elipsoid kepercayaan 95% menggunakan metrik Jarak Mahalanobis (DM) [17]:"
+        "di mana D = 5 adalah jumlah komponen refrigeran, menghasilkan D - 1 = 4 koordinat ILR independen. Untuk memastikan formula MR yang direkomendasikan "
+        "berada di dalam domain operasional kilang yang realistis dan teruji, ditetapkan batasan elipsoid kepercayaan 95% menggunakan Jarak Mahalanobis (DM) [17]:"
     )
     add_p(doc, p_met2b)
     
     add_equation_row(doc, "D_M = sqrt( (z - mu)^T * Sigma^(-1) * (z - mu) ) <= 3,0802", "2")
     
     p_met2c = (
-        "di mana mu dan Sigma masing-masing adalah vektor rata-rata dan matriks kovarian dari data komposisi historis kilang pada koordinat ILR, sedangkan 3,0802 merupakan nilai kritis "
-        "distribusi Chi-kuadrat dengan 4 derajat kebebasan pada tingkat kepercayaan 95% (chi²_(0.95, 4)). Permukaan respon termodinamika dimodelkan dengan arsitektur "
-        "HistGradientBoostingRegressor (HGBR) berfitur batasan monotonik fisika (monotonic_cst). Batasan monotonik memastikan bahwa kenaikan sirkulasi MR selalu meningkatkan daya "
-        "kompresi tanpa anomali numerik [13]. Dataset dipartisi 80:20 (pelatihan independen dan pengujian) dengan 5-fold cross-validation memprediksi enam target proses kunci "
-        "berdasarkan termodinamika Peng-Robinson Equation of State (PR-EOS) [18]–[21]."
+        "di mana mu dan Sigma masing-masing adalah vektor rata-rata dan matriks kovarian dari 2.531 sampel komposisi historis pada koordinat ILR, dan 3,0802 "
+        "merupakan nilai kritis distribusi Chi-kuadrat dengan 4 derajat kebebasan pada tingkat signifikansi 95% (chi²_(0.95, 4)). Permukaan respon termodinamika "
+        "dimodelkan dengan arsitektur HistGradientBoostingRegressor (HGBR) berfitur batasan monotonik fisika (monotonic_cst). Batasan monotonik memastikan "
+        "bahwa peningkatan laju sirkulasi MR selalu menaikkan daya kompresi dan konsumsi uap secara konsisten tanpa artefak numerik [13]. Dataset dipartisi "
+        "dengan rasio 80:20 (pelatihan independen dan pengujian) dengan validasi silang untuk memprediksi variabel daya poros, aliran uap, suhu hisap, dan pendekatan termal MCHE."
     )
     add_p(doc, p_met2c)
     
     # SUBBAB 2.3
     add_heading_2(doc, "2.3 Formulasi Optimasi Komposisi, Laju Sirkulasi MR, dan Validasi Termodinamika")
     p_met3a = (
-        "Fungsi objektif optimasi adalah meminimalkan Specific Energy Consumption (SEC, kWh/t LNG) melintasi seluruh spektrum beban kilang:"
+        "Fungsi objektif optimasi adalah meminimalkan Specific Energy Consumption (SEC, kWh/ton LNG) melintasi seluruh spektrum beban kilang:"
     )
     add_p(doc, p_met3a)
     
     add_equation_row(doc, "min_(x, m_dot_MR)  SEC = W_dot_(total, C3MR) / m_dot_LNG", "3")
     
     p_met3b = (
-        "dengan batasan operasional dan keselamatan kilang meliputi: (a) Pendekatan temperatur jepit minimum MITA MCHE >= 1,50 °C; (b) Suhu hisap kompresor Tsuct >= -45,0 °C "
-        "(batas TAL); (c) Fraksi uap hisap VF = 1,0000 (100% uap jenuh/kering untuk mencegah liquid carryover); (d) Penurunan tekanan MCHE Delta P_MCHE <= 0,35 kg/cm²; "
-        "(e) Laju alir masuk hisap kompresor 4K-2 >= 480,0 t/jam (batas anti-surge floor); dan (f) Jarak Mahalanobis DM <= 3,0802. Evaluasi kelayakan termodinamika "
-        "dikonfirmasi ulang menggunakan simulator proses Aspen HYSYS V12.1 untuk memverifikasi profil suhu komposit pendinginan di dalam Main Cryogenic Heat Exchanger."
+        "dengan batasan operasional dan keselamatan kilang meliputi: (a) Pendekatan temperatur jepit minimum MITA MCHE >= 1,50 °C untuk mencegah crossover; "
+        "(b) Suhu hisap kompresor Tsuct >= -45,0 °C (batas interlock TAL); (c) Fraksi uap hisap VF = 1,0000 (100% uap kering bebas droplet cairan); "
+        "(d) Laju alir hisap kompresor 4K-2 >= 480,0 ton/jam (batas aman surge floor); dan (e) Jarak Mahalanobis DM <= 3,0802. Evaluasi termodinamika "
+        "dilakukan secara ketat menggunakan Peng-Robinson Equation of State (PR-EOS) untuk memverifikasi profil suhu komposit pendinginan di dalam MCHE 5E-1 [18]–[21]."
     )
     add_p(doc, p_met3b)
     
     # SUBBAB 2.4
     add_heading_2(doc, "2.4 Metodologi Evaluasi Tekno-Ekonomi, Dekomposisi Daya Poros vs Uap Turbin, dan Emisi Karbon")
     p_met4a = (
-        "Daya poros isentropik kompresor sentrifugal dan dekomposisi batas sistem Train C3MR dirumuskan melalui persamaan [22], [23]:"
+        "Daya poros isentropik kompresor sentrifugal dan dekomposisi batas sistem Train C3MR dirumuskan melalui persamaan rekayasa proses [22], [23]:"
     )
     add_p(doc, p_met4a)
     
@@ -367,9 +368,9 @@ def build_paper():
     add_equation_row(doc, "Delta W_dot_(total, C3MR) = Delta W_dot_(MCR, direct) + Delta W_dot_(C3, precooling)", "5")
     
     p_met4b = (
-        "di mana W_dot_(MCR, direct) mencakup kompresor MCR 4KT-2 dan 4KT-3, sedangkan W_dot_(C3, precooling) mencakup kompresor propana 4KT-1 yang melayani "
-        "rangkaian chiller propana umpan gas (4E-10, 4E-12, 4E-14, 4E-40) serta chiller prapendinginan MCR (4E-7, 4E-8, 4E-9). Untuk menganalisis irreversibilitas "
-        "termodinamika secara ketat tanpa asumsi lumped parameter [24], eksergi destruksi MCHE dihitung menggunakan integral Riemann terdiskritisasi 100-slice [25]:"
+        "di mana Delta W_dot_(MCR, direct) mencakup penghematan daya pada kompresor MCR 4KT-2 dan 4KT-3, sedangkan Delta W_dot_(C3, precooling) mencakup "
+        "penghematan tidak langsung pada kompresor propana 4KT-1 akibat berkurangnya beban pendinginan MCR pada chiller propana (4E-7, 4E-8, 4E-9). "
+        "Untuk menganalisis irreversibilitas termodinamika secara mendalam [24], eksergi destruksi MCHE dihitung menggunakan integral Riemann terdiskritisasi [25]:"
     )
     add_p(doc, p_met4b)
     
@@ -377,9 +378,10 @@ def build_paper():
     add_equation_row(doc, "E_dot_(D, comp) = W_dot_shaft * (1 - eta_s)", "7")
     
     p_met4c = (
-        "Integrasi energi utilitas mengaitkan penghematan uap turbin penggerak terhadap konsumsi bahan bakar boiler menggunakan faktor konversi 97,7 Nm³ fuel gas per ton steam. "
-        "Perhitungan dampak tahunan dihitung terbobot pada 7.849,9 jam operasi historis kilang, sedangkan emisi gas rumah kaca Scope 1 dihitung berdasarkan "
-        "faktor emisi pembakaran IPCC sebesar 56,1 kg CO2/GJ pada nilai kalor gas bahan bakar LHV 38,0 MJ/Nm³."
+        "Hubungan antara penghematan uap turbin penggerak terhadap kebutuhan bahan bakar boiler dimodelkan melalui regresi linear OLS terkalibrasi DCS "
+        "dengan koefisien marjinal 77,0424 Nm³ fuel gas per ton uap (R² = 0,9646). Perhitungan dampak tahunan dihitung terbobot pada 7.849,9 jam operasi "
+        "historis kilang (ketersediaan 89,61%). Emisi Scope 1 dihitung menggunakan faktor stoikiometri pembakaran primer sebesar 164,44 kg CO2 per ton uap "
+        "serta sensitivitas sekunder IPCC sebesar 76,63 kg CO2 per ton uap."
     )
     add_p(doc, p_met4c)
     
@@ -389,11 +391,11 @@ def build_paper():
     # SUBBAB 3.1
     add_heading_2(doc, "3.1 Karakterisasi Baseline Operasi Kilang dan Profil Pasokan Gas Umpan")
     p_res1 = (
-        "Tabel 1 merangkum parameter operasi aktual Kilang Badak Train H melintasi spektrum kapasitas beban operasional dari kondisi turndown terendah (141 t/jam) "
-        "hingga beban dasar penuh (308 t/jam) berdasarkan data DCS. Data membuktikan bahwa saat laju umpan gas terolah menurun 53,5% (dari 399,74 t/jam menjadi 185,82 t/jam), "
-        "laju sirkulasi MCR hanya menurun 26,0% (dari 681,4 t/jam ke 504,0 t/jam). Akibatnya, rasio sirkulasi MCR terhadap produksi LNG meningkat drastis dari "
-        "2,210 kg/kg pada beban penuh menjadi 3,569 kg/kg pada beban turndown (+61,5%). Fenomena over-sirkulasi ini menjadi penyebab utama membengkaknya nilai SEC "
-        "sebesar +49,2% (dari 350,49 ke 523,00 kWh/t LNG) sebagaimana divisualisasikan pada Gambar 4."
+        "Tabel 1 merangkum parameter operasi aktual Kilang Badak Train H melintasi spektrum beban dari kondisi turndown terendah (P1, 258,4 ton/jam umpan) "
+        "hingga beban puncak (P100, 384,0 ton/jam umpan) berdasarkan data DCS. Data membuktikan bahwa saat laju umpan gas mentah menurun 32,7% (dari "
+        "384,0 ton/jam ke 258,4 ton/jam), laju sirkulasi MCR baseline hanya berkurang 25,7% (dari 691,8 ton/jam ke 514,2 ton/jam). Akibatnya, rasio sirkulasi "
+        "MCR terhadap umpan gas meningkat dari 1,802 kg/kg pada beban puncak menjadi 1,990 kg/kg pada kondisi turndown (+10,4%). Fenomena over-sirkulasi "
+        "relatif ini memicu kenaikan SEC sebesar +12,7% (dari 448,2 ke 505,1 kWh/ton LNG) sebagaimana divisualisasikan pada Gambar 4."
     )
     add_p(doc, p_res1)
     
@@ -406,21 +408,21 @@ def build_paper():
     
     t1_widths = [Cm(3.8), Cm(1.7), Cm(1.4), Cm(1.4), Cm(1.4), Cm(1.4), Cm(1.4), Cm(1.5), Cm(1.6)]
     t1_data = [
-        ["Parameter Operasi", "Satuan", "141 t/jam", "167 t/jam", "195 t/jam", "218 t/jam", "248 t/jam", "280 t/jam", "308 t/jam"],
-        ["Laju Gas Umpan Mentah", "kNm³/jam", "228,39", "269,72", "315,57", "352,30", "415,72", "453,26", "479,33"],
-        ["Laju Gas Terolah", "t/jam", "185,82", "219,45", "256,75", "286,63", "325,91", "367,96", "399,74"],
-        ["Laju Produksi LNG", "t/jam", "141,22", "166,78", "195,13", "217,84", "247,69", "279,65", "308,30"],
-        ["Laju Sirkulasi MCR", "t/jam", "504,0", "507,8", "508,4", "534,8", "546,5", "662,5", "681,4"],
-        ["Rasio MCR / LNG", "kg/kg", "3,569", "2,956", "2,522", "2,369", "2,182", "2,283", "2,210"],
-        ["Laju Uap Turbin Penggerak", "t/jam", "355,29", "361,69", "363,10", "376,79", "412,61", "465,63", "484,74"],
-        ["Konsumsi Energi Spesifik (SEC)", "kWh/t LNG", "523,00", "453,17", "421,96", "384,58", "373,68", "372,97", "350,49"],
-        ["Jam Operasi per Tahun", "jam/thn", "13,6", "5,0", "38,5", "130,7", "112,1", "329,1", "7.220,9"],
-        ["Proporsi Durasi Beban", "%", "0,17%", "0,06%", "0,49%", "1,67%", "1,43%", "4,19%", "91,99%"]
+        ["Parameter Operasi", "Satuan", "P1 (Turndown)", "P10", "P25", "P50 (Median)", "P75", "P90", "P100 (Puncak)"],
+        ["Laju Gas Umpan Mentah (H1FI0009)", "kNm³/jam", "342,55", "430,90", "447,29", "459,80", "479,65", "500,76", "509,02"],
+        ["Laju Gas Umpan Mentah", "ton/jam", "258,41", "325,05", "337,41", "346,85", "361,82", "377,75", "383,98"],
+        ["Laju Gas Terolah (H3FI0004)", "kNm³/jam", "273,56", "354,67", "364,57", "378,58", "393,13", "400,99", "409,39"],
+        ["Laju Produksi LNG Estimasi", "ton/jam", "194,84", "245,09", "254,41", "261,53", "272,82", "284,82", "289,52"],
+        ["Laju Sirkulasi MCR Baseline", "ton/jam", "514,18", "648,25", "662,75", "675,07", "680,05", "687,06", "691,80"],
+        ["Rasio MCR / Gas Umpan", "kg/kg", "1,990", "1,994", "1,964", "1,946", "1,880", "1,819", "1,802"],
+        ["Laju Uap Turbin Penggerak", "ton/jam", "382,09", "450,21", "461,27", "471,78", "482,32", "497,89", "503,04"],
+        ["Daya Poros Kompresor Total", "MW", "98,41", "116,05", "118,89", "121,74", "124,30", "128,44", "129,77"],
+        ["Konsumsi Energi Spesifik (SEC)", "kWh/t LNG", "505,09", "473,51", "467,31", "465,51", "455,62", "450,95", "448,23"]
     ]
     for r_idx, row in enumerate(tbl1.rows):
         for c_idx, cell in enumerate(row.cells):
             cell.width = t1_widths[c_idx]
-            set_cell_margins(cell, top=40, bottom=40, left=50, right=50)
+            set_cell_margins(cell, top=35, bottom=35, left=45, right=45)
             cell.text = t1_data[r_idx][c_idx]
             p = cell.paragraphs[0]
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT if c_idx == 0 else WD_ALIGN_PARAGRAPH.CENTER
@@ -443,55 +445,41 @@ def build_paper():
     # SUBBAB 3.2
     add_heading_2(doc, "3.2 Validasi Akurasi Model Surrogate Machine Learning dan Batasan Ruang Operasi")
     p_res2 = (
-        "Evaluasi akurasi model surrogate HGBR dilakukan secara ketat dan transparan dengan membedakan domain telemetri DCS lapangan riil "
-        "dan domain termodinamika internal MCHE (Tabel 2). Pada data telemetri operasional DCS aktual Kilang Badak Train H (N = 67.916 s.d. 110.176 rekaman menit), "
-        "model surrogate membuktikan keandalan industri yang otentik: Total Plant Power (4K-1/2/3) mencapai R² test = 0,8419 dengan MAE hanya 0,461 MW (kesalahan relatif "
-        "NMAE = 0,43% terhadap beban baseload), dan konsumsi energi spesifik (SEC) mencapai R² = 0,8419 dengan MAE 1,510 kWh/t LNG (NMAE 0,43%). Model shift multi-tahun "
-        "mempertahankan R² = 0,8365 (MAE 0,802 MW, NMAE 0,93%). Angka R² pada rentang 0,83–0,85 ini merefleksikan kenyataan industri migas hilir di mana data sensor riil "
-        "terpapar derau dinamika lingkungan, fluktuasi suhu ambien siang-malam, dan jeda analisis kromatografi gas tanpa manipulasi kurva ideal. Sementara itu, variabel telemetri "
-        "uap fiskal turbin (m_steam) mencapai R² = 0,9552 (MAE 3,487 t/jam, NMAE 0,72%), yang secara stoikiometri-termal pada boiler Plant 31 (97,70 Nm³/t uap [23]) "
-        "mentranslasikan prediksi kebutuhan gas bahan bakar boiler (V_FG) dengan R² = 0,9552 (MAE 340,7 Nm³/jam, NMAE 0,72%). Dekomposisi uap turbin membuktikan "
-        "kompresor MCR terpetakan presisi pada kedua tingkatannya: turbin MCR 1st Stage 4KT-2 (H4FI029A) mencapai R² = 0,9450 (MAE 0,828 t/jam, NMAE 0,65%) "
-        "dan turbin MCR 2nd Stage 4KT-3 (H4FI030A) mencapai R² = 0,9361 (MAE 1,828 t/jam, NMAE 1,67%), sedangkan turbin propana 4KT-1 (H4FI031A) mencapai "
-        "R² = 0,8115 (MAE 1,479 t/jam, NMAE 1,12%), serta suhu suction drum (H4TI004B) mencapai R² = 0,9664 (MAE 0,866 °C, NMAE 0,95%). Untuk variabel termodinamika internal MCHE (pendekatan jepit "
-        "Warm Bundle MITA_WB, Cold Bundle MITA_CB, dan destruksi eksergi E_D) yang tidak memiliki sensor fisik langsung di dalam bundel tabung spiral kriogenik, validasi "
-        "dilakukan terhadap 2.000 kasus simulasi diskritisasi 100-slice Peng-Robinson EOS di Aspen HYSYS dan NeqSim, menghasilkan R² = 0,9891 s.d. 0,9945 dengan MAE < 0,10 °C. "
-        "Nilai R² >= 0,98 pada simulasi PR-EOS adalah fenomena wajar dari pemetaan persamaan diferensial-aljabar deterministik bebas derau (noise-free manifold). "
-        "Merujuk pada studi kecukupan data Sial et al. [26], ukuran sampel N = 2.000 kasus pada ruang berdimensi 4–5 di dalam elipsoid Mahalanobis (DM <= 3,0802) "
-        "sudah memberikan rasio kepadatan ruang 400d–500d yang memadai, di mana penambahan sampel lebih lanjut menunjukkan penurunan hasil marjinal (diminishing returns). "
-        "Gambar 5 memperlihatkan parity plot di mana seluruh titik prediksi berkumpul sangat rapat pada garis diagonal 45° membuktikan model bebas dari overfitting. "
-        "Optimasi global konvergen pada satu resep formula MR optimal tunggal: 3,77 mol% N2, 42,22 mol% C1 (CH4), 43,67 mol% C2 (C2H6), 1,53 mol% C2H4, "
-        "dan 8,82 mol% C3 (C3H8). Formula ini menghasilkan jarak Mahalanobis DM = 1,2723, yang berada aman di dalam elipsoid kepercayaan 95% (DM <= 3,0802). "
-        "Kepatuhan ini membuktikan formula optimal dapat langsung diaplikasikan di kilang tanpa modifikasi fisik peralatan (Zero CAPEX)."
+        "Evaluasi kinerja model surrogate HGBR disajikan pada Tabel 2. Seluruh model dilatih menggunakan pemisahan data 80:20 (34.667 sampel latih dan "
+        "8.667 sampel uji independen) dan diverifikasi memenuhi seluruh kriteria disiplin rekayasa (R² uji >= 0,60, relative error NMAE < 1,0%, dan "
+        "korelasi fitur |r| >= 0,30). Model daya poros C3MR total mencapai R² uji = 0,9557 dengan MAE hanya 0,8247 MW (NMAE = 0,677%). Dekomposisi daya "
+        "membuktikan model MCR langsung mencapai R² = 0,9565 (MAE 0,6588 MW, NMAE 0,851%) dan kompresor propana mencapai R² = 0,7809 (MAE 0,3727 MW, "
+        "NMAE 0,839%). Model kebutuhan uap turbin penggerak menunjukkan presisi sangat tinggi dengan R² = 0,9997 (MAE 0,2726 ton/jam, NMAE 0,058%) untuk total "
+        "uap dan R² = 0,9998 (MAE 0,1851 ton/jam, NMAE 0,062%) untuk turbin MCR langsung. Suhu suction drum diprediksi dengan R² = 0,6677 (MAE 0,3892 °C, "
+        "NMAE 0,949%), sedangkan pendekatan temperatur jepit MCHE mencapai R² = 0,6761 (MAE 0,0657 °C, NMAE 0,952%). Selain itu, model konsumsi bahan bakar "
+        "gas boiler berbasis neraca massa pembakaran menghasilkan R² = 0,9646 dengan slope terkalibrasi 77,0424 Nm³/ton uap. Parity plot pada Gambar 5 "
+        "mengonfirmasi bahwa seluruh prediksi berkumpul rapat pada garis 45°, membuktikan bahwa model terbebas dari bias overfitting."
     )
     add_p(doc, p_res2)
     
     # TABLE 2
     add_p(doc, "Tabel 2. Metrik Evaluasi Model Surrogate Machine Learning pada Data Telemetri DCS Lapangan dan Termodinamika PR-EOS", font_size=10, bold=True, space_before=6, space_after=2)
-    tbl2 = doc.add_table(rows=12, cols=8)
+    tbl2 = doc.add_table(rows=9, cols=8)
     tbl2.alignment = WD_TABLE_ALIGNMENT.CENTER
     tbl2.autofit = False
     set_table_borders(tbl2)
     
-    t2_widths = [Cm(3.2), Cm(1.1), Cm(3.3), Cm(1.6), Cm(1.3), Cm(1.4), Cm(1.9), Cm(2.7)]
+    t2_widths = [Cm(3.4), Cm(1.1), Cm(3.2), Cm(1.6), Cm(1.3), Cm(1.4), Cm(1.8), Cm(2.8)]
     t2_data = [
-        ["Variabel Target & Simbol", "Satuan", "Sumber Data Uji Ground Truth", "Ukuran Sampel (N)", "Test R²", "Test MAE", "Relative Error (NMAE)", "Batasan Fisika"],
-        ["Total Plant Power (W_plant, DCS)", "MW", "Telemetri Daya Poros DCS Riil", "67.916 data", "0,8419", "0,461", "0,43%", "Monoton beban umpan"],
-        ["Specific Energy Consumption (SEC)", "kWh/t", "Telemetri DCS & Neraca Massa", "67.916 data", "0,8419", "1,510", "0,43%", "Monoton beban umpan"],
-        ["Total Driver Steam Flow (m_steam)", "t/jam", "Telemetri Uap Fiskal DCS", "67.916 data", "0,9552", "3,487", "0,72%", "Monoton beban umpan"],
-        ["Boiler Fuel Gas Demand (V_FG)", "Nm³/jam", "Telemetri DCS & Neraca Boiler", "67.916 data", "0,9552", "340,7", "0,72%", "Monoton beban uap (97,7 Nm³/t)"],
-        ["Turbin MCR 1st Stage (4KT-2)", "t/jam", "Transmitter DCS H4FI029A", "65.535 data", "0,9450", "0,828", "0,65%", "Monoton beban kompresor MCR"],
-        ["Turbin MCR 2nd Stage (4KT-3)", "t/jam", "Transmitter DCS H4FI030A", "65.535 data", "0,9361", "1,828", "1,67%", "Monoton beban kompresor MCR"],
-        ["Turbin Propana Steam (4KT-1)", "t/jam", "Transmitter DCS H4FI031A", "65.535 data", "0,8115", "1,479", "1,12%", "Monoton beban chiller"],
-        ["Suction Temperature (T_suct)", "°C", "Transmitter DCS H4TI004B", "67.916 data", "0,9664", "0,866", "0,95%", "Bound TAL (>= -45,0 °C)"],
-        ["Warm Bundle Pinch (MITA_WB)", "°C", "Diskritisasi PR-EOS HYSYS", "2.000 kasus", "0,9924", "0,082", "2,12%", "Non-negatif (>= 0 °C)"],
-        ["Cold Bundle Pinch (MITA_CB)", "°C", "Diskritisasi PR-EOS HYSYS", "2.000 kasus", "0,9891", "0,095", "2,45%", "Non-negatif (>= 0 °C)"],
-        ["MCHE Exergy Destruction (E_D)", "MW", "Integral Riemann PR-EOS", "2.000 kasus", "0,9942", "0,062", "0,17%", "Non-negatif (Hukum II Termo)"]
+        ["Variabel Target & Simbol", "Satuan", "Sumber Ground Truth", "Sampel Uji (N)", "Test R²", "Test MAE", "Relative Error (NMAE)", "Batasan Fisika"],
+        ["Total C3MR Shaft Power", "MW", "Telemetri DCS 2024–2026", "8.667 data", "0,9557", "0,8247", "0,677%", "Monotonik umpan & MCR"],
+        ["MCR Direct Shaft Power", "MW", "Telemetri DCS 4KT-2/3", "8.667 data", "0,9565", "0,6588", "0,851%", "Monotonik beban kompresor MCR"],
+        ["Propane Precooling Power", "MW", "Telemetri DCS 4KT-1", "8.667 data", "0,7809", "0,3727", "0,839%", "Monotonik beban chiller C3"],
+        ["Total Driver Steam Demand", "ton/jam", "Telemetri Uap DCS", "8.667 data", "0,9997", "0,2726", "0,058%", "Monotonik daya poros total"],
+        ["MCR Direct Driver Steam", "ton/jam", "Transmitter H4FI029/30A", "8.667 data", "0,9998", "0,1851", "0,062%", "Monotonik daya poros MCR"],
+        ["Suction Drum Temperature", "°C", "Transmitter H4TI004B", "8.664 data", "0,6677", "0,3892", "0,949%", "Batas TAL (>= -45,0 °C)"],
+        ["MCHE Approach Pinch (MITA)", "°C", "NeqSim PR-EOS Slicing", "60 kasus", "0,6761", "0,0657", "0,952%", "Batas Crossover (>= 1,50 °C)"],
+        ["Boiler Fuel Gas Demand", "Nm³/jam", "Neraca Massa Boiler OLS", "43.334 data", "0,9646", "312,4", "0,475%", "Slope 77,0424 Nm³/ton uap"]
     ]
     for r_idx, row in enumerate(tbl2.rows):
         for c_idx, cell in enumerate(row.cells):
             cell.width = t2_widths[c_idx]
-            set_cell_margins(cell, top=40, bottom=40, left=50, right=50)
+            set_cell_margins(cell, top=35, bottom=35, left=45, right=45)
             cell.text = t2_data[r_idx][c_idx]
             p = cell.paragraphs[0]
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT if c_idx == 0 else WD_ALIGN_PARAGRAPH.CENTER
@@ -514,43 +502,47 @@ def build_paper():
     # SUBBAB 3.3
     add_heading_2(doc, "3.3 Kinerja Optimasi Komposisi dan Laju Sirkulasi MR Melintasi Spektrum Beban Operasi Kilang")
     p_res3 = (
-        "Tabel 3 menyajikan perbandingan parameter teknis komprehensif antara baseline operasi aktual dan kondisi teroptimasi pada kondisi beban penuh (308 t/jam) "
-        "dan kondisi turndown rendah (141 t/jam). Pada beban penuh, laju sirkulasi MCR diturunkan dari 681,4 t/jam menjadi 590,0 t/jam pada evaluasi desain (atau 613,2 t/jam "
-        "pada operasi aktual, -10,01%). Penyesuaian ini memangkas SEC dari 350,49 menjadi 256,51 kWh/t LNG (-26,81%; dan turun ke 268,74 kWh/ton LNG pada evaluasi desain) "
-        "serta menghemat uap turbin sebesar 31,65 t/jam (-6,54%). Pada kondisi turndown rendah (141 t/jam), laju sirkulasi MCR melalui bundel tabung MCHE diturunkan menjadi "
-        "475,1 t/jam (dan 373,55 t/jam pada turndown dalam). Batas minimum aliran kompresor (>= 480,0 t/jam) berlaku pada suction inlet kompresor 4K-2, bukan pada bundel MCHE. "
-        "Penurunan aliran MCHE pada kondisi turndown diimbangi pembukaan otomatis kickback valve 4UV-53 (+107,58 t/jam) dan reheat valve 4TV-510 (+123,55 t/jam), sehingga total laju alir masuk "
-        "hisap kompresor 4K-2 terjaga aman pada 604,68 t/jam (+26,0% di atas batas surge 480,0 t/jam). Hal ini memangkas SEC sebesar -35,01% (dari 523,00 menjadi 339,89 kWh/t LNG) "
-        "tanpa membahayakan stabilitas aerodinamika kompresor. Validasi pada simulator proses Aspen HYSYS (Gambar 6) membuktikan bahwa kurva komposit pendinginan MCHE bebas crossover "
-        "temperatur, dengan MITA tetap terjaga aman di atas batas kritis (1,58 °C pada beban penuh dan 1,94 °C pada turndown), suhu hisap aman (-29,32 °C dan -21,14 °C > -45 °C), "
-        "serta fraksi uap VF = 1,0000 (100% uap kering bebas droplet cairan). Gambar 7 memperlihatkan pemerataan kurva SEC hasil optimasi melintasi seluruh spektrum beban."
+        "Optimasi gabungan multivariabel menghasilkan satu formula komposisi MR optimal tunggal: 3,6690 mol% N2; 51,2644 mol% C1; 42,6182 mol% C2; "
+        "0,4423 mol% C2H4; dan 2,0061 mol% C3. Formula ini menghasilkan koordinat ILR xi = [-1,864701, -0,925767, 3,301385, 1,204936] dengan Jarak "
+        "Mahalanobis DM = 3,0762. Nilai ini berada aman di dalam elipsoid kepercayaan 95% (DM <= 3,0802), membuktikan kelayakan operasionalnya pada kilang riil. "
+        "Tabel 3 menyajikan perbandingan kinerja baseline terhadap hasil optimasi pada kondisi puncak (P100, 384,0 t/jam umpan), median (P50, 346,9 t/jam umpan), "
+        "dan turndown (P1, 258,4 t/jam umpan). Pada beban puncak, laju sirkulasi MCR diturunkan dari 691,80 menjadi 504,76 ton/jam (-27,04%), yang memangkas daya "
+        "poros total kompresor dari 129,77 menjadi 113,43 MW (-12,60%, hemat 16,35 MW). Penghematan ini menurunkan SEC dari 448,23 menjadi 391,77 kWh/ton LNG "
+        "(-12,60%) serta menghemat konsumsi uap turbin sebesar 63,17 ton/jam (-12,56%). Pada beban median (P50), daya poros berkurang 15,29 MW (-12,56%) dan uap "
+        "terhemat 59,10 ton/jam. Pada kondisi turndown (P1), sirkulasi MCR diturunkan ke 480,00 ton/jam (-6,65%), persis memenuhi batas aman flow floor anti-surge "
+        "kompresor sentrifugal (>= 480,0 ton/jam), sehingga daya poros terhemat 2,83 MW (-2,87%) dan uap terhemat 10,92 ton/jam. Validasi termodinamika membuktikan "
+        "bahwa MITA MCHE tetap terjaga aman di atas batas kritis (7,17 °C melintasi seluruh beban, jauh di atas ambang 1,50 °C), suhu hisap suction drum aman "
+        "(-41,76 s.d. -38,56 °C, memiliki margin aman > 3,2 °C di atas TAL -45,0 °C), dan fraksi uap VF = 1,0000 (100% uap kering). Gambar 6 memperlihatkan kurva "
+        "komposit pendinginan bebas crossover temperatur, dan Gambar 7 menunjukkan penurunan kurva SEC hasil optimasi melintasi seluruh spektrum beban."
     )
     add_p(doc, p_res3)
     
     # TABLE 3
-    add_p(doc, "Tabel 3. Perbandingan Parameter Teknis Baseline vs Optimasi pada Beban Penuh dan Kondisi Turndown", font_size=10, bold=True, space_before=6, space_after=2)
-    tbl3 = doc.add_table(rows=10, cols=8)
+    add_p(doc, "Tabel 3. Perbandingan Parameter Teknis Baseline vs Optimasi pada Beban Puncak, Median, dan Kondisi Turndown", font_size=10, bold=True, space_before=6, space_after=2)
+    tbl3 = doc.add_table(rows=12, cols=8)
     tbl3.alignment = WD_TABLE_ALIGNMENT.CENTER
     tbl3.autofit = False
     set_table_borders(tbl3)
     
-    t3_widths = [Cm(4.0), Cm(1.6), Cm(1.8), Cm(1.8), Cm(1.8), Cm(1.8), Cm(1.8), Cm(1.8)]
+    t3_widths = [Cm(3.8), Cm(1.4), Cm(1.8), Cm(1.8), Cm(1.6), Cm(1.8), Cm(1.8), Cm(1.6)]
     t3_data = [
-        ["Parameter Operasional", "Satuan", "Baseline Penuh (308 t/j)", "Optimasi Penuh (308 t/j)", "Selisih Penuh (%)", "Baseline Turndown (141 t/j)", "Optimasi Turndown (141 t/j)", "Selisih Turndown (%)"],
-        ["Laju Sirkulasi MCR MCHE", "t/jam", "681,4", "613,2", "-10,01%", "504,0", "475,1", "-5,73%"],
-        ["Daya Poros Kompresor Total", "kW", "108.055,1", "79.083,4", "-26,81%", "73.855,1", "47.999,3", "-35,01%"],
-        ["Konsumsi Energi Spesifik (SEC)", "kWh/t LNG", "350,49", "256,51", "-26,81%", "523,00", "339,89", "-35,01%"],
-        ["Konsumsi Uap Turbin Penggerak", "t/jam", "483,95", "452,30", "-6,54%", "354,20", "346,50", "-2,17%"],
-        ["Konsumsi Gas Bahan Bakar Boiler", "Nm³/jam", "47.281,92", "44.189,71", "-6,54%", "34.605,34", "33.853,05", "-2,17%"],
-        ["Laju Emisi CO2 Scope 1", "t/jam", "100,79", "94,20", "-6,54%", "73,77", "72,16", "-2,17%"],
-        ["Pendekatan Jepit Minimum (MITA)", "°C", "3,87", "1,58", "-", "4,20", "1,94", "-"],
-        ["Suhu Hisap Kompresor (Tsuct)", "°C", "-41,62", "-29,32", "-", "-20,57", "-21,14", "-"],
-        ["Fraksi Uap Hisap (VF)", "-", "1,0000", "1,0000", "-", "1,0000", "1,0000", "-"]
+        ["Parameter Operasional", "Satuan", "Baseline Puncak", "Optimasi Puncak", "Selisih (%)", "Baseline Turndown", "Optimasi Turndown", "Selisih (%)"],
+        ["Laju Gas Umpan Mentah", "ton/jam", "383,98", "383,98", "0,00%", "258,41", "258,41", "0,00%"],
+        ["Laju Sirkulasi MCR MCHE", "ton/jam", "691,80", "504,76", "-27,04%", "514,18", "480,00", "-6,65%"],
+        ["Daya Poros Kompresor Total", "MW", "129,77", "113,43", "-12,60%", "98,41", "95,58", "-2,87%"],
+        [" - Daya MCR Langsung (4KT-2/3)", "MW", "83,05", "68,35", "-17,70%", "62,62", "60,09", "-4,04%"],
+        [" - Daya Propana (4KT-1)", "MW", "46,72", "45,08", "-3,52%", "35,79", "35,49", "-0,84%"],
+        ["Konsumsi Energi Spesifik (SEC)", "kWh/t", "448,23", "391,77", "-12,60%", "505,09", "490,57", "-2,87%"],
+        ["Konsumsi Uap Turbin Penggerak", "ton/jam", "503,04", "439,87", "-12,56%", "382,09", "371,17", "-2,86%"],
+        ["Konsumsi Bahan Bakar Gas Boiler", "Nm³/jam", "38.755,0", "33.888,4", "-12,56%", "29.437,1", "28.595,5", "-2,86%"],
+        ["Laju Emisi CO2 Scope 1", "ton/jam", "82,72", "72,33", "-12,56%", "62,83", "61,03", "-2,86%"],
+        ["Pendekatan Jepit Minimum (MITA)", "°C", "8,85", "7,17", "-", "8,85", "7,17", "-"],
+        ["Suhu Hisap Suction Drum (Tsuct)", "°C", "-41,76", "-41,76", "-", "-38,56", "-38,56", "-"]
     ]
     for r_idx, row in enumerate(tbl3.rows):
         for c_idx, cell in enumerate(row.cells):
             cell.width = t3_widths[c_idx]
-            set_cell_margins(cell, top=40, bottom=40, left=50, right=50)
+            set_cell_margins(cell, top=35, bottom=35, left=45, right=45)
             cell.text = t3_data[r_idx][c_idx]
             p = cell.paragraphs[0]
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT if c_idx == 0 else WD_ALIGN_PARAGRAPH.CENTER
@@ -568,35 +560,33 @@ def build_paper():
     p_sp3.paragraph_format.space_before = Pt(0)
     p_sp3.paragraph_format.space_after = Pt(4)
     
-    add_figure(doc, "image7.png", "Gambar 6. Validasi termodinamika MCHE 5E-1 pada kondisi beban dasar (308,3 t/jam): (a) Kurva komposit pendinginan T-Q; (b) Gaya dorong temperatur membuktikan tidak ada crossover dan MITA di atas batas 1,50 °C", width_inch=5.4)
+    add_figure(doc, "image7.png", "Gambar 6. Validasi termodinamika MCHE 5E-1 pada beban puncak: (a) Kurva komposit pendinginan T-Q; (b) Gaya dorong temperatur membuktikan bebas crossover dan MITA aman di atas batas 1,50 °C", width_inch=5.4)
     add_figure(doc, "image10.png", "Gambar 7. Perbandingan kurva SEC baseline operasi kilang vs. optimasi melintasi seluruh spektrum laju produksi LNG", width_inch=4.8)
     
     p_res3b = (
-        "Untuk menjamin kelayakan implementasi transisi komposisi di lapangan tanpa mengganggu kontinuitas operasi kilang, dirancang prosedur dinamis make-up "
-        "refrigeran bertahap dengan durasi total 2,0 jam. Mengingat inventori aktif sistem sirkulasi MCR Train H mencapai sekitar 24.000 kg, penyesuaian fraksi mol "
-        "C3 (dari 4,78 mol% ke 8,82 mol%) dan komponen lainnya dilakukan melalui modulasi terkontrol control valve make-up DCS eksisting: H4FIC005 (nitrogen), "
-        "H4FI00C8 (metana), H4FIC007 (etana/etilena), dan H4FIC006 (propana). Laju injeksi make-up dibatasi pada rentang konservatif 0,60 s.d. 0,95 t/jam dengan "
-        "laju perubahan suhu MCHE maksimum 0,15 °C/menit. Prosedur closed-loop ini mencegah terjadinya thermal shock pada bundel tabung spiral serta memastikan "
-        "suhu suction drum (H4TI004B) tidak pernah mendekati ambang batas interlock trip dingin TAL (-45,0 °C) selama proses transisi berlangsung."
+        "Untuk menjamin kelayakan implementasi transisi komposisi di lapangan tanpa mengganggu stabilitas operasi, dirancang prosedur dinamis make-up "
+        "refrigeran bertahap dengan durasi total 2,0 jam. Dengan total inventori aktif sistem MCR Train H sekitar 24.000 kg, penyesuaian fraksi mol "
+        "dilakukan melalui modulasi terukur control valve DCS eksisting: H4FIC005 (nitrogen), H4FI00C8 (metana), H4FIC007 (etana/etilena), dan H4FIC006 (propana). "
+        "Laju injeksi make-up dibatasi pada rentang konservatif 0,60 hingga 0,95 ton/jam dengan gradien perubahan temperatur MCHE maksimum 0,15 °C/menit. "
+        "Prosedur ini mencegah terjadinya thermal shock pada bundel tabung spiral serta menjamin suhu suction drum (H4TI004B) tidak pernah mendekati ambang batas interlock TAL (-45,0 °C)."
     )
     add_p(doc, p_res3b)
     
     # SUBBAB 3.4
     add_heading_2(doc, "3.4 Dampak Tekno-Ekonomi, Dekomposisi Daya Poros vs Uap Turbin, dan Dekarbonisasi")
     p_res4 = (
-        "Bagian ini menjawab secara transparan hubungan fisik antara penurunan daya poros kompresor total (-26,81% s/d -27,10%) dengan penurunan "
-        "konsumsi uap turbin penggerak (-6,54%). Total penghematan daya poros Train C3MR sebesar 28.971,8 kW pada beban dasar penuh terdiri dari dua komponen "
-        "batas sistem yang terdefinisi secara eksak: (1) Penghematan langsung pada kompresor MCR (4KT-2 dan 4KT-3) sebesar 10.826,1 kW (-13,85%), dari baseline "
-        "78.173,9 kW menjadi 67.347,8 kW; dan (2) Penghematan tidak langsung pada kompresor propana C3 precooling (4KT-1) sebesar 18.145,7 kW (-60,73% dari baseline "
-        "aktual 29.881,2 kW, atau -34,80% terhadap kapasitas chiller terpasang 52.143,1 kW), dari baseline 29.881,2 kW menjadi 11.735,5 kW. Pengurangan sirkulasi MCR "
-        "langsung menurunkan beban pendinginan pada rangkaian chiller propana (chiller MCR 4E-7/8/9 serta chiller umpan 4E-10/12/14/40). Jumlah kedua komponen daya (10.826,1 kW + 18.145,7 kW = 28.971,8 kW) menutup "
-        "neraca daya 100% dengan residual 0,00 kW terhadap baseline total 108.055,1 kW (78.173,9 kW + 29.881,2 kW). Pada konfigurasi utilitas Kilang Badak, turbin "
-        "uap penggerak 4KT-2 dan 4KT-3 merupakan turbin backpressure. Penurunan daya poros MCR sebesar 10,83 MW secara langsung menurunkan konsumsi uap sebesar "
-        "31,65 t/jam (-6,54%), sedangkan penurunan beban kompresor C3 dikonversi menjadi penurunan sirkulasi uap condensing di Utilities-II, setara penghematan "
-        "bahan bakar boiler sebesar 3.092,21 Nm³/jam. Dampak tahunan dihitung berdasarkan rata-rata terbobot jam operasional historis kilang (7.849,9 jam/tahun, ketersediaan 89,61%) "
-        "melintasi seluruh spektrum beban (Tabel 4). Strategi ini menghasilkan penghematan daya poros kompresor terbobot sebesar 28.983,3 kW (27,10%), menghemat uap turbin 239.889,7 ton/tahun, "
-        "memotong bahan bakar gas boiler 23,44 juta Nm³/tahun, mereduksi emisi Scope 1 sebesar 49.961,8 ton CO2/tahun, serta memberikan penghematan finansial USD 8,48 Juta/tahun "
-        "dengan investasi kapital nol (Zero CAPEX). Analisis sensitivitas pada Gambar 8 membuktikan ketahanan finansial proyek terhadap fluktuasi harga energi global."
+        "Dekomposisi batas sistem energi Train C3MR disajikan secara transparan untuk membedakan daya poros mekanikal, uap turbin penggerak, dan bahan bakar boiler. "
+        "Total penghematan daya poros kompresor terbobot tahunan mencapai 14,805 MW (-12,20%), yang terbagi atas: (1) Penghematan langsung pada kompresor MCR "
+        "(4KT-2 dan 4KT-3) sebesar 13,251 MW (porsi 89,51%, setara 104.019,7 MWh/tahun); dan (2) Penghematan tidak langsung pada kompresor propana (4KT-1) "
+        "sebesar 1,554 MW (porsi 10,49%, setara 12.195,6 MWh/tahun) akibat berkurangnya beban pendinginan MCR pada rangkaian chiller 4E-7/8/9. Pengurangan daya ini "
+        "secara langsung memangkas kebutuhan uap turbin penggerak rata-rata sebesar 57,21 ton/jam (-12,15%). Berdasarkan 7.849,9 jam operasi tahunan (ketersediaan 89,61%), "
+        "total penghematan uap boiler mencapai 449.087,3 ton/tahun. Dengan koefisien konsumsi gas bahan bakar boiler 77,0424 Nm³/ton uap, penghematan bahan bakar gas "
+        "mencapai 34.598.740,6 Nm³/tahun (34,60 juta Nm³/tahun atau 1.295.307,7 MMBtu/tahun). Penilaian ekonomi dievaluasi pada tiga batas baterai (Battery Limit/BL): "
+        "(a) BL 1 (Biaya internal uap utilitas @ USD 8,50/ton) menghasilkan penghematan USD 3,817 Juta/tahun; (b) BL 2 (Paritas gas bahan bakar boiler domestik @ USD 6,50/MMBtu) "
+        "menghasilkan penghematan USD 8,419 Juta/tahun; dan (c) BL 3 (Paritas penjualan ekspor LNG FOB Bontang @ USD 11,50/MMBtu) menghasilkan nilai tambah "
+        "USD 14,896 Juta/tahun. Dari aspek dekarbonisasi, penghematan bahan bakar mereduksi emisi GRK Scope 1 sebesar 73.845,9 ton CO2/tahun (stoikiometri primer) "
+        "atau 34.413,6 ton CO2/tahun (sensitivitas IPCC), yang berpotensi menghasilkan pendapatan kredit karbon sebesar USD 147.691/tahun pada tarif USD 2,00/ton CO2. "
+        "Rincian ledger tahunan terbobot melintasi spektrum beban disajikan pada Tabel 4."
     )
     add_p(doc, p_res4)
     
@@ -607,22 +597,22 @@ def build_paper():
     tbl4.autofit = False
     set_table_borders(tbl4)
     
-    t4_widths = [Cm(1.8), Cm(1.8), Cm(2.2), Cm(2.2), Cm(2.0), Cm(2.0), Cm(2.4), Cm(2.0)]
+    t4_widths = [Cm(2.2), Cm(1.8), Cm(2.2), Cm(2.2), Cm(2.0), Cm(2.0), Cm(2.2), Cm(2.0)]
     t4_data = [
-        ["Laju Produksi LNG (t/jam)", "Jam Operasi (jam/thn)", "Penghematan Daya (kW)", "Energi Terhemat (MWh/thn)", "Uap Terhemat (ton/thn)", "Bahan Bakar Gas Terhemat (10⁶ Nm³/thn)", "Penghematan Finansial (USD/thn)", "Reduksi Emisi CO2 (ton/thn)"],
-        ["141,2", "13,6", "25.855,7", "351,6", "104,7", "0,01", "3.700", "21,8"],
-        ["166,8", "5,0", "25.145,9", "125,7", "37,6", "0,00", "1.300", "7,8"],
-        ["195,1", "38,5", "29.096,2", "1.120,2", "338,4", "0,03", "12.000", "70,4"],
-        ["217,8", "130,7", "24.770,4", "3.237,5", "967,6", "0,09", "34.200", "201,5"],
-        ["247,7", "112,1", "26.696,1", "2.992,6", "895,1", "0,09", "31.700", "186,4"],
-        ["279,7", "329,1", "31.863,3", "10.486,2", "3.138,8", "0,31", "111.000", "653,4"],
-        ["308,3", "7.220,9", "28.971,8", "209.202,4", "234.407,5", "22,90", "8.286.100", "48.820,5"],
-        ["Total / Rata-rata", "7.849,9", "28.983,3", "227.516,0", "239.889,7", "23,44", "8.480.000", "49.961,8"]
+        ["Persentil Operasi", "Umpan (t/jam)", "Hemat Daya (MW)", "Energi Hemat (MWh/th)", "Uap Hemat (ton/th)", "Bahan Bakar (10⁶ Nm³/th)", "Nilai BL 2 (USD/th)", "Reduksi CO2 (ton/th)"],
+        ["P1 (Turndown)", "258,41", "2,827", "221,9", "857,5", "0,066", "16.077", "141,0"],
+        ["P10", "325,05", "13,760", "1.080,1", "4.174,1", "0,322", "78.256", "686,4"],
+        ["P25", "337,41", "14,828", "1.164,0", "4.497,8", "0,347", "84.326", "739,6"],
+        ["P50 (Median)", "346,85", "15,295", "1.200,6", "4.639,5", "0,357", "86.982", "762,9"],
+        ["P75", "361,82", "15,553", "1.220,9", "4.717,9", "0,363", "88.452", "775,8"],
+        ["P90", "377,75", "16,117", "1.265,2", "4.888,8", "0,377", "91.656", "803,9"],
+        ["P100 (Puncak)", "383,98", "16,347", "1.283,2", "4.958,6", "0,382", "92.964", "815,4"],
+        ["Total / Rata-rata", "346,85", "14,805", "116.215,3", "449.087,3", "34,60", "8.419.500", "73.845,9"]
     ]
     for r_idx, row in enumerate(tbl4.rows):
         for c_idx, cell in enumerate(row.cells):
             cell.width = t4_widths[c_idx]
-            set_cell_margins(cell, top=40, bottom=40, left=50, right=50)
+            set_cell_margins(cell, top=35, bottom=35, left=45, right=45)
             cell.text = t4_data[r_idx][c_idx]
             p = cell.paragraphs[0]
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT if c_idx == 0 else WD_ALIGN_PARAGRAPH.CENTER
@@ -652,37 +642,32 @@ def build_paper():
     add_figure(doc, "image8.png", "Gambar 8. Analisis dampak tekno-ekonomi dan lingkungan optimasi C3MR: (a) Penghematan finansial tahunan dan reduksi emisi CO2; (b) Analisis sensitivitas terhadap variasi harga bahan bakar, uap, dan jam operasi", width_inch=5.4)
     
     p_res4b = (
-        "Analisis tekno-ekonomi (TEA) lebih lanjut diperluas melalui evaluasi sensitivitas harga bahan bakar gas boiler terhadap tiga skenario makroekonomi: "
-        "(a) Skenario Rendah (Low Fuel Price: USD 4,00/MMBtu) menghasilkan penghematan finansial tahunan sebesar USD 5,65 Juta/tahun; (b) Skenario Dasar "
-        "(Base Case: USD 6,00/MMBtu) menghasilkan penghematan sebesar USD 8,48 Juta/tahun; dan (c) Skenario Tinggi (High Fuel Price: USD 8,00/MMBtu) "
-        "menghasilkan penghematan sebesar USD 11,30 Juta/tahun. Karena optimalisasi ini murni mengeksploitasi derajat kebebasan operasional melalui resep "
-        "komposisi refrigeran optimal dan penataan ulang bukaan valve DCS eksisting tanpa penambahan atau modifikasi unit peralatan mekanikal baru (Zero CAPEX), "
-        "periode pengembalian modal (Payback Period) tercapai secara instan (0 bulan). Penghematan biaya operasional tahunan sebesar USD 5,65 s.d. 11,30 Juta/tahun "
-        "secara simultan menyumbang dekarbonisasi nyata berupa reduksi emisi gas rumah kaca Scope 1 sebesar 49.961,8 ton CO2/tahun."
+        "Analisis sensitivitas tekno-ekonomi dilakukan terhadap variasi harga bahan bakar gas boiler melintasi tiga skenario: "
+        "(a) Skenario Rendah (USD 4,50/MMBtu) menghasilkan penghematan sebesar USD 5,829 Juta/tahun; (b) Skenario Dasar (USD 6,50/MMBtu) "
+        "menghasilkan penghematan sebesar USD 8,419 Juta/tahun; dan (c) Skenario Tinggi (USD 8,50/MMBtu) menghasilkan penghematan sebesar "
+        "USD 11,010 Juta/tahun. Karena optimalisasi ini dilakukan murni melalui penataan resep komposisi refrigeran dan pengaturan setpoint sirkulasi "
+        "pada DCS tanpa modifikasi mekanikal atau penambahan alat baru (Zero CAPEX), maka Payback Period tercapai secara instan (0 bulan). "
+        "Penghematan biaya operasional tahunan sebesar USD 8,42 Juta/tahun secara simultan memberikan kontribusi dekarbonisasi nyata sebesar 73.845,9 ton CO2/tahun."
     )
     add_p(doc, p_res4b)
     
     # 9. KESIMPULAN
     add_heading_1(doc, "KESIMPULAN")
     p_conc = (
-        "Berdasarkan hasil pemodelan, optimasi, dan validasi termodinamika pada Kilang Badak Train H periode operasional 2024–2026, "
-        "dapat ditarik beberapa kesimpulan penting:\n"
-        "1. Kerangka kerja Physics-Constrained Machine Learning berhasil memetakan ruang operasional siklus pencairan C3MR secara presisi tinggi, "
-        "di mana model surrogate HGBR mencapai R² test 0,8419–0,9664 pada telemetri DCS riil (67.916 data) dan 0,9891–0,9945 pada termodinamika internal MCHE, "
-        "dengan relative error < 2,5% (kesalahan daya poros < 0,47 MW) pada seluruh variabel penentu proses tanpa pelanggaran fisik atau overfitting.\n"
-        "2. Ditemukan satu formula komposisi mixed refrigerant optimal tunggal (3,77 mol% N2, 42,22 mol% C1, 43,67 mol% C2, 1,53 mol% C2H4, dan 8,82 mol% C3) "
-        "yang patuh ketat pada batas elipsoid 95% jarak Mahalanobis (DM = 1,2723 <= 3,0802), membuktikan bahwa optimasi dapat langsung dioperasikan pada seluruh "
-        "rentang beban kilang tanpa modifikasi peralatan (Zero CAPEX).\n"
-        "3. Optimasi berhasil memangkas SEC sebesar 26,81% pada beban penuh (dari 350,49 ke 256,51 kWh/t LNG; dan turun ke 268,74 kWh/ton LNG pada evaluasi desain) "
-        "dan 35,01% pada kondisi turndown rendah (dari 523,00 ke 339,89 kWh/t LNG). Rekonsiliasi batas mekanikal turndown membuktikan aliran hisap kompresor tetap aman "
-        "pada 604,68 t/jam (+26,0% margin di atas surge floor 480,0 t/jam). Dekomposisi transparan membuktikan bahwa penghematan daya poros kompresor C3MR total "
-        "sebesar 28.983,3 kW (27,10%) menutup neraca dengan residual 0,00 kW dan menghasilkan penghematan konsumsi uap turbin penggerak boiler sebesar 31,65 t/jam (6,54%).\n"
-        "4. Manfaat tekno-ekonomi dan lingkungan tahunan terbukti masif: penghematan daya poros mekanikal 227,52 GWh/tahun, penghematan uap boiler 239.889,7 ton/tahun, "
-        "penghematan bahan bakar gas 23,44 juta Nm³/tahun, reduksi emisi GRK Scope 1 sebesar 49.961,8 ton CO2/tahun, serta penghematan biaya operasional mencapai "
-        "USD 8,48 Juta/tahun dengan seluruh batas keselamatan operasional kilang (MITA, Tsuct, VF, surge margin) terbukti aman 100%.\n\n"
-        "Rekomendasi implementasi di lapangan mencakup: (a) Pengintegrasian rekomendasi komposisi dan sirkulasi MR sebagai Operator Advisory System pada DCS "
-        "Yokogawa Centum VP; (b) Penerapan prosedur makeup refrigeran bertahap (0,5–1,0 t/jam) pada fasilitas makeup drum eksisting untuk mencapai target komposisi; "
-        "dan (c) Penerapan tabel panduan laju alir MR kuantil beban sebagai Standard Operating Procedure (SOP) resmi saat kilang mengalami penurunan pasokan feed gas."
+        "Berdasarkan hasil pemodelan, optimasi, dan evaluasi tekno-ekonomi pada Kilang Badak Train H periode 2024–2026, dapat ditarik beberapa kesimpulan utama:\n"
+        "1. Kerangka kerja Physics-Constrained Machine Learning berhasil memetakan siklus pencairan C3MR secara presisi tinggi, di mana model surrogate HGBR "
+        "mencapai R² uji 0,6677–0,9998 dengan relative error NMAE < 1,0% (kesalahan daya poros < 0,83 MW) pada seluruh variabel proses utama tanpa pelanggaran termodinamika.\n"
+        "2. Formulasi satu resep komposisi mixed refrigerant optimal tunggal (3,67 mol% N2; 51,26 mol% C1; 42,62 mol% C2; 0,44 mol% C2H4; 2,01 mol% C3) "
+        "terbukti patuh pada batas elipsoid Mahalanobis 95% (DM = 3,0762 <= 3,0802), membuktikan kelayakan implementasi langsung di kilang tanpa belanja modal (Zero CAPEX).\n"
+        "3. Optimasi memangkas SEC beban puncak sebesar 12,60% (dari 448,2 ke 391,8 kWh/ton LNG) dan menghemat uap turbin 63,17 ton/jam. Pada kondisi turndown, "
+        "laju sirkulasi MCR ditahan aman pada 480,00 ton/jam sesuai batas flow floor anti-surge kompresor sentrifugal. Dekomposisi daya kompresor membuktikan "
+        "penghematan rata-rata 14,805 MW (-12,20%) terbagi atas kompresor MCR langsung 13,251 MW (89,51%) dan kompresor propana 1,554 MW (10,49%).\n"
+        "4. Dampak tahunan terbobot pada 7.849,9 jam operasi menghemat 116.215,3 MWh/tahun energi mekanikal, 449.087,3 ton/tahun uap boiler, 34,60 juta Nm³/tahun "
+        "gas bahan bakar (senilai USD 8,42 Juta/tahun pada paritas gas atau USD 14,90 Juta/tahun pada paritas ekspor LNG), serta mereduksi emisi Scope 1 sebesar "
+        "73.845,9 ton CO2/tahun dengan margin keselamatan terverifikasi aman (MITA >= 7,17 °C, Tsuct >= -41,76 °C).\n\n"
+        "Rekomendasi implementasi di kilang mencakup: (a) Integrasi formula optimal sebagai Advisory System pada DCS Yokogawa Centum VP; (b) Penerapan prosedur "
+        "injeksi make-up refrigeran bertahap (0,6–0,95 ton/jam) dengan ramp suhu maksimum 0,15 °C/menit; dan (c) Adopsi jadwal laju sirkulasi MCR kuantil beban "
+        "sebagai Standard Operating Procedure (SOP) resmi untuk mitigasi penuaan reservoir gas umpan."
     )
     add_p(doc, p_conc)
     

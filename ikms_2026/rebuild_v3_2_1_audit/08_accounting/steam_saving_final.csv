@@ -1,0 +1,6 @@
+candidate_id,label,power_savings_GWh,weighted_steam_rate_t_MWh,annual_motive_steam_saving_kt_yr,steam_accounting_type,direct_metering_available,closure_status
+Candidate A,Rebuild v3 Optimizer Boundary,20.06,4.193,84.11,ENERGY_EQUIVALENT_CONVERSION (Derived via IAPWS-IF97 enthalpy drop),False,EXACT
+Candidate B,Balanced Industrial Operating Point,16.85,4.193,70.65,ENERGY_EQUIVALENT_CONVERSION (Derived via IAPWS-IF97 enthalpy drop),False,EXACT
+Candidate C,Conservative Interior Point,13.4,4.193,56.19,ENERGY_EQUIVALENT_CONVERSION (Derived via IAPWS-IF97 enthalpy drop),False,EXACT
+Candidate D,Historical Plant Baseline,0.0,4.193,0.0,ENERGY_EQUIVALENT_CONVERSION (Derived via IAPWS-IF97 enthalpy drop),False,EXACT
+Candidate R,Robust Feasible Benchmark (P_viol <= 5%),13.92,4.193,58.37,ENERGY_EQUIVALENT_CONVERSION (Derived via IAPWS-IF97 enthalpy drop),False,EXACT

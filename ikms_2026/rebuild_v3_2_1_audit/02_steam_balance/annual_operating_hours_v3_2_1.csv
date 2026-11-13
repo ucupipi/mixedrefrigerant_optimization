@@ -1,0 +1,6 @@
+parameter,value,unit,engineering_definition
+Calendar Year Duration,8760.0,hours/yr,Standard non-leap calendar year (365.0 days)
+Annual Operating Stream Hours,7849.61,hours/yr,Active LNG production hours with feed gas admitted to Train H
+Plant Availability Factor,89.61,%,"7,849.61 / 8,760.0 = 89.55% availability"
+Annual Stream Days,327.07,days/yr,327.07 on-stream operating days
+Turnaround & Outage Allocation,910.39,hours/yr,"37.93 days/yr (910.39 hours) allocated to major inspection, decoking, and trip outages"

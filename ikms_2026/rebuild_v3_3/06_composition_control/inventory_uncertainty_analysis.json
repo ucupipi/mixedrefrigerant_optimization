@@ -1,0 +1,26 @@
+{
+  "circuit_inventory_kg_nominal": 52500.0,
+  "circuit_inventory_range_kg": [
+    45000.0,
+    60000.0
+  ],
+  "mcr_circulation_rate_mean_th": 553.2,
+  "single_circuit_turnover_time_minutes": 5.69,
+  "complete_mixing_stabilization_time_hours": [
+    2.0,
+    4.0
+  ],
+  "laboratory_gc_sampling_frequency": "Every 8 hours (3x per day, per shift)",
+  "gc_instrument_repeatability_mol_pct": 0.15,
+  "candidate_R_composition_margin_vs_uncertainty": {
+    "N2_shift_pct": 0.73,
+    "C1_shift_pct": 0.28,
+    "C2_shift_pct": 0.0,
+    "C3_shift_pct": 0.0,
+    "detectable_above_3sigma_gc": true
+  },
+  "zero_capex_verdict": {
+    "Candidate_R": "VALID. Recipe adjustment (+0.73% N2, +0.28% C1, 0.00% C2/C3 shift) can be executed using manual setpoint trim via existing DCS block valves.",
+    "Candidate_B": "REFUTED. Operating margin of 0.345 C is narrower than sensor uncertainty (u_c = 0.622 C), requiring $325,000 supervisory APC and fast online GC."
+  }
+}

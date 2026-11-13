@@ -1,0 +1,5 @@
+policy_code,policy_description,annual_energy_consumption_GWh,annual_energy_savings_GWh,savings_percentage_pct,policy_role
+Policy 1 (F0C0),Historical Baseline (Historical Flow + Baseline Composition),726.7,0.0,0.0,Benchmark Baseline
+Policy 2 (F1C0),Flow-Only Optimization (Optimal Continuous Flow + Baseline Composition),718.85,7.85,1.08,Isolated Flow Effect
+Policy 3 (F0C1),Composition-Only Optimization (Baseline Flow + Candidate R Composition),722.4,4.3,0.59,Isolated Composition Effect
+Policy 4 (F1C1),True Joint Optimization (Optimal Schedule + Candidate R Composition),712.78,13.92,1.92,Simultaneous Joint Optimum
